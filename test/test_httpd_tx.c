@@ -108,7 +108,7 @@ void clear_command_history(void) { }
 void udp_callbacks(void) { }
 void tcpip_output(void) { }
 void get_random_32(void) { }
-void read_reg_timer(uint32_t *tmr) { *tmr = 0; }
+void read_timer(uint32_t *tmr) { *tmr = 0; }
 
 /* uip-conf.h asks uIP not to define the packet buffer: on the switch it lives
  * at a fixed XDATA address, so the bench provides the storage itself. */
