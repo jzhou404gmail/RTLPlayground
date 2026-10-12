@@ -437,10 +437,23 @@ __code const struct machine machine = {
 		    },
 };
 
-#elif defined MACHINE_SWTGW218AS
-
+#elif defined(MACHINE_SWTGW218AS) || defined(MACHINE_SKS3200M_8GPY1XF)
+/*
+ * SWTG118AS-V2.x - 8 x 2.5GBASE-T + 1 x SFP+ (RTL8373 + RTL8224). Sold as
+ * Mokerlink/Horaco/Sodola ZX-SWTGW218AS on SWTG118AS-V2.0-16029 and as XikeStor
+ * SKS3200-8E1X / SKS3200M-8GPY1XF on SWTG118AS-V2.1-17462. Both revisions take
+ * the same wiring, so they share this block and differ in how they name the
+ * board: the XikeStor target puts the PCB revision in .machine_name and the
+ * retail model in .model_name, which the web UI shows as 硬件 (hardware) and
+ * 型号 (model).
+ */
 __code const struct machine machine = {
+#if defined(MACHINE_SKS3200M_8GPY1XF)
+	.machine_name = "PCB-SWTG118AS-V2.1",
+	.model_name = "SKS3200M-8GPY1XF",
+#else
 	.machine_name = "SWTGW218AS 8+1 Managed Switch",
+#endif
 	.isRTL8373 = 1,
 	.mac_flash_offset = 0x1FC000,
 	.min_port = 0,
@@ -857,6 +870,9 @@ __code const struct machine machine = {
  * sold as Hisource Hi-K0801WS (the revision that doc/devices/HI-K0801WS.md documents
  * as PCB-K0801W-V2.0).
  *
+ * The retail model reported by .model_name (the 型号 line in the web UI) is
+ * SFP-J08E-HG1.
+ *
  * *** EXPERIMENTAL / NOT YET VERIFIED ON HARDWARE ***
  *
  * No photo, dump or measurement of a V1.0 board exists yet, so every parameter
@@ -874,6 +890,7 @@ __code const struct machine machine = {
  */
 __code const struct machine machine = {
     .machine_name = "PCB-K0801W-V1.0",
+    .model_name = "SFP-J08E-HG1",
     .isRTL8373 = 1,                     /* TODO: confirm 'Detecting CPU: RTL8373' */
     .min_port = 0,
     .max_port = 8,
@@ -986,6 +1003,9 @@ __code const struct machine machine = {
  * Hisource Hi-L0402WS. 4 x 2.5GBASE-T + 2 x SFP+, 1 x 2 MiB SPI NOR (U2,
  * BeyoMicro 25Q16BS), SoC under the heatsink.
  *
+ * The retail model reported by .model_name (the 型号 line in the web UI) is
+ * Hi-K0402WS.
+ *
  * *** EXPERIMENTAL / NOT YET VERIFIED ON HARDWARE ***
  *
  * The parameters below are copied from the nearest documented sibling,
@@ -1004,6 +1024,7 @@ __code const struct machine machine = {
  */
 __code const struct machine machine = {
     .machine_name = "PCB-K0402W-V1.0",
+    .model_name = "Hi-K0402WS",
     .isRTL8373 = 0,                     /* TODO: confirm chip; 4x2.5G+2xSFP+ => RTL8372 */
     .min_port = 3,
     .max_port = 8,
@@ -1215,9 +1236,22 @@ __code const struct machine machine = {
             },
     };
 
-#elif defined MACHINE_SWTG024AS_V2_0
+#elif defined(MACHINE_SWTG024AS_V2_0) || defined(MACHINE_SKS3200M_4GPY2XF)
+/*
+ * SWTG024AS-Vx.y - 4 x 2.5GBASE-T + 2 x SFP (RTL8372). V2.0 is sold as
+ * Lianguo/Horaco/Sodola SL-SWTG124AS, V1.0 as XikeStor SKS3200M-4GPY2XF
+ * (2 MiB flash, label CM-23-08-2043 023-16721). Both revisions take the same
+ * wiring, so they share this block and differ in how they name the board: the
+ * XikeStor target puts the PCB revision in .machine_name and the retail model
+ * in .model_name, which the web UI shows as 硬件 (hardware) and 型号 (model).
+ */
 __code const struct machine machine = {
+#if defined(MACHINE_SKS3200M_4GPY2XF)
+    .machine_name = "PCB-SWTG024AS-V1.0",
+    .model_name = "SKS3200M-4GPY2XF",
+#else
     .machine_name = "SWTG024AS-V2.0",
+#endif
     .isRTL8373 = 0,
     .min_port = 3,
     .max_port = 8,

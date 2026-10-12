@@ -40,9 +40,9 @@ The following devices have been tested and are fully working:
 | Sodola   | SL-SWTG124AS-D  | Yes     | [SWTG024AS-v2.0-17452](devices/SWTG024AS.md)                              | 2M    | 4 + 2 |
 | Steamemo | IG204-V1        | No      | [PB-2131](devices/STEAMEMO_IG204_V1.md)                                   |       | 4 + 2 |
 | TrendNet | TEG-S562        | No      | [TEG-S563/EU H/W: V1.0R](devices/TEG-S562.md)                             | 2M    | 4 + 2 |
-| Xikestore| SKS3200M-4GPY2XF| Yes     | [SWTG024AS-v1.0](devices/SWTG024AS.md)                                    |       | 4 + 2 |
+| Xikestore| SKS3200M-4GPY2XF| Yes     | [SWTG024AS-v1.0](devices/SWTG024AS.md)                                    | 2M    | 4 + 2 |
 | XikeStor | SKS3200M-5GPY1XF| Yes     | [PCB-SWTG115AS-V2.1-17443](devices/SKS3200M-5GPY1XF.md)                  | 2M    | 5 + 1 |
-| XikeStor | SKS3200-8E1X    | Yes     | [SWTG118AS-V2.1-17462](devices/SWTGW218AS.md)                             | 2M    | 8 + 1 |
+| XikeStor | SKS3200-8E1X / SKS3200M-8GPY1XF | Yes | [SWTG118AS-V2.1-17462](devices/SWTGW218AS.md)                   | 2M    | 8 + 1 |
 | Ztyuav   | Z-QWYT0402      | No      | [PCB-K0402WS-V3.0](devices/PCB-K0402WS-V3.0.md)                           |       | 4 + 2 |
 | Guangnianwei | 7018-2.5G   | No      | [F7008-2.5GPOE-V1.2](devices/F7008-2.5.md)                                | 8M    | 8 + 1 |
 
