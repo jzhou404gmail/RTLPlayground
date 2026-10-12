@@ -18,6 +18,14 @@ revision of the same retail model:
 - Nothing else about the board is known yet: no photo and no stock dump of the board
   itself. (The flash part and the first-boot behaviour are known — see below.)
 
+The web UI states the board and the retail model on separate lines, taken from
+`.machine_name` and `.model_name` of the machine block:
+
+```
+硬件 (hardware): PCB-K0801W-V1.0
+型号 (model):    SFP-J08E-HG1
+```
+
 ## Why every parameter is inherited from the V2.0 target
 
 The V1.0 board has not been measured, and a stock firmware dump could not supply the
