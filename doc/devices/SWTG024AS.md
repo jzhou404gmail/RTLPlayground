@@ -13,6 +13,20 @@ Also the RJ45 connectors can be all plastic/non-shielded or with metal shielding
 | Xikestore |SKS3200M-4GPY2XF | Yes |  SWTG024AS-v1.0 | CM-23-08-2043 023-16721 | 2048 KiB | 8272 |
 | Sodola | SL-SWTG124AS-D | Yes | SWTG024AS-v2.0-17452 | ??? | 2048 KiB | 8272 |
 
+## RTLPlayground targets
+
+Both PCB revisions take the same machine parameters, so they share one machine
+block. They differ in what they report as the board, which the web UI shows as
+硬件 (hardware) and 型号 (model):
+
+| Target | 硬件 (hardware) | 型号 (model) | Use for |
+|---|---|---|---|
+| `MACHINE_SWTG024AS_V2_0` | `SWTG024AS-V2.0` | – | the SWTG024AS-v2.0 boards: Lianguo SWTG024AS, Horaco ZX-SWTG124AS, Sodola SL-SWTG124AS-D |
+| `MACHINE_SKS3200M_4GPY2XF` | `PCB-SWTG024AS-V1.0` | `SKS3200M-4GPY2XF` | the XikeStor unit on the SWTG024AS-v1.0 PCB |
+
+The two targets are interchangeable as far as the hardware is concerned; pick the
+one that matches the silkscreen of your board so the UI states it correctly.
+
 ## PCB
 
 <img src="photos/SWTG024AS-v2.0-unmanaged/SWTG024AS-v2.0-top-uman.png" width="300" />
