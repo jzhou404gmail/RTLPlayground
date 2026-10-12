@@ -1254,6 +1254,15 @@ __code const struct machine machine = {
     .machine_name = "SWTG024AS-V2.0",
 #endif
     .isRTL8373 = 0,
+#if defined(MACHINE_SKS3200M_4GPY2XF)
+    /*
+     * The stock firmware of this unit reported MAC 1C:2A:A3:23:E4:5E, so the
+     * board keeps its factory MAC in flash the way the ZX-SWTGW215AS boards do.
+     * Only this target reads it - for the V2.0 boards of the family that area
+     * of the flash is unverified.
+     */
+    .mac_flash_offset = 0x1FC000,
+#endif
     .min_port = 3,
     .max_port = 8,
     .n_sfp = 1,
