@@ -250,6 +250,15 @@ specified an IP address in the config.txt before compilation.
 > [!TIP]
 > The default password is `1234`.
 
+The **System** tab holds the startup configuration (the commands replayed on every
+boot) and, under *Maintenance*, two buttons: **Reboot switch** and **Restore
+factory defaults**. The second one writes the configuration that was compiled into
+the image back over the startup configuration and reboots the board - the same
+thing the reset button does when it is held for more than ten seconds, and the
+only way to do it on a board that has no such button. The address of the board
+then becomes the one the image was built with (`192.168.10.12` on the XikeStor
+builds, otherwise whatever `config.txt` holds), so reconnect there.
+
 ## (9) The command line
 
 The command line is very rudimentary and mostly for testing purposes.
@@ -334,6 +343,11 @@ Lightron Inc.   WSPXG-ES3LC-IHA 0000
 Rate: 67  Encoding: 01
 Lightron Inc.   WSPXG-ES3LC-IHA 0000
 ```
+
+The `defaults` command does what the *Restore factory defaults* button in the web
+interface does: it writes the configuration compiled into the image over the
+startup configuration and reboots the board. It is deliberately not a
+configuration command - it never becomes part of the startup configuration.
 
 ## (10) Advanced configuration
 
