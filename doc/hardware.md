@@ -56,3 +56,24 @@ The peripherial functions are accessed through 2 different mechanisms:
 The playground image shows access to the different types of memory using the
 SDCC compiler. Any support of Linux or e.g. Zephyr would require porting gcc.
 There are FreeRTOS ports to 8051 processors using sdcc, however.
+
+# Register differences between the RTL8372 and the RTL8373
+
+`RTL837X_REG_SEC_COUNTER` (0x06F4) holds the seconds count: `handle_tick()`
+reads its top byte, increments it and writes it back once per second. The
+register only keeps a written value on the **RTL8373** - on an **RTL8372** it
+always reads back `0x00000000` and never counts. `regget 06f4` tells the two
+chip classes apart on the same board family, and the register's `DEBUG` test in
+`rtlplayground.c` already notes that it depends on the SDS setup.
+
+Anything that measured time from it therefore saw "0 seconds elapsed" on the
+RTL8372:
+
+- the reset button, whose press length used to be measured from it, reported
+  every press as a short press and did nothing at all. It is now timed from the
+  software tick counter (`handle_button()`), see
+  [SWTG024AS](devices/SWTG024AS.md#why-the-button-used-to-do-nothing-at-all);
+- the HTTP session timeout still compares against it, so sessions on those
+  boards never expire. Deriving `read_reg_timer()` from the tick counter instead
+  was tried and reverted: it broke session handling in practice.
+

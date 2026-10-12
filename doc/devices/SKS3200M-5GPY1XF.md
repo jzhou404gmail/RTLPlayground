@@ -64,7 +64,7 @@ device over the web interface — this board has no serial console:
 | SFP port | **verified** | module detected, EEPROM read, port linked at 10G |
 | SFP `pin_detect` / `pin_los` / `i2c` / `sds` | **verified** | module insert/remove plus EEPROM read |
 | `mac_flash_offset = 0x1FC000` | **verified** | factory MAC now used |
-| `reset_pin = GPIO54` (reset button) | GPIO54 is the button on this PCB; the handler that times the press was broken on the RTL8372 (see [SWTG024AS](SWTG024AS.md#why-the-button-used-to-do-nothing-at-all)) and is fixed in shared code | not button-tested on this unit yet - the same fix is verified on the SKS3200M-4GPY2XF |
+| `reset_pin = GPIO54` (reset button) | **verified** | timed with [tools/reset_button_probe.py](../../tools/reset_button_probe.py): a ~5 s press reboots the board and leaves the startup configuration alone, a ~13 s press restores the configuration built into the image; a <3 s press does nothing. The press timing itself had to be fixed first, see [SWTG024AS](SWTG024AS.md#why-the-button-used-to-do-nothing-at-all) |
 | RJ45 LEDs (`led_sets[0]`, `port_led_set`) | **verified** | 2.5G lights the right-hand LED green, 1G/100M lights the left-hand LED orange, as the set 0 bitmasks and the ZX-SWTGW215AS LED table both say |
 | `high_leds` (pin 28 = system LED) | **verified** | the front-panel LED is lit steady while the switch runs; `PIN_MUX_0 = 0x38000000` muxes pins 27/28/29 |
 | SFP LED (`led_sets[1]`) | same-PCB target (`0x50155` = 10G/5G/2.5G/1G/100M) | the SFP port linked at 10G; the LED was not read off the panel |
