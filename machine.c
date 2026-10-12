@@ -512,9 +512,29 @@ __code const struct machine machine = {
 		     0x1d, 0x20, 0x21 },
 };
 
-#elif defined MACHINE_LIANGUO_ZX_SWTGW215AS // Has PCB branded PCB-SWTG115AS-V2.0 but is labeled and reports as a ZX-SWTGW215AS, seems to be identical to the "real" ZX-SWTGW215AS except for the LEDs
+#elif defined(MACHINE_LIANGUO_ZX_SWTGW215AS) || defined(MACHINE_SKS3200M_5GPY1XF)
+/*
+ * PCB-SWTG115AS-V2.x - 5 x 2.5GBASE-T + 1 x SFP+, RTL8372, one RTL8221B for the
+ * 5th RJ45. Sold under several brands: MACHINE_LIANGUO_ZX_SWTGW215AS covers the
+ * units labelled ZX-SWTGW215AS (PCB-SWTG115AS-V2.0, and V2.1 which ships
+ * unbranded), MACHINE_SKS3200M_5GPY1XF the XikeStor SKS3200M-5GPY1XF ("兮克",
+ * 5 x 2.5G + 1 x 10G SFP+), whose board is silkscreened PCB-SWTG115AS-V2.1-17443
+ * (2023-11-04) - the same PCB revision and the same LED wiring. Both targets
+ * share every hardware parameter below; only .machine_name differs, so a boot
+ * log or the web UI says which retail model is running.
+ *
+ * Verified on the SKS3200M-5GPY1XF (2026-10-12, read over the web interface):
+ * `regget 0004` = 0x83720000 (RTL8372, the 4-PHY class), only switch ports 3..8
+ * carry a PHY, the 4th RJ45 jack comes up as switch port 7, and an inserted SFP
+ * module is detected on GPIO30 with its EEPROM readable over I2C SDA4/SCL3 -
+ * all of which matches this block. See doc/devices/SKS3200M-5GPY1XF.md.
+ */
 __code const struct machine machine = {
+#if defined(MACHINE_SKS3200M_5GPY1XF)
+	.machine_name = "SKS3200M-5GPY1XF",
+#else
 	.machine_name = "Lianguo ZX-SWTGW215AS",
+#endif
 	.isRTL8373 = 0,
 	.mac_flash_offset = 0x1FC000,
 	.min_port = 3,
