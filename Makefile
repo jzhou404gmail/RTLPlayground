@@ -14,14 +14,61 @@ AFLAGS= -plosgff
 SUBDIRS := tools
 SUBDIRSCLEAN=$(addsuffix clean,$(SUBDIRS))
 
+# Machine selection: either pass MACHINE=<target> on the command line, or
+# uncomment exactly one "#define MACHINE_<target>" line in machine.h. The
+# latter needs no -D flag because machine.h itself then defines the macro.
+MACHINE_TARGETS := $(shell grep -E '^[[:space:]]*(//[[:space:]]*)?#define MACHINE_' machine.h | sed -E 's%^[[:space:]]*(//[[:space:]]*)?#define MACHINE_%%' | awk '{print $$1}' | sort -u)
+
 ifeq ($(MACHINE),)
 	MACHINE:= $(shell grep "^\s*#define MACHINE_" machine.h | sed "s/^\s*#define MACHINE_//")
 else
 	CC_FLAGS += -DMACHINE_$(MACHINE)
 endif
+
+# Goals that make sense without a machine selection.
+MACHINE_FREE_GOALS = clean distclean tools tools/clean machine_check
+# A bare "make" has no goals but builds $(all), which does need a machine.
+MACHINE_IS_NEEDED = $(if $(MAKECMDGOALS),$(filter-out $(MACHINE_FREE_GOALS),$(MAKECMDGOALS)),all)
+
+# Fail immediately and legibly instead of generating "output//..." paths and
+# tripping the #error in machine.c.
+ifeq ($(MACHINE),)
+ifneq ($(MACHINE_IS_NEEDED),)
+# $(shell) folds newlines into spaces, so expand the list one name per line.
+empty :=
+space := $(empty) $(empty)
+define newline
+
+
+endef
+MACHINE_TARGETS_LIST := $(subst $(space),$(newline),$(MACHINE_TARGETS))
+define NO_MACHINE_HELP
+
+No machine type selected.
+
+Pick your target on the command line, for example:
+    make MACHINE=DEFAULT_8C_1SFP
+
+or uncomment exactly one "#define MACHINE_<target>" line in machine.h
+(see doc/devices/ for the target matching your hardware).
+
+Available machine targets:
+$(MACHINE_TARGETS_LIST)
+endef
+$(error $(NO_MACHINE_HELP))
+endif
+endif
 # Health instrumentation and the "health" console command: HEALTH=1 gmake ...
 ifneq ($(HEALTH),)
 	CC_FLAGS += -DHEALTH
+endif
+
+# Some SPI NOR chips (e.g. Boya/BoHong BY25Q16BS) do not work with the flash
+# controller's Dual-I/O MMIO read mode: fetching code from a bank then returns
+# garbage and the firmware resets in a loop. FLASH_NO_DIO=1 selects single-bit
+# fast read instead. See doc/devices/PCB-K0402W-V1.0.md.
+ifneq ($(FLASH_NO_DIO),)
+	CC_FLAGS += -DFLASH_NO_DIO
 endif
 
 ifeq ($(CI),1)
