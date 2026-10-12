@@ -73,7 +73,17 @@ RTL8372:
   every press as a short press and did nothing at all. It is now timed from the
   software tick counter (`handle_button()`), see
   [SWTG024AS](devices/SWTG024AS.md#why-the-button-used-to-do-nothing-at-all);
-- the HTTP session timeout still compares against it, so sessions on those
-  boards never expire. Deriving `read_reg_timer()` from the tick counter instead
-  was tried and reverted: it broke session handling in practice.
+- the HTTP session timeout compared against it as well, so sessions on those
+  boards never expired. `read_timer()` now returns a count the firmware keeps in
+  RAM (`uptime_secs`, incremented by `handle_tick()` next to the register), which
+  is the same number the register holds on an RTL8373 and works on both.
+
+Verified after the change - `session 5` then log in: the cookie is accepted
+immediately and answered with 401 eight seconds later; with `session 1000` it is
+still accepted ten seconds later (measured on the SKS3200M-4GPY2XF, an RTL8372,
+and on the SKS3200M-8GPY1XF, an RTL8373). Deriving the value from `ticks` with a
+division (`ticks / SYS_TICK_HZ`) was tried first and rejected: it made session
+cookies stop being accepted a few seconds after login, on the same board, while
+the RAM counter does not - the division helper is not reentrant and shares its
+scratch area with the 200 Hz timer interrupt.
 
