@@ -11,6 +11,7 @@ The following devices have been tested and are fully working:
 | Hasivo   | S1100WP_8GT_1SX_SE | Yes  | [S1100WP_8GT_1SX_SE-V1.05](devices/HASIVO_S1100WP_8GT_1SX_SE.md)          | 2M    | 8 + 1 |
 | Hisource | Hi-K0402WS      | No      | [PCB-K0402WS-V3.0](devices/PCB-K0402WS-V3.0.md)                           |       | 4 + 2 |
 | Hisource | Hi-K0402WS      | No      | [PCB-K0402WS-V2.0](devices/PCB-K0402WS-V2.0.md)                           | 2M    | 4 + 2 |
+| Hisource | Hi-L0402WS      | No      | [PCB-K0402W-V1.0](devices/PCB-K0402W-V1.0.md)                             | 2M    | 4 + 2 |
 | Hisource | Hi-K0801WS      | No      | [PCB-KO801W-V2.0](devices/HI-K0801WS.md)                                  |       | 8 + 1 |
 | hongyavision | LG-SG5T1    | No      | [PCB-SWTG024AS-V2.0_16895](devices/SWTG024AS-V2.0.md)                     | 0.5M  | 5 + 1 |
 | Horaco   | HC-SWTGW215AS   | Yes     | [SWTG024AS-A-V2.0.1_19650 5C 1SFP](devices/SWTG024AS-A-V2.0.1_5C_1SFP.md) | ?     | 5 + 1 |
@@ -46,6 +47,11 @@ The following devices have been tested and are fully working:
 For KP-9000-6XH-X2 / KP-9000-6XHML-X2 / Mokerlink 2G040210GSM devices, select
 the machine target by PCB revision. The ML/non-ML or managed/unmanaged label
 alone does not identify the wiring.
+
+The Hi-L0402WS (PCB-K0402W-V1.0) carries a Boya/BoHong BY25Q16BS flash which does not
+work with the flash controller's Dual-I/O MMIO read mode, so it must be built with
+`FLASH_NO_DIO=1`; otherwise the firmware resets in a loop right after
+`Detecting CPU`. See [PCB-K0402W-V1.0](devices/PCB-K0402W-V1.0.md).
 
 Other device based on RTL8272/3 that may work are described here: [Up-N-Atoms 2.5 GBit RTL Switch hacking guide](https://github.com/up-n-atom/SWTG118AS)
 
