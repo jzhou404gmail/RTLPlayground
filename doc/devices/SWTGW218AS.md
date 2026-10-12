@@ -69,7 +69,13 @@ Verified on the XikeStor unit (2026-10-13) with
 
 ## PCB
 
-See up'n'atom's Repo:
+Photos of the **SWTG118AS-V2.1-17462** board (the XikeStor unit):
+
+<img src="photos/SWTG118AS-V2.1/pcb-front.jpg" width="300" />
+<img src="photos/SWTG118AS-V2.1/pcb-bottom.jpg" width="300" />
+<img src="photos/SWTG118AS-V2.1/label.jpg" width="300" />
+
+See up'n'atom's Repo for the V2.0 board:
 
 https://github.com/up-n-atom/SWTG118AS/blob/main/photos/SWTG118AS-v2.0/SWTG118AS-v2.0-pcb-top.JPG
 
