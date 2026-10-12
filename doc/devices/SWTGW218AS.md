@@ -43,6 +43,24 @@ Both XikeStor targets embed `config-xikestor.txt` instead of `config.txt`
 (selected by machine target in the Makefile), so a freshly flashed board comes up
 at **192.168.10.12** with the project's default login password.
 
+## Reset button
+
+`.reset_pin = GPIO54` was already part of this machine block, but until the shared
+fix in `handle_button()` the button did nothing: the handler timed the press from
+the seconds register, which only the RTL8373 can hold - see
+[SWTG024AS](SWTG024AS.md#why-the-button-used-to-do-nothing-at-all). This board is
+an RTL8373, so it also confirms that timing the press from the tick counter did
+not regress the chip class the old code did work on.
+
+Verified on the XikeStor unit (2026-10-13) with
+[`tools/reset_button_probe.py`](../../tools/reset_button_probe.py):
+
+| Press | Result |
+|---|---|
+| ~5 s | board reboots, startup configuration untouched (marker hostname still set) |
+| ~13 s | factory reset: the marker was replaced by the hostname derived from the factory MAC and only the configuration built into the image was stored |
+| <3 s | nothing (same branch as on the other boards; not re-measured here) |
+
 ## Photos
 
 <img src="photos/SWTGW218AS-managed/front.png" width="800" />
