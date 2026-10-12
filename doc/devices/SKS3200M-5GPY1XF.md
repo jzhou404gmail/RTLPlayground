@@ -4,8 +4,18 @@
 
 Machine target: `MACHINE_SKS3200M_5GPY1XF` (see `machine.h`). It shares its
 machine block with `MACHINE_LIANGUO_ZX_SWTGW215AS`, because the board is the
-same PCB revision; only `.machine_name` differs, so the web UI and a boot log
-say which retail model is running.
+same PCB revision. The two differ only in how they name the board: this target
+puts the board revision in `.machine_name` and the retail model in
+`.model_name`, so the System panel and the boot log show them as two lines:
+
+```
+硬件 (hardware): PCB-SWTG115AS-V2.1
+型号 (model):    SKS3200M-5GPY1XF
+```
+
+`.model_name` is a new field in `struct machine`; targets that leave it empty
+(the ZX-SWTGW215AS one, and every other existing target) show no model line and
+behave exactly as before.
 
 - Panel: 5 x RJ45 10/100/1000/2500 Mbps + 1 x 10G SFP+ ("6口2.5G Web管理型交换机",
   5个2.5G网口+1个万兆SFP口).

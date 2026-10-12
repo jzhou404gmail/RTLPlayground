@@ -1810,6 +1810,10 @@ void print_sw_version(void) __banked {
 	print_string("\nBuild date: " BUILD_DATE);
 	print_string("\nHardware: ");
 	print_string(machine.machine_name);
+	if (machine.model_name[0]) {
+		print_string("\nModel: ");
+		print_string(machine.model_name);
+	}
 	write_char('\n');
 }
 

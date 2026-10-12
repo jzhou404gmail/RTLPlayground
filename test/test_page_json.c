@@ -203,6 +203,19 @@ static void t_status_counters(void)
 	CHECK(balanced(), "valid JSON");
 }
 
+/* /information.json states the board revision and, for the targets that carry
+ * one, the retail model the board is sold as - the System panel shows both. */
+static void t_basic_info(void)
+{
+	printf("[test] /information.json: board revision and retail model\n");
+	hw_reset(); out_reset();
+	send_basic_info();
+	CHECK(has("\"hw_ver\":\"HOSTTEST\""), "hw_ver carries the board revision");
+	CHECK(has("\"model\":\"HOSTTEST-MODEL\""), "the retail model has its own field");
+	CHECK(slen <= TCP_OUTBUF_SIZE, "fits the buffer");
+	CHECK(balanced(), "and the response is still balanced JSON");
+}
+
 int main(void)
 {
 	printf("== httpd/page_impl.c JSON tests ==\n");
@@ -211,6 +224,7 @@ int main(void)
 	t_l2();
 	t_l2_page();
 	t_status_counters();
+	t_basic_info();
 	printf("\n%d checks, %d failed\n", tests_run, tests_failed);
 	return tests_failed ? 1 : 0;
 }
