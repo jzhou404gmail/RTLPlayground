@@ -194,6 +194,18 @@ Go to "Firmware update" tab, select the correct file.
 
 Finally, push the Upload File Button and you're done !
 
+> [!NOTE]
+> An upgrade **keeps the board's startup configuration** - the image is written up
+> to the configuration area, which is left alone. That is why the IP address does
+> not change when you flash a build with a different default, and it is what keeps
+> VLANs, port names and the password across upgrades.
+>
+> The default configuration embedded in the image only takes effect on a board
+> that does not have one yet: a freshly flashed board, or after reverting to the
+> factory default - hold the reset button for more than 10 s (see
+> `handle_button()` in `rtlplayground.c`). To change just the address of a running
+> board, edit the startup configuration in the System tab instead.
+
 
 ## (5) Flashing the ROM directly (hardware way, but also only way to rescue)
 
