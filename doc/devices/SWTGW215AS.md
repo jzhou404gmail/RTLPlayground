@@ -6,6 +6,12 @@
 |---|---|---|---|---|---|
 | Lianguo | ZX-SWTGW215AS | Yes | PCB-SWTG115AS-V2.0 | FM25Q16A | 8372 |
 | sold as Lianguo, actual device unbranded | ZX-SWTGW215AS | Yes | PCB-SWTG115AS-V2.1 | W25Q16JVSIQ (2MiB) | 8372 |
+| XikeStor | SKS3200M-5GPY1XF | Yes | PCB-SWTG115AS-V2.1-17443 | W25Q16JV (2MiB) | 8372 |
+
+The XikeStor SKS3200M-5GPY1XF ("兮克", 5 x 2.5G + 1 x 10G SFP+) is the same board
+with a different label. It has its own target `MACHINE_SKS3200M_5GPY1XF`, which
+shares this machine block and differs only in `.machine_name` - see
+[SKS3200M-5GPY1XF](SKS3200M-5GPY1XF.md).
 
 ## RTLPlayground target
 
