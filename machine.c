@@ -520,8 +520,11 @@ __code const struct machine machine = {
  * unbranded), MACHINE_SKS3200M_5GPY1XF the XikeStor SKS3200M-5GPY1XF ("兮克",
  * 5 x 2.5G + 1 x 10G SFP+), whose board is silkscreened PCB-SWTG115AS-V2.1-17443
  * (2023-11-04) - the same PCB revision and the same LED wiring. Both targets
- * share every hardware parameter below; only .machine_name differs, so a boot
- * log or the web UI says which retail model is running.
+ * share every hardware parameter below. They differ in how they name the board:
+ * MACHINE_SKS3200M_5GPY1XF puts the board revision in .machine_name and the
+ * retail model in .model_name, so the web UI and the boot log show 型号 (model)
+ * and 硬件 (hardware) as two separate lines, while MACHINE_LIANGUO_ZX_SWTGW215AS
+ * keeps brand + model in .machine_name, which is what its users see today.
  *
  * Verified on the SKS3200M-5GPY1XF (2026-10-12, read over the web interface):
  * `regget 0004` = 0x83720000 (RTL8372, the 4-PHY class), only switch ports 3..8
@@ -531,7 +534,8 @@ __code const struct machine machine = {
  */
 __code const struct machine machine = {
 #if defined(MACHINE_SKS3200M_5GPY1XF)
-	.machine_name = "SKS3200M-5GPY1XF",
+	.machine_name = "PCB-SWTG115AS-V2.1",
+	.model_name = "SKS3200M-5GPY1XF",
 #else
 	.machine_name = "Lianguo ZX-SWTGW215AS",
 #endif
