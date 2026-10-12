@@ -59,10 +59,13 @@ the default Dual-I/O build; only Boya/BoHong parts (`68 40 15`) need
 `FLASH_NO_DIO=1`. (An FM25Q16A was expected for this board; both work with the
 default build, so nothing has to change either way.)
 
-Unlike the ZX-SWTGW215AS block, this one has no `mac_flash_offset`, so the board
-comes up with a generated locally administered MAC instead of the MAC its stock
-firmware showed (`1C:2A:A3:23:E4:5E`). Adding `.mac_flash_offset = 0x1FC000` may
-recover it, but that offset is unverified for this PCB.
+This machine block had no `mac_flash_offset`, and the board then came up with a
+generated locally administered MAC instead of the one its stock firmware showed
+(`1C:2A:A3:23:E4:5E`). `.mac_flash_offset = 0x1FC000` - the offset the
+ZX-SWTGW215AS boards use - puts that right: **verified** on the XikeStor unit
+(2026-10-12), `/information.json` reports `1c:2a:a3:23:e4:5e` and the hostname
+derives from it again. Only `MACHINE_SKS3200M_4GPY2XF` sets it; for the V2.0
+boards of the family that area of the flash is unverified.
 
 ## Reset button
 
