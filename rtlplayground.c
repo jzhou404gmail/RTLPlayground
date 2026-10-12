@@ -91,6 +91,9 @@ __xdata struct uip_eth_addr uip_ethaddr;
 
 volatile __xdata uint32_t ticks;
 volatile __xdata uint8_t sec_counter;
+// Seconds since boot, kept in RAM: the hardware seconds register it is mirrored
+// to does not hold a written value on an RTL8372, see read_timer()
+volatile __xdata uint32_t uptime_secs;
 volatile __xdata uint16_t sleep_ticks;
 __xdata uint8_t stp_tick_last;
 __xdata uint8_t arp_age_secs;
@@ -942,29 +945,24 @@ void cpy_4(__xdata uint8_t dest[], __xdata uint8_t source[])
 
 
 /*
- * Seconds since boot, from the hardware seconds register the firmware keeps in
- * handle_tick().
+ * Seconds since boot, from the counter handle_tick() keeps in RAM.
  *
- * NOTE: that register does not hold a written value on every part - on an
- * RTL8372 it always reads back 0, so anything timed from it (the HTTP session
- * timeout) never expires there. Deriving the value from the software tick
- * counter instead looks obvious but breaks session handling in practice
- * (measured on an RTL8372: a session cookie stopped being accepted a few
- * seconds after login), so this needs more work before it can be changed.
- * The reset button no longer depends on this value: it times the press from
- * the software tick counter, see handle_button().
+ * It used to read RTL837X_REG_SEC_COUNTER instead, which only holds a written
+ * value on an RTL8373: on an RTL8372 the register always reads back 0, so every
+ * deadline measured from it - the HTTP session timeout in particular - was
+ * already expired or never expired, depending on which side compared. Since the
+ * firmware is what increments the register in the first place (handle_tick()
+ * reads its top byte, adds one and writes it back), keeping the same count in
+ * RAM costs nothing and works on both chip classes. The register is still
+ * updated for the console's `time` command and for regget.
+ *
+ * Deriving the value from `ticks` with a division was tried first and broke
+ * session handling in practice (a cookie stopped being accepted seconds after
+ * login), so the count is maintained directly instead.
  */
-void read_reg_timer(__xdata uint32_t * tmr)
+void read_timer(__xdata uint32_t * tmr)
 {
-	uint8_t * val = (uint8_t *)tmr;
-	SFR_REG_ADDR_U16 = RTL837X_REG_SEC_COUNTER;
-	SFR_EXEC_GO = SFR_EXEC_READ_REG;
-	do {
-	} while (SFR_EXEC_STATUS != 0);
-	*val++ = SFR_DATA_0;
-	*val++ = SFR_DATA_8;
-	*val++ = SFR_DATA_16;
-	*val = SFR_DATA_24;
+	*tmr = uptime_secs;
 }
 
 
@@ -1259,6 +1257,7 @@ static void handle_tick(void)
 #ifdef DEBUG
 		print_string("  Tick counter: "); print_long(ticks); write_char('\n');
 #endif
+		uptime_secs++;
 		v++;
 		sfr_data[3] = v;
 		if (!v) {
