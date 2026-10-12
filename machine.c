@@ -827,6 +827,75 @@ __code const struct machine machine = {
     },
 };
 
+#elif defined MACHINE_PCB_K0801W_V1
+/*
+ * PCB-K0801W-V1.0 - the earlier PCB revision of the 8 x 2.5GBASE-T + 1 x SFP+ board
+ * sold as Hisource Hi-K0801WS (the revision that doc/devices/HI-K0801WS.md documents
+ * as PCB-K0801W-V2.0).
+ *
+ * *** EXPERIMENTAL / NOT YET VERIFIED ON HARDWARE ***
+ *
+ * No photo, dump or measurement of a V1.0 board exists yet, so every parameter
+ * below is inherited unchanged from the V2.0 target above. RTLPlayground
+ * cannot recover board-specific LED/GPIO wiring from a stock image in any
+ * case (see doc/devices/PCB-K0402W-V1.0.md for the scan that shows why), so
+ * the wiring has to be measured on the board. Only .machine_name differs from
+ * the V2.0 target, so that a boot log states unambiguously which revision is
+ * running and the two can be compared.
+ *
+ * Bring-up expectation: the copper ports and their order are the parts most
+ * likely to be correct as-is; expect wrong LEDs (dark, inverted or swapped)
+ * and possibly an SFP slot that reports no module. Work through
+ * doc/devices/PCB-K0801W-V1.0.md and correct every field marked TODO.
+ */
+__code const struct machine machine = {
+    .machine_name = "PCB-K0801W-V1.0",
+    .isRTL8373 = 1,                     /* TODO: confirm 'Detecting CPU: RTL8373' */
+    .min_port = 0,
+    .max_port = 8,
+    .n_sfp = 1,
+    .log_to_phys_port = {1, 2, 3, 4, 5, 6, 7, 8, 9},   /* TODO: verify port order */
+    .phys_to_log_port = {0, 1, 2, 3, 4, 5, 6, 7, 8},    /* TODO: verify port order */
+    .is_sfp = {0, 0, 0, 0, 0, 0, 0, 0, 1},
+
+    /* SFP cage, inherited from V2.0 (SDS1, GPIO30 = module detect,
+     * GPIO37 = RX_LOS). TODO: verify both pins on this revision: if 'sfp'
+     * reports an empty cage with a module inserted, or the module EEPROM is
+     * unreadable, measure these first. */
+    .sfp_port[0].pin_detect = GPIO30_ACL_BIT3_EN,
+    .sfp_port[0].pin_los = GPIO37,
+    .sfp_port[0].pin_tx_disable = GPIO_NA,
+    .sfp_port[0].sds = 1,
+    .sfp_port[0].i2c = I2CBUS( GPIO39_I2C_SDA4, GPIO40_I2C_SCL3_MDC1 ),
+    .reset_pin = GPIO_NA,
+
+    /* TODO: verify with 'leds' plus the front-panel system LED */
+    .high_leds = {
+        .mux = LED_27 | LED_29,
+        .enable = LED_28_SYS | LED_29
+    },
+
+    /* TODO: verify per-port LED set assignment (ports 1-8 -> set 0, SFP -> set 1) */
+    .port_led_set = {0, 0, 0, 0, 0, 0, 0, 0, 1},
+
+    /* TODO: verify LED behaviour per speed/link. Inherited from V2.0:
+     * amber = 2.5G, green = 1G/100M/10M with activity. */
+    .led_sets = {
+        {   /* Set 0: RJ45 copper ports */
+            LEDS_2G5 | LEDS_LINK | LEDS_ACT, /* Amber */
+            0,
+            LEDS_1G | LEDS_100M | LEDS_10M | LEDS_LINK | LEDS_ACT, /* Green */
+            0
+        },
+        {   /* Set 1: SFP port, single green LED for all valid speeds */
+            LEDS_10G | LEDS_2G5 | LEDS_1G | LEDS_100M | LEDS_10M | LEDS_LINK | LEDS_ACT,
+            0,
+            0,
+            0
+        },
+    },
+};
+
 #elif defined(MACHINE_PCB_K0402WS_V2) || defined(MACHINE_FNS1200P)
 __code const struct machine machine = {
 #if defined(MACHINE_PCB_K0402WS_V2)
