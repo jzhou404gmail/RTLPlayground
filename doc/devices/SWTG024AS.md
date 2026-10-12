@@ -106,7 +106,18 @@ thresholds are 3 s and 10 s of real time.
 
 ## PCB
 
+V2.0, unmanaged:
+
 <img src="photos/SWTG024AS-v2.0-unmanaged/SWTG024AS-v2.0-top-uman.png" width="300" />
+
+### PCB (V1.0, the XikeStor unit)
+
+Silkscreen `SWTG024AS-V1.0` (the XikeStor board's own label reads
+`CM-23-08-2043 023-16721`):
+
+<img src="photos/SWTG024AS-V1.0/pcb-top.jpg" width="300" />
+<img src="photos/SWTG024AS-V1.0/pcb-bottom.jpg" width="300" />
+<img src="photos/SWTG024AS-V1.0/label.jpg" width="300" />
 
 # SWTG024AS-v2.0 managed vs unmanged
 Changes I found with my board vs [Managed version](https://github.com/up-n-atom/SWTG118AS/tree/main/photos/SWGT024AS-v2.0) of the PCB.
