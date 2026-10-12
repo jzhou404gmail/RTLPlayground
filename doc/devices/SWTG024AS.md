@@ -27,6 +27,43 @@ block. They differ in what they report as the board, which the web UI shows as
 The two targets are interchangeable as far as the hardware is concerned; pick the
 one that matches the silkscreen of your board so the UI states it correctly.
 
+## Installing on the XikeStor unit from its stock firmware
+
+The stock firmware is a CGI-based Realtek SDK image (固件版本 `V10.9.4`, Aug 07
+2024, `用户名/密码 admin/admin`, IP `192.168.10.12`). Its **固件升级** page
+(`fwug.cgi`) switches the board into the vendor loader, and the loader then takes
+the one-shot installer from `installer/output/`; see
+[installation method 2](../../README.md):
+
+1. POST `cmd=enter_loader` to `fwug.cgi` (in the browser: click 升级 and confirm).
+2. The board reboots into the loader, which on this unit **keeps the same IP**
+   (`192.168.10.12`, page title `Giga Ethernet Switch V1.0`) - not the
+   `192.168.10.247` that other boards of this family use. The stock CGIs are gone
+   (`fwug.cgi` answers empty) and the loader menu offers `httpug.cgi`.
+3. POST the installer to `/httpupg.cgi?cmd=fw_upgrade` as `multipart/form-data`
+   with the file in the `submitFile` field. The page answers 升级成功！, the board
+   reboots into the installer, the installer writes RTLPlayground to `0x0` and
+   reboots again.
+4. RTLPlayground then comes up at `192.168.10.12` with the project's default
+   login password (`1234`); the vendor `admin/admin` no longer applies.
+
+Verified on the owner's unit (2026-10-12): upgraded from `V10.9.4` to
+`MACHINE_SKS3200M_4GPY2XF`; the UI then reports 硬件 `PCB-SWTG024AS-V1.0` /
+型号 `SKS3200M-4GPY2XF`, all six ports, and the factory MAC is **not** restored
+(see below).
+
+### Flash chip
+
+`flash j` on that unit reads `EF 40 15`, i.e. a **Winbond W25Q16JV**, so it takes
+the default Dual-I/O build; only Boya/BoHong parts (`68 40 15`) need
+`FLASH_NO_DIO=1`. (An FM25Q16A was expected for this board; both work with the
+default build, so nothing has to change either way.)
+
+Unlike the ZX-SWTGW215AS block, this one has no `mac_flash_offset`, so the board
+comes up with a generated locally administered MAC instead of the MAC its stock
+firmware showed (`1C:2A:A3:23:E4:5E`). Adding `.mac_flash_offset = 0x1FC000` may
+recover it, but that offset is unverified for this PCB.
+
 ## PCB
 
 <img src="photos/SWTG024AS-v2.0-unmanaged/SWTG024AS-v2.0-top-uman.png" width="300" />
