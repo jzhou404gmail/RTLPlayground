@@ -149,7 +149,7 @@ volatile __bit __at(0x02) tick_pending;
 __bit __at(0x03) cmd_available;
 // Last known state of the SFP detection/Loss of Signal pins
 __xdata bool button_last;
-__xdata uint8_t button_sec_counter_last;
+__xdata uint32_t button_press_ticks;
 volatile __bit tx_buf_empty;
 
 
@@ -941,6 +941,19 @@ void cpy_4(__xdata uint8_t dest[], __xdata uint8_t source[])
 }
 
 
+/*
+ * Seconds since boot, from the hardware seconds register the firmware keeps in
+ * handle_tick().
+ *
+ * NOTE: that register does not hold a written value on every part - on an
+ * RTL8372 it always reads back 0, so anything timed from it (the HTTP session
+ * timeout) never expires there. Deriving the value from the software tick
+ * counter instead looks obvious but breaks session handling in practice
+ * (measured on an RTL8372: a session cookie stopped being accepted a few
+ * seconds after login), so this needs more work before it can be changed.
+ * The reset button no longer depends on this value: it times the press from
+ * the software tick counter, see handle_button().
+ */
 void read_reg_timer(__xdata uint32_t * tmr)
 {
 	uint8_t * val = (uint8_t *)tmr;
@@ -1157,36 +1170,42 @@ void handle_button(void)
 	bool button_pressed = !gpio_pin_test(machine.reset_pin);
 	if (button_last != button_pressed)
 	{
+		/*
+		 * Time the press with the software tick counter, not with the hardware
+		 * seconds register: that register is only writable on the RTL8373. On
+		 * an RTL8372 it always reads back 0, so a duration measured from it is
+		 * 0 no matter how long the button is held and every press ends up in
+		 * the "short press, no action" case. boot.c times its boot-time press
+		 * from the ticks already.
+		 */
+		__xdata uint32_t held_ticks = ticks - button_press_ticks;
 		print_string(button_pressed ? "Button pressed\n" : "Button released\n");
-		reg_read_m(RTL837X_REG_SEC_COUNTER);
-		uint8_t diff_sec_counter = sfr_data[3] - button_sec_counter_last;
 		button_last = button_pressed;
-		button_sec_counter_last = sfr_data[3];
 
-		if (!button_pressed)
+		if (button_pressed)
 		{
-			if (diff_sec_counter > 10)
-			{
-				print_string(">10s button detected; reverting to default settings:\n");
-				flash_default_config();
-				print_string("Now resetting...\n");
-				reset_chip();
-			}
-			else if (diff_sec_counter > 3)
-			{
-				print_string(">3s button detected; resetting chip...\n");
-				reset_chip();
-			}
-			else
-			{
-				print_string("Short button press detected; no action.\n");
-				set_sys_led_state(SYS_LED_ON);
-			}
+			button_press_ticks = ticks;
+			// Give the user feedback for button press
+			set_sys_led_state(SYS_LED_SLOW);
+			return;
+		}
+
+		if (held_ticks > 10UL * SYS_TICK_HZ)
+		{
+			print_string(">10s button detected; reverting to default settings:\n");
+			flash_default_config();
+			print_string("Now resetting...\n");
+			reset_chip();
+		}
+		else if (held_ticks > 3UL * SYS_TICK_HZ)
+		{
+			print_string(">3s button detected; resetting chip...\n");
+			reset_chip();
 		}
 		else
 		{
-			// Give the user feedback for button press
-			set_sys_led_state(SYS_LED_SLOW);
+			print_string("Short button press detected; no action.\n");
+			set_sys_led_state(SYS_LED_ON);
 		}
 	}
 }
@@ -1693,7 +1712,7 @@ void main(void)
 	linkbits_last[0] = linkbits_last[1] = linkbits_last[2] = linkbits_last[3] = linkbits_last_p89 = 0;
 
 	button_last = 0;
-	button_sec_counter_last = 0;
+	button_press_ticks = ticks;
 
 	machine_detected.isRTL8373 = 0;
 	machine_detected.isN = 0;

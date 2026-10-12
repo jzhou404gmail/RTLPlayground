@@ -1266,7 +1266,20 @@ __code const struct machine machine = {
     .sfp_port[0].sds = 1,
     .sfp_port[0].i2c = I2CBUS( GPIO39_I2C_SDA4, GPIO40_I2C_SCL3_MDC1 ),
 
+#if defined(MACHINE_SKS3200M_4GPY2XF)
+    /*
+     * K1, the reset button of this PCB, is on GPIO54 (doc/devices/SWTG024AS.md,
+     * "Reset circuit"). The pin is shared with SFP2's TX-DISABLE through R105 /
+     * R85, and both TX-disable pins are GPIO_NA on this board, so nothing else
+     * drives it. Only the XikeStor target gets it: on the V2.0 boards of this
+     * family R85 and K1 may not be populated, and a pin that then looks
+     * permanently pressed would make the boot-time button handler restore the
+     * default configuration on every power-up.
+     */
+    .reset_pin = GPIO54_ACL_BIT2_EN,
+#else
     .reset_pin = GPIO_NA,
+#endif
     .high_leds = { .mux =  LED_28_SYS | LED_29, .enable = LED_27 | LED_28_SYS | LED_29 },
     .port_led_set = { 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	/* Ports 1-5 RJ45 use set 0, port 9 SFP uses set 1 

@@ -64,6 +64,43 @@ comes up with a generated locally administered MAC instead of the MAC its stock
 firmware showed (`1C:2A:A3:23:E4:5E`). Adding `.mac_flash_offset = 0x1FC000` may
 recover it, but that offset is unverified for this PCB.
 
+## Reset button
+
+`K1` sits on **GPIO54** (see [Reset circuit](#reset-ciruit) below), shared with
+SFP2's TX-DISABLE through R105 / R85. Both SFP TX-disable pins are `GPIO_NA` in
+this machine block, so nothing else drives the pin.
+
+The button is enabled per target:
+
+| Target | `.reset_pin` | Why |
+|---|---|---|
+| `MACHINE_SKS3200M_4GPY2XF` | `GPIO54_ACL_BIT2_EN` | K1 and R85 are populated on the XikeStor unit - **verified**, see below |
+| `MACHINE_SWTG024AS_V2_0` | `GPIO_NA` | on the V2.0 boards R85/K1 may be missing, and a pin that then reads permanently pressed would make the boot-time button handler restore the default configuration on every power-up |
+
+### Why the button used to do nothing at all
+
+`handle_button()` measured the press length from `RTL837X_REG_SEC_COUNTER`. That
+register only holds a written value on the RTL8373: on an RTL8372 it always reads
+back 0 (`regget 06f4` stays `0x00000000` while the same register counts up on an
+RTL8373 board), so the measured length was 0 for every press and all of them ended
+in the "short press, no action" case. The press is now timed from the software
+tick counter, the way `boot.c` already timed its boot-time press.
+
+### Verified on the XikeStor unit (2026-10-12)
+
+With a marker in the startup configuration (`hostname RESETTEST4GPY`) and
+[`tools/reset_button_probe.py`](../../tools/reset_button_probe.py) watching the
+pin and the uptime:
+
+| Press | Result | Meaning |
+|---|---|---|
+| ~5 s | board went away, came back with uptime near 0 and the **marker intact** | `reset_chip()`: restarts, configuration untouched |
+| ~11 s | board went away, came back with the **marker gone** and only the image's default configuration stored | `flash_default_config()` + `reset_chip()`: factory reset |
+| < 3 s | nothing | "short press, no action" |
+
+`SYS_TICK_HZ` was confirmed against a wall clock (200.0 ticks/s), so the two
+thresholds are 3 s and 10 s of real time.
+
 ## PCB
 
 <img src="photos/SWTG024AS-v2.0-unmanaged/SWTG024AS-v2.0-top-uman.png" width="300" />
