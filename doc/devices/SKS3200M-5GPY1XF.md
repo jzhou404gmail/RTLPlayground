@@ -103,6 +103,10 @@ factory MAC lives.
 Label (bottom of the case): 6-port 2.5G web-managed switch, `SKS3200M-5GPY1XF`,
 5 x 2.5G + 1 x 10G SFP+, DC 12V 1A.
 
-<img src="photos/SKS3200M-5GPY1XF/label.jpg" width="300" />
-<img src="photos/SKS3200M-5GPY1XF/pcb-top.jpg" width="300" />
-<img src="photos/SKS3200M-5GPY1XF/pcb-detail.jpg" width="300" />
+The photos live under the PCB revision, as everywhere else in this directory:
+
+<img src="photos/SWTG115AS-V2.1/label.jpg" width="300" />
+<img src="photos/SWTG115AS-V2.1/pcb-front.jpg" width="300" />
+<img src="photos/SWTG115AS-V2.1/pcb-bottom.jpg" width="300" />
+<img src="photos/SWTG115AS-V2.1/pcb-detail.jpg" width="300" />
+<img src="photos/SWTG115AS-V2.1/front-panel.jpg" width="300" />
