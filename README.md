@@ -333,6 +333,13 @@ While in compilation part, you might write directly to config.txt file before ma
 nano config.txt
 ```
 
+The file holds the factory default a freshly flashed board starts from: the IP
+address, gateway and netmask, plus - if you add such a line - any other command
+the console accepts, for example `passwd` to replace the built-in default
+password. A machine target that ships a different vendor default uses its own
+file instead, chosen in the Makefile (`DEFAULT_CONFIG`, see
+`config-xikestor.txt` for the XikeStor boards).
+
 If you want to modify settings after the flash is done, go to the System tab and find the Startup Configuration.
 
 <img width="1673" height="978" alt="ADVANCED SETTINGS" src="doc/images/advanced_settings.png" />

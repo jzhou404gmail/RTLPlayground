@@ -67,7 +67,15 @@ device over the web interface — this board has no serial console:
 | `reset_pin = GPIO54` (reset button) | from the same-PCB target, not button-tested | GPIO54 is the reset button on this PCB |
 | RJ45 LEDs (`led_sets[0]`, `port_led_set`) | **verified** | 2.5G lights the right-hand LED green, 1G/100M lights the left-hand LED orange, as the set 0 bitmasks and the ZX-SWTGW215AS LED table both say |
 | `high_leds` (pin 28 = system LED) | **verified** | the front-panel LED is lit steady while the switch runs; `PIN_MUX_0 = 0x38000000` muxes pins 27/28/29 |
-| SFP LED (`led_sets[1]`) | same-PCB target (`0x50155` = 10G/5G/2.5G/1G/100M) | the SFP port linked at 10G; the LED itself was not read off the panel |
+| SFP LED (`led_sets[1]`) | same-PCB target (`0x50155` = 10G/5G/2.5G/1G/100M) | the SFP port linked at 10G; the LED was not read off the panel |
+
+## Factory default configuration
+
+Both XikeStor targets embed `config-xikestor.txt` instead of `config.txt`
+(selected by machine target in the Makefile), so a freshly flashed board comes up
+at **192.168.10.12** with the project's default login password. The file holds
+only the IP, gateway and netmask; adding a `passwd` line to it would replace the
+default password.
 
 ## Installing
 
