@@ -75,6 +75,15 @@ ifeq ($(CI),1)
 	CC_FLAGS += --Werror
 endif
 
+# Factory default startup configuration: the embedded config.txt holds the IP,
+# gateway and netmask a freshly flashed board comes up with, plus - if it has
+# such a line - a "passwd" line that replaces the built-in default password.
+# Targets whose vendor default differs get their own file.
+DEFAULT_CONFIG := config.txt
+ifneq ($(filter SKS3200M_5GPY1XF SKS3200M_8GPY1XF,$(MACHINE)),)
+DEFAULT_CONFIG := config-xikestor.txt
+endif
+
 BUILDDIR = output/$(MACHINE)
 VERSION_HEADER := version.h
 
@@ -215,11 +224,11 @@ $(BUILDDIR)/rtlplayground.ihx: $(OBJS) $(BUILDDIR)/crtbank.rel $(BUILDDIR)/crc16
 $(BUILDDIR)/rtlplayground.img: $(BUILDDIR)/rtlplayground.ihx
 	objcopy --input-target=ihex -O binary $< $@
 
-$(BUILDDIR)/rtlplayground-$(FILENAME_EXTENSION).bin: $(BUILDDIR)/rtlplayground.img | tools
+$(BUILDDIR)/rtlplayground-$(FILENAME_EXTENSION).bin: $(BUILDDIR)/rtlplayground.img $(DEFAULT_CONFIG) | tools
 	if [ -e $@ ]; then rm $@; fi
-	tools/output/imagebuilder -i $^ $@
-	tools/output/fileadder -a $(DEFAULT_CONFIG_LOCATION) -s $(IMAGESIZE) -d config.txt $@
-	tools/output/fileadder -a $(CONFIG_LOCATION) -s $(IMAGESIZE) -d config.txt $@
+	tools/output/imagebuilder -i $< $@
+	tools/output/fileadder -a $(DEFAULT_CONFIG_LOCATION) -s $(IMAGESIZE) -d $(DEFAULT_CONFIG) $@
+	tools/output/fileadder -a $(CONFIG_LOCATION) -s $(IMAGESIZE) -d $(DEFAULT_CONFIG) $@
 	tools/output/fileadder -a $(HTML_LOCATION) -s $(IMAGESIZE) -z -d $(HTML_MIN) -b BANK1 $@
 	tools/output/crc_calculator -u $@
 	ln -sf $(MACHINE)/rtlplayground-$(FILENAME_EXTENSION).bin output/rtlplayground.bin

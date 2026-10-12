@@ -35,6 +35,14 @@ page accepts the one-shot installer from `installer/output/`; see
 image into flash, after which the board runs RTLPlayground and is updated
 through RTLPlayground's own web UI from then on.
 
+The unit's flash is a **Winbond W25Q16JV** (`flash j` reports `EF 40 15`), so the
+default Dual-I/O build is correct for it; only the Boya/BoHong parts
+(`68 40 15`) need `FLASH_NO_DIO=1`.
+
+Both XikeStor targets embed `config-xikestor.txt` instead of `config.txt`
+(selected by machine target in the Makefile), so a freshly flashed board comes up
+at **192.168.10.12** with the project's default login password.
+
 ## Photos
 
 <img src="photos/SWTGW218AS-managed/front.png" width="800" />
