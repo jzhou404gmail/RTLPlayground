@@ -6,9 +6,11 @@
 | Mokerlink | ZX-SWTGW218AS | Yes|  SWTG118AS-V2.0-16029 | 2MB (FM25Q16A)| 8273N + 8224N |
 | Sodola | | | | | |
 | Horaco | | | | | |
-| XikeStor | SKS3200-8E1X | Yes | SWTG118AS-V2.1-17462 | 2MB (25Q16JVSIQ) | |
+| XikeStor | SKS3200M-8GPY1XF | Yes | SWTG118AS-V2.1-17462 | 2MB (25Q16JVSIQ) | |
 
-The XikeStor unit is also sold as `SKS3200M-8GPY1XF`.
+The XikeStor unit states its model as `SKS3200M-8GPY1XF` in its web UI and on
+its label; an earlier revision of this list called it `SKS3200-8E1X`, which the
+unit does not carry.
 
 ## RTLPlayground targets
 
@@ -23,6 +25,15 @@ block. They differ in what they report as the board, which the web UI shows as
 
 The two targets are interchangeable as far as the hardware is concerned; pick the
 one that matches the silkscreen of your board so the UI states it correctly.
+
+## Installing on the XikeStor unit from its stock firmware
+
+The stock firmware is a CGI-based Realtek SDK image ("固件版本 V1.9",
+`用户名/密码 admin/admin`, IP `192.168.10.12`) whose **固件升级 (`fwug.cgi`)**
+page accepts the one-shot installer from `installer/output/`; see
+[installation method 2](../../README.md). The installer copies the RTLPlayground
+image into flash, after which the board runs RTLPlayground and is updated
+through RTLPlayground's own web UI from then on.
 
 ## Photos
 

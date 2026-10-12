@@ -441,11 +441,12 @@ __code const struct machine machine = {
 /*
  * SWTG118AS-V2.x - 8 x 2.5GBASE-T + 1 x SFP+ (RTL8373 + RTL8224). Sold as
  * Mokerlink/Horaco/Sodola ZX-SWTGW218AS on SWTG118AS-V2.0-16029 and as XikeStor
- * SKS3200-8E1X / SKS3200M-8GPY1XF on SWTG118AS-V2.1-17462. Both revisions take
- * the same wiring, so they share this block and differ in how they name the
- * board: the XikeStor target puts the PCB revision in .machine_name and the
- * retail model in .model_name, which the web UI shows as 硬件 (hardware) and
- * 型号 (model).
+ * SKS3200M-8GPY1XF on SWTG118AS-V2.1-17462 (the owner's unit states that model in
+ * its web UI and on its label; an earlier revision of the device list called it
+ * SKS3200-8E1X, which no unit seen so far carries). Both revisions take the same
+ * wiring, so they share this block and differ in how they name the board: the
+ * XikeStor target puts the PCB revision in .machine_name and the retail model in
+ * .model_name, which the web UI shows as 硬件 (hardware) and 型号 (model).
  */
 __code const struct machine machine = {
 #if defined(MACHINE_SKS3200M_8GPY1XF)
