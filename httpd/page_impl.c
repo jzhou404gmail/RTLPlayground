@@ -303,6 +303,8 @@ void send_basic_info(void)
 	slen += strtox(outbuf + slen, BUILD_DATE);
 	slen += strtox(outbuf + slen, "\",\"hw_ver\":\"");
 	slen += strtox(outbuf + slen, machine.machine_name);
+	slen += strtox(outbuf + slen, "\",\"model\":\"");
+	slen += strtox(outbuf + slen, machine.model_name);
 	slen += strtox(outbuf + slen, "\",\"chip_temp\":\"");
 	temp_to_html();
 	slen += strtox(outbuf + slen, "\",\"flash_size\":\"");

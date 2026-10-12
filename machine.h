@@ -84,6 +84,11 @@ struct sfp_port
 
 struct machine {
 	char machine_name[30];
+	// Retail model the board is sold as, when that differs from the board
+	// revision in machine_name - e.g. the ZX-SWTGW215AS PCB sold as
+	// SKS3200M-5GPY1XF. Left empty by targets whose machine_name already is
+	// the model; the web UI then shows no separate model line.
+	char model_name[30];
 	uint8_t isRTL8373;
 	// Lowest logical port number
 	uint8_t min_port;
