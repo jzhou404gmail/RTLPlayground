@@ -101,6 +101,7 @@ sy_sysport_err:"Syslog port must be 1-65535",
 sy_pw_len:"Password: 1-20 characters",sy_pw_space:"Password cannot contain spaces",sy_pw_match:"Passwords do not match",
 sy_pw_q:"Change admin password?",sy_pw_d:"Takes effect immediately for new logins. Save to flash to persist.",
 sy_reboot_q:"Reboot the switch?",sy_reboot_d:"There are UNSAVED changes and they will be lost. Save to flash first if you want to keep them.",
+sy_defaults:"Restore factory defaults",sy_defaults_q:"Restore the factory defaults?",sy_defaults_d:"The configuration built into the image replaces the startup configuration and the switch reboots. Its IP address becomes the image's default (192.168.10.12 on the XikeStor builds, otherwise the address in config.txt), so reconnect there.",sy_defaults_doing:"Restoring the factory defaults, the switch reboots",
 sy_rebooting:"Rebooting, reconnect in about 20 s",sy_bytes:"bytes",
 cw_title:"Write this startup configuration?",cw_save_title:"Save running configuration to flash?",
 cw_info:"{n} / 2048 bytes, replayed line by line on every boot",
@@ -215,6 +216,7 @@ sy_sysip_err:"syslog サーバー IP が無効です",sy_sysport_err:"syslog ポ
 sy_pw_len:"パスワード: 1〜20 文字",sy_pw_space:"パスワードに空白は使えません",sy_pw_match:"パスワードが一致しません",
 sy_pw_q:"管理者パスワードを変更しますか?",sy_pw_d:"新しいログインから即時に有効になります。保持するにはフラッシュに保存してください。",
 sy_reboot_q:"スイッチを再起動しますか?",sy_reboot_d:"未保存の変更があり、失われます。保持したい場合は先にフラッシュに保存してください。",
+sy_defaults:"工場出荷状態に戻す",sy_defaults_q:"工場出荷状態の設定に戻しますか?",sy_defaults_d:"イメージに組み込まれた設定が起動設定を置き換え、スイッチが再起動します。IP アドレスはイメージの既定値 (XikeStor ビルドでは 192.168.10.12、それ以外は config.txt の値) になるので、そのアドレスで再接続してください。",sy_defaults_doing:"工場出荷状態に戻しています。スイッチが再起動します",
 sy_rebooting:"再起動中です。約 20 秒後に再接続してください",sy_bytes:"バイト",
 cw_title:"この起動設定を書き込みますか?",cw_save_title:"実行中の設定をフラッシュに保存しますか?",
 cw_info:"{n} / 2048 バイト、起動のたびに 1 行ずつ実行されます",
@@ -328,6 +330,7 @@ sy_sysip_err:"syslog 服务器 IP 无效",sy_sysport_err:"syslog 端口范围为
 sy_pw_len:"密码: 1-20 个字符",sy_pw_space:"密码不能包含空格",sy_pw_match:"两次输入的密码不一致",
 sy_pw_q:"修改管理员密码?",sy_pw_d:"对新的登录立即生效。如需保留请保存到 Flash。",
 sy_reboot_q:"重启交换机?",sy_reboot_d:"存在未保存的更改，重启后将丢失。如需保留请先保存到 Flash。",
+sy_defaults:"恢复出厂设置",sy_defaults_q:"恢复出厂设置?",sy_defaults_d:"将用镜像内嵌的出厂配置替换当前启动配置，并重启交换机。IP 地址会变成镜像的默认值（XikeStor 构建为 192.168.10.12，其它构建为 config.txt 中的地址），请到该地址重新连接。",sy_defaults_doing:"正在恢复出厂设置，交换机重启中",
 sy_rebooting:"正在重启，约 20 秒后重新连接",sy_bytes:"字节",
 cw_title:"写入此启动配置?",cw_save_title:"将运行配置保存到 Flash?",
 cw_info:"{n} / 2048 字节，每次启动时逐行执行",
@@ -441,6 +444,7 @@ sy_sysip_err:"IP del servidor syslog no válida",sy_sysport_err:"El puerto de sy
 sy_pw_len:"Contraseña: 1-20 caracteres",sy_pw_space:"La contraseña no puede contener espacios",sy_pw_match:"Las contraseñas no coinciden",
 sy_pw_q:"¿Cambiar la contraseña de administrador?",sy_pw_d:"Toma efecto inmediatamente para los nuevos inicios de sesión. Guarda en flash para persistir.",
 sy_reboot_q:"¿Reiniciar el switch?",sy_reboot_d:"Hay cambios SIN GUARDAR y se perderán. Guarda en flash primero si quieres conservarlos.",
+sy_defaults:"Restaurar valores de fábrica",sy_defaults_q:"¿Restaurar los valores de fábrica?",sy_defaults_d:"La configuración incluida en la imagen sustituye a la configuración de arranque y el switch se reinicia. Su dirección IP pasa a ser la predeterminada de la imagen (192.168.10.12 en las compilaciones XikeStor, si no la de config.txt), así que vuelve a conectarte ahí.",sy_defaults_doing:"Restaurando los valores de fábrica, el switch se reinicia",
 sy_rebooting:"Reiniciando, reconecta en unos 20 s",sy_bytes:"bytes",
 cw_title:"¿Escribir esta configuración de inicio?",cw_save_title:"¿Guardar la configuración en ejecución en flash?",
 cw_info:"{n} / 2048 bytes, reaplicada línea a línea en cada arranque",
@@ -556,6 +560,7 @@ sy_sysip_err:"Adresse IP du serveur Syslog invalide",sy_sysport_err:"Le port Sys
 sy_pw_len:"Mot de passe : 1 à 20 caractères",sy_pw_space:"Le mot de passe ne doit pas contenir d'espaces",sy_pw_match:"Les mots de passe ne correspondent pas",
 sy_pw_q:"Changer le mot de passe d'administration?",sy_pw_d:"Cela prend effet immédiatement dès la prochaine connection. Enregistrez en Flash pour rendre la modification persistante.",
 sy_reboot_q:"Redémarrer le commutateur ?",sy_reboot_d:"Il y a des paramètres NON SAUVEGARDES qui vont être perdus. Sauvegardez-les au préalable en mémoire flash si vous souhaitez les conserver.",
+sy_defaults:"Rétablir les réglages d'usine",sy_defaults_q:"Rétablir les réglages d'usine ?",sy_defaults_d:"La configuration intégrée à l'image remplace la configuration de démarrage et le commutateur redémarre. Son adresse IP devient celle par défaut de l'image (192.168.10.12 pour les versions XikeStor, sinon celle de config.txt) : reconnectez-vous à cette adresse.",sy_defaults_doing:"Rétablissement des réglages d'usine, redémarrage du commutateur",
 sy_rebooting:"Redémarrage, reconnectez-vous d'ici 20s",sy_bytes:"bytes",
 cw_title:"Enregistrer cette configuration de démarrage?",cw_save_title:"Enregistrer la configuration active en mémoire flash?",
 cw_info:"{n} / 2048 bytes, qui seront rejouées ligne par ligne à chaque redémarrage",
@@ -673,6 +678,7 @@ sy_sysip_err:"Ungültige IP des Syslog-Servers",sy_sysport_err:"Syslog-Port muss
 sy_pw_len:"Passwort: 1-20 Zeichen",sy_pw_space:"Das Passwort darf keine Leerzeichen enthalten",sy_pw_match:"Die Passwörter stimmen nicht überein",
 sy_pw_q:"Admin-Passwort ändern?",sy_pw_d:"Gilt sofort für neue Anmeldungen. Im Flash speichern, damit es erhalten bleibt.",
 sy_reboot_q:"Switch neu starten?",sy_reboot_d:"Es gibt UNGESPEICHERTE Änderungen, sie gehen verloren. Zuerst im Flash speichern, wenn du sie behalten willst.",
+sy_defaults:"Werkseinstellungen wiederherstellen",sy_defaults_q:"Werkseinstellungen wiederherstellen?",sy_defaults_d:"Die im Image eingebaute Konfiguration ersetzt die Startkonfiguration und der Switch startet neu. Seine IP-Adresse wird die des Images (192.168.10.12 bei den XikeStor-Builds, sonst die aus config.txt) - dort neu verbinden.",sy_defaults_doing:"Werkseinstellungen werden wiederhergestellt, der Switch startet neu",
 sy_rebooting:"Neustart läuft, in etwa 20 s neu verbinden",sy_bytes:"Bytes",
 cw_title:"Diese Startkonfiguration schreiben?",cw_save_title:"Laufende Konfiguration im Flash speichern?",
 cw_info:"{n} / 2048 Bytes, wird bei jedem Start Zeile für Zeile ausgeführt",
@@ -2141,6 +2147,15 @@ $("sy-reboot").addEventListener("click",function(){
   confirmModal(t("sy_reboot_q"),S.dirty?t("sy_reboot_d"):"",function(){
     api("/reset").catch(function(){});
     toast(t("sy_rebooting"),"ok");
+  });
+});
+$("sy-defaults").addEventListener("click",function(){
+  confirmModal(t("sy_defaults_q"),t("sy_defaults_d"),function(){
+    /* "defaults" replaces the startup configuration with the one built into the
+     * image and reboots, so the connection drops just as it does for a reboot -
+     * hence the catch() and the "the switch is restarting" toast. */
+    api("/cmd",{method:"POST",body:"defaults"}).catch(function(){});
+    toast(t("sy_defaults_doing"),"ok");
   });
 });
 function cfgReload(){

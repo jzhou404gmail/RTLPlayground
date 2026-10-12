@@ -1840,6 +1840,17 @@ void cmd_parser(void) __banked
 		if (cmd_compare(0, "reset")) {
 			print_string("\nRESET\n\n");
 			reset_chip();
+		} else if (cmd_compare(0, "defaults")) {
+			/*
+			 * Restore the configuration the image was built with and reboot -
+			 * exactly what the reset button does when it is held for more than
+			 * ten seconds (handle_button()). Deliberately NOT a configuration
+			 * command: it must never end up in the startup configuration, so it
+			 * is kept out of the UI's CONF_CMDS as well.
+			 */
+			print_string("\nRESTORING THE DEFAULT CONFIGURATION\n\n");
+			flash_default_config();
+			reset_chip();
 		} else if (cmd_compare(0, "sfp")) {
 			parse_sfp();
 		} else if (cmd_compare(0, "stat")) {
