@@ -60,6 +60,22 @@ swapped) and possibly an SFP slot that does not see its module.
 | `.led_sets`, `.port_led_set`, `high_leds` | **not verified** — still the V2.0 values | needs a 2.5G and a 1G peer plus the `leds` command |
 | SFP `pin_detect`, `pin_los`, `i2c` | **not verified** — still the V2.0 values | needs a module in the cage and the `sfp` command |
 
+## No reset button, and what to do instead
+
+This board has **no reset button and no unpopulated footprint for one**: the
+front-left area of the PCB carries neither a 4.5 x 4.5 mm push-button footprint
+(compare [KP-9000-6XH-X2](KP-9000-6XH-X2.md#reset-button), where that footprint
+exists unpopulated and the case even has the hole) nor a spare pad to solder one
+to. `.reset_pin` therefore stays `GPIO_NA` for this target - the firmware would
+have nothing to read.
+
+To restore the configuration built into the image, use the **Restore factory
+defaults** button in the System tab, or the equivalent console command
+`defaults`; both were added for exactly this case and do what a long press of the
+reset button does elsewhere (see the [README](../../README.md#8-the-web-interface)).
+Note that the board then takes the address the image was built with, i.e.
+`config.txt` here, and not the address it had before.
+
 ## Artifacts
 
 Both flash-mode variants are built from the same source, so that either can be flashed
