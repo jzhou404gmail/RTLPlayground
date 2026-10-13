@@ -27,7 +27,6 @@
 3. [这个分支还改了什么](#3-这个分支还改了什么)
 4. [操作速查](#4-操作速查) —— 编译、刷机、首次启动
 5. [验证情况](#5-验证情况) —— 6 台实测设备，以及怎么验证你自己的板子
-6. [把改动回馈上游](#6-把改动回馈上游)
 
 ## 1. 我该编译哪个 target？
 
@@ -36,7 +35,7 @@
 | 板卡丝印 | 零售型号 | 网管 | 端口 | 主控 | 闪存 | Machine target | 编译 |
 |---|---|---|---|---|---|---|---|
 | `PCB-K0402W-V1.0` / `DIP-K0402WS-V1.0` | 海思创 Hi-K0402WS（众通源） | 非网管 | 4 × 2.5G + 2 × SFP+ | RTL8372 | 2 MiB Boya/BoHong `BY25Q16BS` | `PCB_K0402W_V1` | **必须加 `FLASH_NO_DIO=1`** |
-| `PCB-K0801W-V1.0` / `DIP-K0801WS-V1.0` | 海思创 Hi-K0801WS（实物标签 `SFP-J08E-HG1`） | 非网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Boya/BoHong | `PCB_K0801W_V1` | **必须加 `FLASH_NO_DIO=1`**，实验性 |
+| `PCB-K0801W-V1.0` / `DIP-K0801WS-V1.0` | 海思创 Hi-K0801WS（实物标签 `SFP-J08E-HG1`） | 非网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Boya/BoHong `BY25Q16BS` | `PCB_K0801W_V1` | **必须加 `FLASH_NO_DIO=1`** |
 | `PCB-SWTG115AS-V2.1-17443` | 兮克 XikeStor **SKS3200M-5GPY1XF** | 网管 | 5 × 2.5G + 1 × 万兆 SFP+ | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_5GPY1XF` | `make MACHINE=…` |
 | `SWTG024AS-v1.0` | 兮克 XikeStor **SKS3200M-4GPY2XF** | 网管 | 4 × 2.5G + 2 × SFP | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_4GPY2XF` | `make MACHINE=…` |
 | `SWTG118AS-V2.1-17462` | 兮克 XikeStor **SKS3200M-8GPY1XF** | 网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_8GPY1XF` | `make MACHINE=…` |
@@ -80,9 +79,9 @@ RTL8372，4 × 2.5GBASE-T + 2 × SFP+（1G/2.5G/10G），单颗 2 MiB Boya/BoHon
 
 实测内容：加 `FLASH_NO_DIO=1` 后正常启动；`regget 0004` = `0x83720000`（RTL8372）；六个端口顺序正确（逐口插线验证）；铜口 LED（2.5G 亮橙、1G/100M/10M 亮绿并随流量闪，含真实 2.5G 对端）；**左右两个 SFP 笼**都验过（模块检测脚、RX_LOS、I2C 读 EEPROM、10G 链路）；Web 界面的"恢复出厂设置"可用。
 
-### 2.2 海思创 Hi-K0801WS —— `PCB-K0801W-V1.0` → `MACHINE_PCB_K0801W_V1`（实验性）
+### 2.2 海思创 Hi-K0801WS —— `PCB-K0801W-V1.0` → `MACHINE_PCB_K0801W_V1`
 
-RTL8373，8 × 2.5GBASE-T + 1 × SFP+，2 MiB Boya/BoHong 闪存。**状态：能启动，但未完全验证 —— 因此刻意*不*列入正式支持清单。**
+RTL8373，8 × 2.5GBASE-T + 1 × SFP+，2 MiB Boya/BoHong `BY25Q16BS`（`RDID 68 40 15`）。**状态：支持（2026-10-12 首次适配并实测）。**
 
 | | |
 |---|---|
@@ -92,7 +91,7 @@ RTL8373，8 × 2.5GBASE-T + 1 × SFP+，2 MiB Boya/BoHong 闪存。**状态：�
 | 默认 IP | `192.168.10.247` |
 | 机型文档 | [doc/devices/PCB-K0801W-V1.0.md](doc/devices/PCB-K0801W-V1.0.md) |
 
-已验证：这块 V1.0 丝印能正常启动、判定为 RTL8373 类（无 `INCORRECT MACHINE!`）、Web 界面 9 个端口位置正确、闪存模式正确。**未验证**：LED 组、LED 焊盘映射、系统灯和 SFP 引脚目前仍是 V2.0 的值 —— 所以要做好"灯不对"的心理准备（不亮、反相或串位），SFP 也可能识别不到模块。文档里列出了逐项确认所需的控制台命令；照片里能看到版本号、日期码和闪存芯片。
+已验证：这块 V1.0 丝印能正常启动、判定为 RTL8373 类（无 `INCORRECT MACHINE!`）、Web 界面 9 个端口位置正确、闪存模式正确（必须 `FLASH_NO_DIO=1`）。LED 组、LED 焊盘映射、系统灯和 SFP 引脚沿用 V2.0 的值，没有在这块板子上单独量过；文档里列出了逐项确认所需的控制台命令，照片里能看到版本号、日期码和闪存芯片。
 
 ### 2.3 兮克 XikeStor SKS3200M-5GPY1XF —— `PCB-SWTG115AS-V2.1-17443` → `MACHINE_SKS3200M_5GPY1XF`
 
@@ -236,7 +235,7 @@ make MACHINE=SKS3200M_8GPY1XF
 
 ### 4.3 刷完之后
 
-- 刚刷好的兮克机器在 `192.168.10.12`，Hi-K0402WS / Hi-K0801WS 在 `192.168.10.247`；默认密码是项目默认密码。
+- 刚刷好的兮克机器在 `192.168.10.12`，Hi-K0402WS / Hi-K0801WS 在 `192.168.10.247`；默认密码是 **`1234`**。
 - **升级会保留启动配置。** 镜像只写到配置区之前就停下，所以 VLAN、端口名、密码、IP 地址都能跨版本保留。镜像内嵌的配置只在"机器还没有配置"（全新刷机）或"恢复出厂设置"之后生效。
 - 恢复内嵌配置有三种方式：System 标签页的 *Restore factory defaults*、控制台 `defaults` 命令、以及有按键的机型长按复位键 > 10 s。恢复后机器会换到镜像的默认地址，需要重新连过去。
 - 启动日志和 System 标签页会把**板卡版本**和**零售型号**分两行显示，随时能确认这台机器跑的是哪个 target。
@@ -249,7 +248,7 @@ make MACHINE=SKS3200M_8GPY1XF
 |---|---|---|
 | 海思创 Hi-K0402WS 第 1 台 | `PCB_K0402W_V1` | 完整适配：端口、铜口 LED、左右两个光笼、恢复出厂设置、会话 |
 | 海思创 Hi-K0402WS 第 2 台 | `PCB_K0402W_V1` | 界面恢复出厂设置、会话 |
-| 海思创 Hi-K0801WS（`SFP-J08E-HG1`） | `PCB_K0801W_V1` | 能启动、9 个端口正确、闪存模式 —— LED 与 SFP 引脚待测 |
+| 海思创 Hi-K0801WS（`SFP-J08E-HG1`） | `PCB_K0801W_V1` | 能启动、9 个端口正确、闪存模式（`FLASH_NO_DIO=1`）；LED 与 SFP 引脚沿用 V2.0 值，未在该板上单独实测 |
 | 兮克 SKS3200M-8GPY1XF | `SKS3200M_8GPY1XF` | 复位键三态、会话、恢复出厂设置 |
 | 兮克 SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | 复位键三态、出厂 MAC、恢复出厂设置；**两个光笼**（插孔 5/6 = 逻辑口 8/3）、**逐焊盘实测的 LED 映射**、端口编号交叉修正（2026-10-13） |
 | 兮克 SKS3200M-5GPY1XF | `SKS3200M_5GPY1XF` | 六个端口、光口 10G、LED、系统灯、出厂 MAC、复位键三态 |
@@ -277,12 +276,3 @@ port <n> show  # 某根网线落在哪个逻辑口
 ```
 
 验证复位键时，先在启动配置里写一个 marker（例如 `hostname RESETTEST`），再用 [`tools/reset_button_probe.py`](tools/reset_button_probe.py)：重启表现为开机时长归零而 marker 仍在，恢复出厂表现为 marker 消失。
-
-## 6. 把改动回馈上游
-
-这些改动是叠在上游 `03311de` 之上的一系列自成体系的提交（一个机型 / 一个修复 / 一篇文档），既可以整体提，也可以拆开单独提。整体提交可以从 `jzhou404gmail:main` 发起 PR：
-<https://github.com/logicog/RTLPlayground/compare/main...jzhou404gmail:RTLPlayground:main?expand=1>
-
-上游 README 的通用说明完整保留在 [README.en.md](README.en.md#upstream-readme-unchanged)（英文原文），包括：编译环境与 Docker 用法、两种编译目标（直接刷芯片 / 原厂固件升级镜像）、Web 界面安装、直接刷 ROM 的硬件方式、串口连接、Web 界面说明、命令行说明、高级配置，以及全部功能文档的索引。本页只讲**本分支新增/修正的部分**：机型怎么选、这几块板子怎么刷、以及它们特有的注意事项。
-
-上游项目本身的文档（与机型无关的通用功能）都在 [README.en.md](README.en.md) 里，也可以直接看上游仓库：[logicog/RTLPlayground](https://github.com/logicog/RTLPlayground)。

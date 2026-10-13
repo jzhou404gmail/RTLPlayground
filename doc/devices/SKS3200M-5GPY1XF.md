@@ -73,9 +73,9 @@ device over the web interface — this board has no serial console:
 
 Both XikeStor targets embed `config-xikestor.txt` instead of `config.txt`
 (selected by machine target in the Makefile), so a freshly flashed board comes up
-at **192.168.10.12** with the project's default login password. The file holds
+at **192.168.10.12** with the default login password `1234`. The file holds
 only the IP, gateway and netmask; adding a `passwd` line to it would replace the
-default password.
+built-in `1234`.
 
 ## Installing
 

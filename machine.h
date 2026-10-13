@@ -45,8 +45,9 @@
 // #define MACHINE_STEAMEMO_IG204_V1
 // #define MACHINE_DEFAULT_8C_1SFP
 // #define MACHINE_HI_K0801WS
-// Experimental target: older PCB revision of the same 8+1 model, parameters
-// inherited from HI_K0801WS (V2.0): doc/devices/PCB-K0801W-V1.0.md
+// Hisource Hi-K0801WS on PCB-K0801W-V1.0: older PCB revision of the same 8+1
+// model, parameters inherited from HI_K0801WS (V2.0); build it with
+// FLASH_NO_DIO=1 (Boya/BoHong flash). doc/devices/PCB-K0801W-V1.0.md
 // #define MACHINE_PCB_K0801W_V1
 // #define MACHINE_FNS1200P
 // #define MACHINE_PCB_SWTG024AS_A_2_0_1

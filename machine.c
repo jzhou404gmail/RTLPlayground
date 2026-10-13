@@ -872,22 +872,19 @@ __code const struct machine machine = {
  * Hi-K0801WS, whose V2.0 revision is the target above. The owner's unit
  * carries the retail label SFP-J08E-HG1, which is what .model_name reports.
  *
- * *** LED WIRING AND SFP PINS NOT VERIFIED YET ***
- *
- * The board is confirmed to boot, run and list all 9 ports correctly with
- * this target (2026-10-12, `FLASH_NO_DIO=1` for its Boya/BoHong flash), which
- * settles .isRTL8373 and .n_sfp. Everything else is still inherited unchanged
- * from the V2.0 target, because the board-specific LED/GPIO wiring cannot be
- * recovered from a stock image: a scan of the sibling 4+2 board's dump finds
- * zero writes to any 0x65xx switch register address (see
- * doc/devices/PCB-K0402W-V1.0.md). .led_mux, .led_sets, .port_led_set,
- * .high_leds and the SFP pins therefore have to be measured on the board -
- * doc/devices/PCB-K0801W-V1.0.md lists the commands that answer each one.
+ * The board is confirmed to boot, run and list all 9 ports correctly with this
+ * target (2026-10-12, `FLASH_NO_DIO=1` for its 2 MiB Boya/BoHong BY25Q16BS
+ * flash), which settles .isRTL8373 and .n_sfp. The LED and SFP fields are the
+ * V2.0 values, not separately measured on this revision: the board-specific
+ * LED/GPIO wiring cannot be recovered from a stock image - a scan of the
+ * sibling 4+2 board's dump finds zero writes to any 0x65xx switch register
+ * address (see doc/devices/PCB-K0402W-V1.0.md) - so .led_mux, .led_sets,
+ * .port_led_set, .high_leds and the SFP pins would have to be measured on the
+ * board; doc/devices/PCB-K0801W-V1.0.md lists the commands that answer each
+ * one.
  *
  * Only .machine_name and .model_name differ from the V2.0 target, so a boot
- * log states unambiguously which revision is running. Expect the copper ports
- * and their order to be right; expect wrong LEDs (dark, inverted or swapped)
- * and possibly an SFP slot that reports no module. There is no reset button
+ * log states unambiguously which revision is running. There is no reset button
  * on this board, so the built-in configuration is restored with the `defaults`
  * command or the button in the web UI.
  */

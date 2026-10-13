@@ -25,9 +25,9 @@
 - Devices
   - `MACHINE_PCB_K0402W_V1` — Hisource Hi-K0402WS (PCB-K0402W-V1.0, 4 x 2.5GBASE-T + 2 x SFP+).
     Needs `FLASH_NO_DIO=1`. See doc/devices/PCB-K0402W-V1.0.md.
-  - `MACHINE_PCB_K0801W_V1` — Hi-K0801WS / SFP-J08E-HG1 (PCB-K0801W-V1.0, 8 x 2.5GBASE-T + 1 x SFP+).
-    Boots and lists its ports correctly, but the LED wiring and the SFP pins are still inherited from
-    the V2.0 board and not measured, so it is not listed as supported. Needs `FLASH_NO_DIO=1`.
+  - `MACHINE_PCB_K0801W_V1` — Hi-K0801WS / SFP-J08E-HG1 (PCB-K0801W-V1.0, 8 x 2.5GBASE-T + 1 x SFP+,
+    2 MiB Boya/BoHong BY25Q16BS). Boots and lists its ports correctly; the LED wiring and the SFP pins
+    are the V2.0 values, not measured on this revision. Needs `FLASH_NO_DIO=1`.
     See doc/devices/PCB-K0801W-V1.0.md.
   - `MACHINE_SKS3200M_5GPY1XF` — XikeStor SKS3200M-5GPY1XF (PCB-SWTG115AS-V2.1, 5 x 2.5GBASE-T + 1 x SFP+),
     the ZX-SWTGW215AS board under a different model name. See doc/devices/SKS3200M-5GPY1XF.md.

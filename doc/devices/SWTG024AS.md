@@ -70,8 +70,8 @@ the one-shot installer from `installer/output/`; see
    with the file in the `submitFile` field. The page answers 升级成功！, the board
    reboots into the installer, the installer writes RTLPlayground to `0x0` and
    reboots again.
-4. RTLPlayground then comes up at `192.168.10.12` with the project's default
-   login password (`1234`); the vendor `admin/admin` no longer applies.
+4. RTLPlayground then comes up at `192.168.10.12` with the default login password
+   `1234`; the vendor `admin/admin` no longer applies.
 
 Verified on the owner's unit (2026-10-12): upgraded from `V10.9.4` to
 `MACHINE_SKS3200M_4GPY2XF`; the UI then reports 硬件 `PCB-SWTG024AS-V1.0` /

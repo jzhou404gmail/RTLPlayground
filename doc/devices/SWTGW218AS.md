@@ -41,7 +41,7 @@ default Dual-I/O build is correct for it; only the Boya/BoHong parts
 
 Both XikeStor targets embed `config-xikestor.txt` instead of `config.txt`
 (selected by machine target in the Makefile), so a freshly flashed board comes up
-at **192.168.10.12** with the project's default login password.
+at **192.168.10.12** with the default login password `1234`.
 
 ## Reset button
 

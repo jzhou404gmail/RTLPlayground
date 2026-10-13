@@ -1,10 +1,11 @@
 # PCB-K0801W-V1.0 (Hisource Hi-K0801WS, older PCB revision)
 
-**Status: BOOTS ON HARDWARE — first bring-up succeeded on 2026-10-12.** The board boots,
+**Status: SUPPORTED — verified on hardware, first bring-up 2026-10-12.** The board boots,
 runs normally and its web interface lists the ports correctly, which confirms the SoC class
-(`isRTL8373 = 1`), the 8 + 1 port layout and the flash mode. The board-specific LED wiring
-and the SFP pins are still inherited from V2.0 and unverified — see
-[Bring-up status](#bring-up-status-2026-10-12). Not yet a supported device.
+(`isRTL8373 = 1`), the 8 + 1 port layout and the flash mode. It carries a **2 MiB
+Boya/BoHong `BY25Q16BS`** SPI NOR, so it must be built with `FLASH_NO_DIO=1`. The
+board-specific LED wiring and the SFP pins are the V2.0 values, not separately measured on
+this revision — see [Bring-up status](#bring-up-status-2026-10-12).
 
 Machine target: `MACHINE_PCB_K0801W_V1` (see `machine.h`). It is derived from
 `MACHINE_HI_K0801WS` — the target for [PCB-K0801W-V2.0](HI-K0801WS.md), the revision
@@ -16,6 +17,8 @@ revision of the same retail model:
   board photos below (V2.0 boards read `PCB-K0801W-V2.0` / `DIP-K0801WS-V2.0`).
 - Case label: `2.5G万兆交换机 / 型号 SFP-J08E-HG1 / 传输速率 10000M / 供电电压 DC12V`,
   serial number `202311030003`. That model name is what the firmware reports as 型号.
+- Flash: 2 MiB Boya/BoHong `BY25Q16BS` (`RDID 68 40 15`), the same part family as
+  [PCB-K0402W-V1.0](PCB-K0402W-V1.0.md) — hence `FLASH_NO_DIO=1`.
 - No stock firmware dump of this board was taken. The spare flash of the same part
   family (see below) held the Realtek reference image of this device family, which is
   the same firmware the sibling 4 + 2 board ships.

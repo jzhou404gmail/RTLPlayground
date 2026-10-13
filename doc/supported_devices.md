@@ -13,7 +13,7 @@ The following devices have been tested and are fully working:
 | Hisource | Hi-K0402WS      | No      | [PCB-K0402WS-V2.0](devices/PCB-K0402WS-V2.0.md)                           | 2M    | 4 + 2 |
 | Hisource | Hi-K0402WS      | No      | [PCB-K0402W-V1.0](devices/PCB-K0402W-V1.0.md)                             | 2M    | 4 + 2 |
 | Hisource | Hi-K0801WS      | No      | [PCB-K0801W-V2.0](devices/HI-K0801WS.md)                                  |       | 8 + 1 |
-| Hisource | Hi-K0801WS      | No      | [PCB-K0801W-V1.0 (experimental)](devices/PCB-K0801W-V1.0.md)              | ?     | 8 + 1 |
+| Hisource | Hi-K0801WS      | No      | [PCB-K0801W-V1.0](devices/PCB-K0801W-V1.0.md)                             | 2M    | 8 + 1 |
 | hongyavision | LG-SG5T1    | No      | [PCB-SWTG024AS-V2.0_16895](devices/SWTG024AS-V2.0.md)                     | 0.5M  | 5 + 1 |
 | Horaco   | HC-SWTGW215AS   | Yes     | [SWTG024AS-A-V2.0.1_19650 5C 1SFP](devices/SWTG024AS-A-V2.0.1_5C_1SFP.md) | ?     | 5 + 1 |
 | Horaco   | HC-SWTGW218AS   | Yes     | [SWTG018AS-A V2.0](devices/SWTG018AS_A_V2_0.md)                           |       | 8 + 1 |
@@ -58,12 +58,12 @@ work with the flash controller's Dual-I/O MMIO read mode, so it must be built wi
 The Hi-K0801WS also exists in an older PCB revision, `PCB-K0801W-V1.0` (sold as
 `SFP-J08E-HG1` on the owner's unit). The target `MACHINE_PCB_K0801W_V1` is derived from
 `MACHINE_HI_K0801WS`; it boots and runs on the board (first bring-up 2026-10-12, ports
-correct in the web UI, photos in the device document), but its LED wiring and SFP pins
-still have to be measured, so the device is deliberately **not** listed as supported yet.
-It has no reset button and no footprint for one, so the configuration built into the image
-is restored from the web UI or with the `defaults` command. Its flash is a Boya/BoHong
-part of the same family as the PCB-K0402W-V1.0 one, so build it with `FLASH_NO_DIO=1`.
-See [PCB-K0801W-V1.0](devices/PCB-K0801W-V1.0.md).
+correct in the web UI, photos in the device document). Its flash is a 2 MiB Boya/BoHong
+`BY25Q16BS` — the same part as on the PCB-K0402W-V1.0 board — so build it with
+`FLASH_NO_DIO=1`. It has no reset button and no footprint for one, so the configuration
+built into the image is restored from the web UI or with the `defaults` command. Its LED
+wiring and SFP pins are the values of the V2.0 revision, which were not separately measured
+on this one. See [PCB-K0801W-V1.0](devices/PCB-K0801W-V1.0.md).
 
 The two SFP cages of the SWTG024AS family (LIANGUO SWTG024AS, Horaco ZX-SWTG124AS,
 Sodola SL-SWTG124AS-D, XikeStor SKS3200M-4GPY2XF, and the Binardat/ONT boards of the

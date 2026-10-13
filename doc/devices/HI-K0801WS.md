@@ -32,9 +32,9 @@ Bottom
 <img src="photos/K0801W-V2.0-unmanaged\PCB-bottom.jpg" width="300" />
 
 An older PCB revision of the same 8 + 1 model exists, marked `PCB-K0801W-V1.0`. It is
-documented separately, with a bring-up target derived from this V2.0 one that boots on the
-board but still needs its LED and SFP wiring measured:
-[PCB-K0801W-V1.0](PCB-K0801W-V1.0.md).
+documented separately, with its own target derived from this V2.0 one (its 2 MiB
+Boya/BoHong flash needs `FLASH_NO_DIO=1`); its LED and SFP wiring are the values of this
+revision: [PCB-K0801W-V1.0](PCB-K0801W-V1.0.md).
 
 ## Power supply
 

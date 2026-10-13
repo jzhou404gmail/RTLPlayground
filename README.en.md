@@ -33,7 +33,6 @@ the observation that settles it.
 3. [What else this fork changes](#3-what-else-this-fork-changes)
 4. [Recipes](#4-recipes) — build, install, first boot
 5. [Verification](#5-verification) — the six units, and how to check your own board
-6. [Sending these changes upstream](#6-sending-these-changes-upstream)
 
 ## 1. Which target do I build?
 
@@ -42,7 +41,7 @@ the observation that settles it.
 | Board silkscreen | Sold as | Managed | Ports | SoC | Flash | Machine target | Build |
 |---|---|---|---|---|---|---|---|
 | `PCB-K0402W-V1.0` / `DIP-K0402WS-V1.0` | Hisource **Hi-K0402WS** (众通源) | no | 4 × 2.5G + 2 × SFP+ | RTL8372 | 2 MiB Boya/BoHong `BY25Q16BS` | `PCB_K0402W_V1` | **needs `FLASH_NO_DIO=1`** |
-| `PCB-K0801W-V1.0` / `DIP-K0801WS-V1.0` | Hisource **Hi-K0801WS** (unit labelled `SFP-J08E-HG1`) | no | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Boya/BoHong | `PCB_K0801W_V1` | **needs `FLASH_NO_DIO=1`**, experimental |
+| `PCB-K0801W-V1.0` / `DIP-K0801WS-V1.0` | Hisource **Hi-K0801WS** (unit labelled `SFP-J08E-HG1`) | no | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Boya/BoHong `BY25Q16BS` | `PCB_K0801W_V1` | **needs `FLASH_NO_DIO=1`** |
 | `PCB-SWTG115AS-V2.1-17443` | XikeStor **SKS3200M-5GPY1XF** (兮克) | yes | 5 × 2.5G + 1 × 10G SFP+ | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_5GPY1XF` | `make MACHINE=…` |
 | `SWTG024AS-v1.0` | XikeStor **SKS3200M-4GPY2XF** | yes | 4 × 2.5G + 2 × SFP | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_4GPY2XF` | `make MACHINE=…` |
 | `SWTG118AS-V2.1-17462` | XikeStor **SKS3200M-8GPY1XF** | yes | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_8GPY1XF` | `make MACHINE=…` |
@@ -102,10 +101,10 @@ ports in the right order (one cable per jack), copper LEDs (amber = 2.5G, green 
 activity, including a real 2.5G link), **both** SFP cages (module detect, RX_LOS, module EEPROM over I2C,
 10G link), and the *Restore factory defaults* path in the web UI.
 
-### 2.2 Hisource Hi-K0801WS — `PCB-K0801W-V1.0` → `MACHINE_PCB_K0801W_V1` (experimental)
+### 2.2 Hisource Hi-K0801WS — `PCB-K0801W-V1.0` → `MACHINE_PCB_K0801W_V1`
 
-RTL8373, 8 × 2.5GBASE-T + 1 × SFP+, 2 MiB Boya/BoHong flash. **Status: boots on hardware, but not fully
-verified — this target is deliberately *not* in the supported list.**
+RTL8373, 8 × 2.5GBASE-T + 1 × SFP+, 2 MiB Boya/BoHong `BY25Q16BS` (`RDID 68 40 15`).
+**Status: supported — first bring-up and measurements on 2026-10-12.**
 
 | | |
 |---|---|
@@ -116,11 +115,10 @@ verified — this target is deliberately *not* in the supported list.**
 | Document | [doc/devices/PCB-K0801W-V1.0.md](doc/devices/PCB-K0801W-V1.0.md) |
 
 Verified: it boots with the V1.0 silkscreen, reports the RTL8373 class (no `INCORRECT MACHINE!`), lists
-all nine ports in the right places in the web UI, and the flash mode is right. **Not verified:** the LED
-sets, the LED pad mux, the system LED and the SFP pins are still the V2.0 values — expect wrong LEDs
-(dark, inverted or swapped) and possibly an SFP cage that does not see its module. The document lists the
-console commands that settle each of them; the photos show the revision, the date code and the flash
-chip.
+all nine ports in the right places in the web UI, and the flash mode is right (the Boya/BoHong part
+needs `FLASH_NO_DIO=1`). The LED sets, the LED pad mux, the system LED and the SFP pins are the V2.0
+values — they were not measured on this revision. The document lists the console commands that settle
+each of them; the photos show the revision, the date code and the flash chip.
 
 ### 2.3 XikeStor SKS3200M-5GPY1XF — `PCB-SWTG115AS-V2.1-17443` → `MACHINE_SKS3200M_5GPY1XF`
 
@@ -330,7 +328,7 @@ The image lands in `output/<target>/rtlplayground-<version>-<target>.bin` (512 K
 
 ### 4.3 After flashing
 
-- A freshly flashed XikeStor board comes up at `192.168.10.12` with the project's default password; a
+- A freshly flashed XikeStor board comes up at `192.168.10.12` with the default password **`1234`**; a
   Hi-K0402WS/Hi-K0801WS board comes up at `192.168.10.247`.
 - **An upgrade keeps the board's startup configuration.** The image is written up to the configuration
   area, which is left alone, so VLANs, port names, the password and the IP address survive a firmware
@@ -350,7 +348,7 @@ The image lands in `output/<target>/rtlplayground-<version>-<target>.bin` (512 K
 |---|---|---|
 | Hisource Hi-K0402WS #1 | `PCB_K0402W_V1` | full bring-up: ports, copper LEDs, both SFP cages, factory-default restore, session |
 | Hisource Hi-K0402WS #2 | `PCB_K0402W_V1` | factory-default restore from the UI, session |
-| Hisource Hi-K0801WS (`SFP-J08E-HG1`) | `PCB_K0801W_V1` | boots, nine ports correct, flash mode — LEDs and SFP pins still pending |
+| Hisource Hi-K0801WS (`SFP-J08E-HG1`) | `PCB_K0801W_V1` | boots, nine ports correct, flash mode (`FLASH_NO_DIO=1`); LEDs and SFP pins are the V2.0 values, not measured on this board |
 | XikeStor SKS3200M-8GPY1XF | `SKS3200M_8GPY1XF` | reset button tri-state, session, factory-default restore |
 | XikeStor SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | reset button tri-state, factory MAC, factory-default restore; **both cages** (jacks 5/6 = logical ports 8/3), the **pad map measured lamp by lamp**, the port-numbering crossover fixed (2026-10-13) |
 | XikeStor SKS3200M-5GPY1XF | `SKS3200M_5GPY1XF` | all six ports, SFP at 10G, LEDs, system LED, factory MAC, reset button tri-state |
@@ -381,13 +379,6 @@ port <n> show  # which logical port a cable lands on
 For the reset button, write a marker into the startup configuration first (e.g. `hostname RESETTEST`)
 and use [`tools/reset_button_probe.py`](tools/reset_button_probe.py): a reboot shows as the uptime
 restarting with the marker intact, a factory reset as the marker disappearing.
-
-## 6. Sending these changes upstream
-
-The work sits on top of upstream `03311de` as a series of self-contained commits — one device, one fix or
-one document each — so they can also be proposed individually. To send all of them, open a pull request
-from `jzhou404gmail:main`:
-<https://github.com/logicog/RTLPlayground/compare/main...jzhou404gmail:RTLPlayground:main?expand=1>
 
 ---
 
