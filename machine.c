@@ -867,60 +867,64 @@ __code const struct machine machine = {
 
 #elif defined MACHINE_PCB_K0801W_V1
 /*
- * PCB-K0801W-V1.0 - the earlier PCB revision of the 8 x 2.5GBASE-T + 1 x SFP+ board
- * sold as Hisource Hi-K0801WS (the revision that doc/devices/HI-K0801WS.md documents
- * as PCB-K0801W-V2.0).
+ * PCB-K0801W-V1.0 / DIP-K0801WS-V1.0 (PCB dated 2307) - the earlier PCB
+ * revision of the 8 x 2.5GBASE-T + 1 x SFP+ board sold as Hisource
+ * Hi-K0801WS, whose V2.0 revision is the target above. The owner's unit
+ * carries the retail label SFP-J08E-HG1, which is what .model_name reports.
  *
- * The retail model reported by .model_name (the 型号 line in the web UI) is
- * SFP-J08E-HG1.
+ * *** LED WIRING AND SFP PINS NOT VERIFIED YET ***
  *
- * *** EXPERIMENTAL / NOT YET VERIFIED ON HARDWARE ***
+ * The board is confirmed to boot, run and list all 9 ports correctly with
+ * this target (2026-10-12, `FLASH_NO_DIO=1` for its Boya/BoHong flash), which
+ * settles .isRTL8373 and .n_sfp. Everything else is still inherited unchanged
+ * from the V2.0 target, because the board-specific LED/GPIO wiring cannot be
+ * recovered from a stock image: a scan of the sibling 4+2 board's dump finds
+ * zero writes to any 0x65xx switch register address (see
+ * doc/devices/PCB-K0402W-V1.0.md). .led_mux, .led_sets, .port_led_set,
+ * .high_leds and the SFP pins therefore have to be measured on the board -
+ * doc/devices/PCB-K0801W-V1.0.md lists the commands that answer each one.
  *
- * No photo, dump or measurement of a V1.0 board exists yet, so every parameter
- * below is inherited unchanged from the V2.0 target above. RTLPlayground
- * cannot recover board-specific LED/GPIO wiring from a stock image in any
- * case (see doc/devices/PCB-K0402W-V1.0.md for the scan that shows why), so
- * the wiring has to be measured on the board. Only .machine_name differs from
- * the V2.0 target, so that a boot log states unambiguously which revision is
- * running and the two can be compared.
- *
- * Bring-up expectation: the copper ports and their order are the parts most
- * likely to be correct as-is; expect wrong LEDs (dark, inverted or swapped)
- * and possibly an SFP slot that reports no module. Work through
- * doc/devices/PCB-K0801W-V1.0.md and correct every field marked TODO.
+ * Only .machine_name and .model_name differ from the V2.0 target, so a boot
+ * log states unambiguously which revision is running. Expect the copper ports
+ * and their order to be right; expect wrong LEDs (dark, inverted or swapped)
+ * and possibly an SFP slot that reports no module. There is no reset button
+ * on this board, so the built-in configuration is restored with the `defaults`
+ * command or the button in the web UI.
  */
 __code const struct machine machine = {
     .machine_name = "PCB-K0801W-V1.0",
     .model_name = "SFP-J08E-HG1",
-    .isRTL8373 = 1,                     /* TODO: confirm 'Detecting CPU: RTL8373' */
+    .isRTL8373 = 1,                     /* verified: boots with no 'INCORRECT MACHINE!' */
     .min_port = 0,
     .max_port = 8,
     .n_sfp = 1,
-    .log_to_phys_port = {1, 2, 3, 4, 5, 6, 7, 8, 9},   /* TODO: verify port order */
-    .phys_to_log_port = {0, 1, 2, 3, 4, 5, 6, 7, 8},    /* TODO: verify port order */
+    .log_to_phys_port = {1, 2, 3, 4, 5, 6, 7, 8, 9},   /* web UI lists the ports correctly */
+    .phys_to_log_port = {0, 1, 2, 3, 4, 5, 6, 7, 8},    /* a one-cable-per-jack pass would pin the order down */
     .is_sfp = {0, 0, 0, 0, 0, 0, 0, 0, 1},
 
     /* SFP cage, inherited from V2.0 (SDS1, GPIO30 = module detect,
-     * GPIO37 = RX_LOS). TODO: verify both pins on this revision: if 'sfp'
-     * reports an empty cage with a module inserted, or the module EEPROM is
+     * GPIO37 = RX_LOS). Unverified on this revision: if 'sfp' reports an
+     * empty cage with a module inserted, or the module EEPROM is
      * unreadable, measure these first. */
     .sfp_port[0].pin_detect = GPIO30_ACL_BIT3_EN,
     .sfp_port[0].pin_los = GPIO37,
     .sfp_port[0].pin_tx_disable = GPIO_NA,
     .sfp_port[0].sds = 1,
     .sfp_port[0].i2c = I2CBUS( GPIO39_I2C_SDA4, GPIO40_I2C_SCL3_MDC1 ),
-    .reset_pin = GPIO_NA,
+    .reset_pin = GPIO_NA,               /* no button and no footprint for one on this board */
 
-    /* TODO: verify with 'leds' plus the front-panel system LED */
+    /* Not verified: inherited from V2.0, verify with 'leds' plus the
+     * front-panel system LED */
     .high_leds = {
         .mux = LED_27 | LED_29,
         .enable = LED_28_SYS | LED_29
     },
 
-    /* TODO: verify per-port LED set assignment (ports 1-8 -> set 0, SFP -> set 1) */
+    /* Not verified: inherited per-port LED set assignment (ports 1-8 -> set 0,
+     * SFP -> set 1) */
     .port_led_set = {0, 0, 0, 0, 0, 0, 0, 0, 1},
 
-    /* TODO: verify LED behaviour per speed/link. Inherited from V2.0:
+    /* Not verified: inherited LED behaviour per speed/link. V2.0 lights
      * amber = 2.5G, green = 1G/100M/10M with activity. */
     .led_sets = {
         {   /* Set 0: RJ45 copper ports */
@@ -1000,64 +1004,68 @@ __code const struct machine machine = {
 
 #elif defined MACHINE_PCB_K0402W_V1
 /*
- * PCB-K0402W-V1.0 / DIP-K0402WS-V1.0 (dated 2023-07), sold e.g. as
- * Hisource Hi-L0402WS. 4 x 2.5GBASE-T + 2 x SFP+, 1 x 2 MiB SPI NOR (U2,
- * BeyoMicro 25Q16BS), SoC under the heatsink.
+ * PCB-K0402W-V1.0 / DIP-K0402WS-V1.0 (PCB dated 2023-07), sold as Hisource
+ * Hi-K0402WS: 4 x 2.5GBASE-T + 2 x SFP+, one 2 MiB SPI NOR (U2, BeyoMicro
+ * 25Q16BS) and the SoC under the heatsink. The board is the earlier revision
+ * of the PCB-K0402WS-V2.0/V3.0 family, so the machine parameters are taken
+ * from the V2.0 block above. .machine_name is the PCB revision and
+ * .model_name the retail model, which the web UI shows as 硬件 / 型号.
  *
- * The retail model reported by .model_name (the 型号 line in the web UI) is
- * Hi-K0402WS.
+ * Verified on the owner's boards (2026-10-11 .. 2026-10-13) against the
+ * checklist in doc/devices/PCB-K0402W-V1.0.md: boots with FLASH_NO_DIO=1
+ * (the Boya/BoHong part returns garbage for the Dual-I/O MMIO read mode),
+ * is an RTL8372 (`regget 0004` = 0x83720000), drives 4 + 2 ports in the order
+ * below (one cable per jack), lights the copper LEDs as the sets say
+ * (amber = 2.5G, green = 1G/100M/10M with activity), reports and links both
+ * SFP cages (module detect, RX_LOS and module EEPROM over I2C) and restores
+ * the built-in configuration from the web UI.
  *
- * *** EXPERIMENTAL / NOT YET VERIFIED ON HARDWARE ***
+ * Only .high_leds cannot be measured on this board: the front-panel power LED
+ * is hard-wired and stays lit whatever the system-LED bits say, so the
+ * inherited value is kept and nothing on the panel is left undriven.
  *
- * The parameters below are copied from the nearest documented sibling,
- * PCB-K0402WS-V2.0 (see the block above), because the stock firmware dump
- * does NOT contain the board-specific LED/GPIO wiring in a recoverable form:
- * a scan of the stock image shows zero writes of any 0x65xx switch register
- * address (RTLPlayground's own build has 70 such sites), so .led_mux,
- * .led_sets, .port_led_set and the SFP GPIO pins cannot be read out of the
- * flash dump. They must be measured on the board.
- *
- * Every field marked TODO below must be confirmed (see
- * doc/devices/PCB-K0402W-V1.0.md for the procedure) before this target can be
- * called supported. Treat the first boot as a bring-up run: expect wrong LEDs
- * and possibly non-working SFP slots; the port order and copper ports are the
- * parts most likely to be correct as-is.
+ * The wiring was measured, not read out of a stock image: a scan of the stock
+ * firmware finds zero writes of any 0x65xx switch register address (an
+ * RTLPlayground build has 70 such sites), so .led_mux, .led_sets,
+ * .port_led_set and the SFP pins are not recoverable from a dump.
  */
 __code const struct machine machine = {
     .machine_name = "PCB-K0402W-V1.0",
     .model_name = "Hi-K0402WS",
-    .isRTL8373 = 0,                     /* TODO: confirm chip; 4x2.5G+2xSFP+ => RTL8372 */
+    .isRTL8373 = 0,                     /* verified: 'Detecting CPU: RTL8372' */
     .min_port = 3,
     .max_port = 8,
     .n_sfp = 2,
-    .log_to_phys_port = {0, 0, 0, 6, 1, 2, 3, 4, 5},   /* TODO: verify port order */
-    .phys_to_log_port = {4, 5, 6, 7, 8, 3, 0, 0, 0},   /* TODO: verify port order */
+    .log_to_phys_port = {0, 0, 0, 6, 1, 2, 3, 4, 5},   /* verified: front RJ45 1-4 -> physical 1-4 */
+    .phys_to_log_port = {4, 5, 6, 7, 8, 3, 0, 0, 0},
     .is_sfp = {0, 0, 0, 2, 0, 0, 0, 0, 1},
 
-    /* Left SFP (logical 8, SDS1). TODO: verify both pins on this board. */
+    /* Left SFP (logical 8, SDS1). Verified with a module in the cage. */
     .sfp_port[0].pin_detect = GPIO30_ACL_BIT3_EN,
     .sfp_port[0].pin_los = GPIO37,
     .sfp_port[0].pin_tx_disable = GPIO_NA,
     .sfp_port[0].sds = 1,
     .sfp_port[0].i2c = I2CBUS( GPIO39_I2C_SDA4, GPIO40_I2C_SCL3_MDC1 ),
 
-    /* Right SFP (logical 3, SDS0). TODO: verify both pins on this board. */
+    /* Right SFP (logical 3, SDS0). Verified with a module in the cage. */
     .sfp_port[1].pin_detect = GPIO50_I2C_SCL2_UART1_TX,
     .sfp_port[1].pin_los = GPIO51_I2C_SDA2_UART1_RX,
     .sfp_port[1].pin_tx_disable = GPIO_NA,
     .sfp_port[1].sds = 0,
     .sfp_port[1].i2c = I2CBUS( GPIO41_I2C_SDA3_MDIO1, GPIO40_I2C_SCL3_MDC1 ),
 
+    /* No reset button and no unpopulated footprint for one on this board. */
     .reset_pin = GPIO_NA,
 
-    /* TODO: verify with 'leds' + the sys LED on the front panel */
+    /* Not measurable here: the front-panel power LED is hard-wired, so this
+     * value drives nothing. Kept at the V2.0 setting. */
     .high_leds = { .mux = LED_27 | LED_28_SYS | LED_29, .enable = LED_28_SYS | LED_29 },
 
-    /* TODO: verify per-port LED set assignment */
+    /* Verified: copper ports use SET0, both SFP ports use SET1. */
     .port_led_set = {0, 0, 0, 1, 0, 0, 0, 0, 1},
 
-    /* TODO: verify LED behaviour per speed/link; derived from the stock LED
-     * behaviour of the sibling board (amber = 2.5G, green = 1G/100M/10M) */
+    /* Verified on the board: copper amber = 2.5G, green = 1G/100M/10M with
+     * activity; the SFP LED lights while a module is linked. */
     .led_sets = {
         {   /* SET0: copper */
             LEDS_2G5 | LEDS_LINK | LEDS_ACT,
@@ -1072,8 +1080,8 @@ __code const struct machine machine = {
         },
     },
 
-    /* TODO: this pad->LED map is the V2.0 one; measure it with
-     * tools/led_gpio_utils (i2c_dump_rtl_regs.py + dec_leds_from_dump.py) */
+    /* The V2.0 pad->LED map, confirmed on this board by the set-swap
+     * experiment in doc/devices/PCB-K0402W-V1.0.md. */
     .led_mux_custom = 1,
     .led_mux = {
         0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f,  /* GPIO0-7: unused */
