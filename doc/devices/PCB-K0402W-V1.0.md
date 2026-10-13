@@ -192,7 +192,7 @@ therefore `GPIO_NA` for this target — the firmware would have nothing to read.
 To restore the configuration built into the image, use the **Restore factory defaults**
 button in the System tab, or the equivalent console command `defaults`; both were added
 for exactly this case and do what a long press of the reset button does elsewhere (see
-the [README](../../README.md#8-the-web-interface)). The board then takes the address the
+the [README](../../README.en.md#8-the-web-interface)). The board then takes the address the
 image was built with, i.e. `config.txt` here, and not the address it had before.
 
 ## Serial console
@@ -365,4 +365,4 @@ and the unused area is erased (`0xFF`), so a full-chip restore is a faithful rol
 
 Once RTLPlayground runs on the board, later versions are installed from the web interface
 (*Firmware update*), which writes the 512 KiB image and leaves the startup configuration
-alone — see the [README](../../README.md#4-installation-through-the-web-interface-software-way).
+alone — see the [README](../../README.en.md#4-installation-through-the-web-interface-software-way).

@@ -1,0 +1,724 @@
+# RTLPlayground — device-support fork
+
+**English** · [中文说明](README.md) · upstream project: [logicog/RTLPlayground](https://github.com/logicog/RTLPlayground)
+
+This is a fork of [logicog/RTLPlayground](https://github.com/logicog/RTLPlayground). It carries the
+upstream firmware plus hardware support that upstream does not have yet:
+
+- **five machine targets** for boards that were unsupported, or listed under a wrong model name,
+- **the fixes those boards needed** — a reset button that never did anything on RTL8372 silicon, a web
+  session that stopped being accepted seconds after login on the same silicon, and a factory MAC the
+  board stopped using,
+- **one feature they depend on** — restoring the factory configuration without a reset button, from the
+  web interface or the console,
+- **documentation and tools** for the next bring-up: device pages with board photos and measurements,
+  a serial capture and a reset-button probe.
+
+Everything on this page was measured on real hardware (six switches, 2026-10-11 … 2026-10-13).
+"Verified" always means *measured on the board*, and the device document quotes the command output or
+the observation that settles it.
+
+| | |
+|---|---|
+| Firmware version | `v0.1.0`, with the commit stamped in — `version` on the switch reports it; the builds these measurements were taken with report `v0.1.0-6a8cd51`. A build from a clean checkout carries no `-dirty` suffix |
+| Based on upstream | `main` at [`03311de`](https://github.com/logicog/RTLPlayground/commit/03311de) |
+| License | MIT, same as upstream — see [LICENSE](LICENSE) |
+| Full device list | [doc/supported_devices.md](doc/supported_devices.md) |
+| Upstream instructions | kept unchanged at the [bottom of this file](#upstream-readme-unchanged) |
+
+## Contents
+
+1. [Which target do I build?](#1-which-target-do-i-build)
+2. [Device notes](#2-device-notes) — build command, install path and verified state per board
+3. [What else this fork changes](#3-what-else-this-fork-changes)
+4. [Recipes](#4-recipes) — build, install, first boot
+5. [Verification](#5-verification) — the six units, and how to check your own board
+6. [Sending these changes upstream](#6-sending-these-changes-upstream)
+
+## 1. Which target do I build?
+
+### 1.1 The five targets this fork adds
+
+| Board silkscreen | Sold as | Managed | Ports | SoC | Flash | Machine target | Build |
+|---|---|---|---|---|---|---|---|
+| `PCB-K0402W-V1.0` / `DIP-K0402WS-V1.0` | Hisource **Hi-K0402WS** (众通源) | no | 4 × 2.5G + 2 × SFP+ | RTL8372 | 2 MiB Boya/BoHong `BY25Q16BS` | `PCB_K0402W_V1` | **needs `FLASH_NO_DIO=1`** |
+| `PCB-K0801W-V1.0` / `DIP-K0801WS-V1.0` | Hisource **Hi-K0801WS** (unit labelled `SFP-J08E-HG1`) | no | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Boya/BoHong | `PCB_K0801W_V1` | **needs `FLASH_NO_DIO=1`**, experimental |
+| `PCB-SWTG115AS-V2.1-17443` | XikeStor **SKS3200M-5GPY1XF** (兮克) | yes | 5 × 2.5G + 1 × 10G SFP+ | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_5GPY1XF` | `make MACHINE=…` |
+| `SWTG024AS-v1.0` | XikeStor **SKS3200M-4GPY2XF** | yes | 4 × 2.5G + 2 × SFP | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_4GPY2XF` | `make MACHINE=…` |
+| `SWTG118AS-V2.1-17462` | XikeStor **SKS3200M-8GPY1XF** | yes | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_8GPY1XF` | `make MACHINE=…` |
+
+The three XikeStor units are not new boards: the PCB inside them is a board upstream already supports
+(the ZX-SWTGW215AS, the SWTG024AS family and the ZX-SWTGW218AS). The new targets exist because those
+boards are **sold under a different model name**, and the firmware should say so in the web interface —
+plus, on the 4GPY2XF, because the button and the factory MAC needed enabling for that retail variant.
+
+### 1.2 Three upstream device-list entries this fork corrects
+
+| Upstream says | The unit actually is | Effect |
+|---|---|---|
+| `XikeStor SKS3200-8E1X` on SWTG118AS-V2.1-17462 | **`SKS3200M-8GPY1XF`** — stated on the case label and in the unit's own web interface | you would have looked for the wrong model, and the firmware reported a name the unit does not carry |
+| Hisource Hi-K0801WS is on `PCB-KO801W-V2.0` | **`PCB-K0801W-V2.0`** — the silkscreen has a digit `0`, not a letter `O` | the target and the document were renamed accordingly; the old spelling no longer exists anywhere in the tree |
+| `Hisource Hi-K0402WS` on `PCB-K0402W-V1.0`: not listed | added, supported, 2 MiB flash | a whole board revision was missing |
+
+Also corrected: the brand spelling `Xikestore` → `XikeStor`, the 4GPY2XF flash size (`?` → 2 MiB), and
+the flash size and PCB label of the 8GPY1XF row.
+
+### 1.3 Identifying your board in three steps
+
+1. **Open the case and read the silkscreen revision** — a `PCB-…` string printed near an edge, e.g.
+   `PCB-K0402W-V1.0`, `PCB-SWTG115AS-V2.1-17443`, `SWTG024AS-v1.0`. The accompanying `DIP-…` marking is
+   the same revision of the panel-side board.
+2. **Check the case label**: model name and port count. It tells you which retail variant you have, not
+   which PCB revision — a Hi-K0402WS exists on V1.0, V2.0 and V3.0 boards that need *different* targets.
+3. **Match the silkscreen, not the retail name.** If the silkscreen matches a row above, use that target.
+   If it does not, look it up in [doc/supported_devices.md](doc/supported_devices.md) — upstream covers
+   most of the other revisions (KP-9000, SWTG024AS-V2.0, ZX-SWTGW215AS, ZX-SWTGW218AS, PCB-K0402WS
+   V2.0/V3.0, and more).
+
+> [!IMPORTANT]
+> Two of the five targets **reset in a loop right after `Detecting CPU`** if you build them without
+> `FLASH_NO_DIO=1`. That is not a bricked board and not a wrong target — it is the flash chip refusing
+> the Dual-I/O read mode. Rebuild with `FLASH_NO_DIO=1` and flash again.
+
+## 2. Device notes
+
+### 2.1 Hisource Hi-K0402WS — `PCB-K0402W-V1.0` → `MACHINE_PCB_K0402W_V1`
+
+RTL8372, 4 × 2.5GBASE-T + 2 × SFP+ (1G/2.5G/10G), one 2 MiB Boya/BoHong `BY25Q16BS` (`RDID 68 40 15`),
+SoC under a heatsink. **Status: supported — verified on two units.**
+
+| | |
+|---|---|
+| Build | `make MACHINE=PCB_K0402W_V1 FLASH_NO_DIO=1` |
+| Install | SPI clamp only. The stock firmware is an unmanaged Realtek reference image with a factory-test console on **9600 8N1** and no web interface, so the web-upgrade path does not exist for the first install |
+| Image for the programmer | pad the 512 KiB build to 2 MiB (`truncate -s 2097152 …`); **never** use a padded image for web flashing |
+| Reset button | **none**, and no unpopulated footprint for one — restore the built-in configuration from the web UI or with `defaults` |
+| Default IP | `192.168.10.247` (from `config.txt`) |
+| Console | 115200 8N1 once RTLPlayground runs |
+| Document | [doc/devices/PCB-K0402W-V1.0.md](doc/devices/PCB-K0402W-V1.0.md) |
+
+Verified on the board: boots with `FLASH_NO_DIO=1`, is an RTL8372 (`regget 0004` = `0x83720000`), all six
+ports in the right order (one cable per jack), copper LEDs (amber = 2.5G, green = 1G/100M/10M with
+activity, including a real 2.5G link), **both** SFP cages (module detect, RX_LOS, module EEPROM over I2C,
+10G link), and the *Restore factory defaults* path in the web UI.
+
+### 2.2 Hisource Hi-K0801WS — `PCB-K0801W-V1.0` → `MACHINE_PCB_K0801W_V1` (experimental)
+
+RTL8373, 8 × 2.5GBASE-T + 1 × SFP+, 2 MiB Boya/BoHong flash. **Status: boots on hardware, but not fully
+verified — this target is deliberately *not* in the supported list.**
+
+| | |
+|---|---|
+| Build | `make MACHINE=PCB_K0801W_V1 FLASH_NO_DIO=1` |
+| Install | SPI clamp only (same unmanaged stock firmware as above); keep the 2 MiB dump |
+| Reset button | **none**, and no unpopulated footprint for one |
+| Default IP | `192.168.10.247` |
+| Document | [doc/devices/PCB-K0801W-V1.0.md](doc/devices/PCB-K0801W-V1.0.md) |
+
+Verified: it boots with the V1.0 silkscreen, reports the RTL8373 class (no `INCORRECT MACHINE!`), lists
+all nine ports in the right places in the web UI, and the flash mode is right. **Not verified:** the LED
+sets, the LED pad mux, the system LED and the SFP pins are still the V2.0 values — expect wrong LEDs
+(dark, inverted or swapped) and possibly an SFP cage that does not see its module. The document lists the
+console commands that settle each of them; the photos show the revision, the date code and the flash
+chip.
+
+### 2.3 XikeStor SKS3200M-5GPY1XF — `PCB-SWTG115AS-V2.1-17443` → `MACHINE_SKS3200M_5GPY1XF`
+
+RTL8372, 5 × 2.5GBASE-T + 1 × 10G SFP+ (the fifth RJ45 is driven by an external RTL8221B), 2 MiB Winbond
+`W25Q16JV` (`EF 40 15`). **Status: supported — all six ports verified.** Same PCB as the Lianguo
+ZX-SWTGW215AS; the two targets differ only in the board/model names they report.
+
+| | |
+|---|---|
+| Build | `make MACHINE=SKS3200M_5GPY1XF` (or `MACHINE=LIANGUO_ZX_SWTGW215AS`, same wiring) |
+| Install | keep a full 2 MiB backup first — the stock image cannot be rebuilt from a dump. From the stock web UI: the OEM installer; once any RTLPlayground image runs: the web interface's *Firmware update* |
+| Reset button | `GPIO54` — **verified**: < 3 s nothing, ~5 s reboot with the startup configuration kept, ~13 s factory reset |
+| Default IP | `192.168.10.12` (the XikeStor targets embed `config-xikestor.txt`) |
+| Document | [doc/devices/SKS3200M-5GPY1XF.md](doc/devices/SKS3200M-5GPY1XF.md) |
+
+Verified: port order (UI 1-5 = jacks 1-5, UI 6 = SFP), links at 1G and 2.5G, SFP module detect/RX_LOS,
+module EEPROM read and a port linked at 10G, RJ45 LEDs (2.5G right green, 1G/100M left amber), the
+system LED, the factory MAC at `0x1FC000`, and the reset button above.
+
+### 2.4 XikeStor SKS3200M-4GPY2XF — `SWTG024AS-v1.0` → `MACHINE_SKS3200M_4GPY2XF`
+
+RTL8372, 4 × 2.5GBASE-T + 2 × SFP, 2 MiB Winbond `W25Q16JV`. **Status: supported.** Same PCB family as
+the SWTG024AS-V2.0 boards; this target additionally enables the reset button and the factory MAC, which
+the V2.0 siblings may not have populated.
+
+| | |
+|---|---|
+| Build | `make MACHINE=SKS3200M_4GPY2XF` |
+| Install (stock → RTLPlayground) | the stock firmware is a CGI-based Realtek SDK image (固件版本 V10.9.4, `admin/admin`, `192.168.10.12`). Its 固件升级 page (`fwug.cgi`) switches the board into the vendor loader, which **keeps the same IP**; the loader then takes the OEM installer via `/httpupg.cgi?cmd=fw_upgrade` |
+| Reset button | `GPIO54` (K1) — **verified**: ~5 s reboot, ~11 s factory reset, < 3 s nothing |
+| Factory MAC | restored: `mac_flash_offset = 0x1FC000` makes the board report `1C:2A:A3:23:E4:5E` again instead of a generated MAC |
+| Default IP | `192.168.10.12` |
+| Document | [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md) |
+
+> [!NOTE]
+> If your router has MAC-based DHCP reservations, re-create them for the factory MAC after flashing this
+> target — the generated MAC the board used before is gone for good.
+
+### 2.5 XikeStor SKS3200M-8GPY1XF — `SWTG118AS-V2.1-17462` → `MACHINE_SKS3200M_8GPY1XF`
+
+RTL8373, 8 × 2.5GBASE-T + 1 × SFP+, 2 MiB Winbond `W25Q16JV`. **Status: supported.** Same PCB as the
+Mokerlink ZX-SWTGW218AS (V2.0); the target exists to report the board as `PCB-SWTG118AS-V2.1` and the
+model as `SKS3200M-8GPY1XF`.
+
+| | |
+|---|---|
+| Build | `make MACHINE=SKS3200M_8GPY1XF` (or `MACHINE=SWTGW218AS` for the V2.0 boards) |
+| Install (stock → RTLPlayground) | the stock firmware is a CGI image (固件版本 V1.9, `admin/admin`, `192.168.10.12`) whose 固件升级 page (`fwug.cgi`) accepts the OEM installer |
+| Reset button | `GPIO54` — **verified**: ~5 s reboot, ~13 s factory reset, < 3 s nothing |
+| Default IP | `192.168.10.12` |
+| Document | [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md) |
+
+Verified: the button's three states, the session handling, and restoring the built-in configuration from
+the web UI.
+
+## 3. What else this fork changes
+
+### 3.1 Restore the factory defaults without a reset button — new feature
+
+The System tab (*Maintenance*) has a **Restore factory defaults** button, and the console has the
+equivalent `defaults` command. Both write the configuration compiled into the image over the startup
+configuration and reboot the board, which then comes up at the image's default address (`192.168.10.12`
+on the XikeStor builds, otherwise the address in `config.txt`).
+
+It is deliberately **not** a configuration command: it never becomes part of the startup configuration.
+The UI text exists in all six interface languages (English, Japanese, Chinese, Spanish, French, German).
+
+Why it matters: the Hi-K0402WS and the Hi-K0801WS have no reset button at all, so before this there was
+no way to get the built-in configuration back on those boards. Verified on the two Hi-K0402WS units and
+on the 4GPY2XF, 5GPY1XF and 8GPY1XF.
+
+### 3.2 Reset button timing — fix, every RTL8372 board with a button
+
+`handle_button()` measured how long the button was held from `RTL837X_REG_SEC_COUNTER`. That register
+only holds a written value on the RTL8373; on an RTL8372 it always reads back 0, so **every press looked
+like a short press and the button did nothing at all** on those boards. The press is now timed from the
+software tick counter (measured against a wall clock: 200.0 ticks/s, so the thresholds are real seconds):
+
+| Press | What happens |
+|---|---|
+| < 3 s | nothing |
+| > 3 s | the switch reboots, the startup configuration is kept |
+| > 10 s | the configuration compiled into the image replaces the startup configuration, then reboot |
+
+Tri-state verified on the SKS3200M-4GPY2XF, -5GPY1XF and -8GPY1XF. This is shared code, so every RTL8372
+target with a button benefits — including boards this fork does not otherwise touch.
+
+### 3.3 Web session timeout — fix, RTL8372
+
+The HTTP session deadline was derived from the same seconds register, so on an RTL8372 a session cookie
+stopped being accepted a few seconds after login. Deadlines now come from the tick counter, which is
+correct on both chip generations (verified on each).
+
+### 3.4 Factory MAC — fix, SKS3200M-4GPY2XF
+
+That unit came up with a generated, locally administered MAC instead of the one its stock firmware
+showed. `.mac_flash_offset = 0x1FC000` — set for this target only, because that area is unverified on the
+V2.0 siblings — makes the factory MAC come back; `/information.json` reports `1c:2a:a3:23:e4:5e` and the
+hostname derives from it again.
+
+### 3.5 Board and model shown separately — new
+
+`struct machine` gained `model_name`. Targets fill in both the PCB revision (`machine_name`, shown as
+硬件 / hardware) and the retail model (`model_name`, shown as 型号 / model), so a board that is sold
+under a different name than its silkscreen says is no longer mistaken for another device. Targets that
+leave `model_name` empty behave exactly as before.
+
+### 3.6 Per-target factory default configuration — new
+
+`config-xikestor.txt` (IP `192.168.10.12`) is embedded instead of `config.txt` for the three XikeStor
+targets; the Makefile picks the file per machine target (`DEFAULT_CONFIG`). A freshly flashed XikeStor
+board therefore comes up at `192.168.10.12` rather than `192.168.10.247`.
+
+### 3.7 `FLASH_NO_DIO=1` — new build option
+
+Some SPI NOR parts (Boya/BoHong `BY25Q16BS` and relatives, `RDID 68 40 15`) return garbage for the flash
+controller's Dual-I/O MMIO read mode. `FLASH_NO_DIO=1` selects single-bit fast read instead, which those
+parts handle correctly and which every 3.3 V SPI NOR seen so far also supports. It stays a build option
+because Dual-I/O is a speed optimisation that works on the other supported boards.
+
+### 3.8 Build ergonomics
+
+Building without selecting a machine now prints the list of available targets instead of failing
+obscurely, and `make machine_check` compiles `machine.c` for every target in `machine.h` (both are also
+run by CI).
+
+### 3.9 Tools for the next bring-up
+
+- [`tools/console_capture.py`](tools/console_capture.py) — timestamped serial capture that needs no
+  pyserial; useful because the unmanaged boards speak 9600 8N1 in stock firmware and 115200 8N1 once
+  RTLPlayground runs.
+- [`tools/reset_button_probe.py`](tools/reset_button_probe.py) — polls the button's GPIO level and the
+  uptime over HTTP, so a short press, a reboot and a factory reset can be told apart while someone
+  presses the button by hand. The method (write a marker hostname into the startup configuration first)
+  is written up in [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md).
+
+### 3.10 Tests and documentation
+
+`make -C test` (host tests, extended to cover the new model line) and `make machine_check` pass; CI
+builds both chip classes, with and without the health instrumentation. Documentation added or corrected:
+the three device pages above plus [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md) and
+[doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md), board photos for all five targets,
+[doc/supported_devices.md](doc/supported_devices.md), the RTL8372/RTL8373 seconds-register difference in
+[doc/hardware.md](doc/hardware.md), and the note that a firmware upgrade keeps the startup configuration
+(section 4.3 below).
+
+## 4. Recipes
+
+### 4.1 Build
+
+```bash
+# Hi-K0402WS (PCB-K0402W-V1.0) and Hi-K0801WS (PCB-K0801W-V1.0): the Boya flash needs this flag
+make MACHINE=PCB_K0402W_V1 FLASH_NO_DIO=1
+make MACHINE=PCB_K0801W_V1 FLASH_NO_DIO=1
+
+# the three XikeStor units
+make MACHINE=SKS3200M_4GPY2XF
+make MACHINE=SKS3200M_5GPY1XF
+make MACHINE=SKS3200M_8GPY1XF
+```
+
+The image lands in `output/<target>/rtlplayground-<version>-<target>.bin` (512 KiB).
+
+### 4.2 Install
+
+| Your board now runs | Use |
+|---|---|
+| RTLPlayground | *Firmware update* in the web interface, upload the 512 KiB `output/<target>/rtlplayground-*.bin` |
+| stock **managed** firmware (the three XikeStor units) | the one-shot installer `installer/output/rtlplayground_oem_upgrade.bin`, uploaded through the stock 固件升级 page — see the per-device notes in section 2 for the loader differences |
+| stock **unmanaged** firmware (Hi-K0402WS, Hi-K0801WS) | an SPI clamp and a programmer: back up 2 MiB, erase, write the build padded to 2 MiB, verify. Padding is only for the programmer — never upload a padded file |
+
+### 4.3 After flashing
+
+- A freshly flashed XikeStor board comes up at `192.168.10.12` with the project's default password; a
+  Hi-K0402WS/Hi-K0801WS board comes up at `192.168.10.247`.
+- **An upgrade keeps the board's startup configuration.** The image is written up to the configuration
+  area, which is left alone, so VLANs, port names, the password and the IP address survive a firmware
+  update. The configuration compiled into the image only applies to a board that has none yet, or after
+  restoring the factory defaults.
+- Restore the built-in configuration with *Restore factory defaults* in the System tab, with the
+  `defaults` console command, or with a > 10 s press of the reset button where the board has one. The
+  board then moves to the image's default address, so reconnect there.
+- The boot log and the System tab state the board revision and the retail model on separate lines, so
+  you can always tell which target a board is running.
+
+## 5. Verification
+
+### 5.1 The six units this work was measured on
+
+| Unit | Target | What was verified on it |
+|---|---|---|
+| Hisource Hi-K0402WS #1 | `PCB_K0402W_V1` | full bring-up: ports, copper LEDs, both SFP cages, factory-default restore, session |
+| Hisource Hi-K0402WS #2 | `PCB_K0402W_V1` | factory-default restore from the UI, session |
+| Hisource Hi-K0801WS (`SFP-J08E-HG1`) | `PCB_K0801W_V1` | boots, nine ports correct, flash mode — LEDs and SFP pins still pending |
+| XikeStor SKS3200M-8GPY1XF | `SKS3200M_8GPY1XF` | reset button tri-state, session, factory-default restore |
+| XikeStor SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | reset button tri-state, factory MAC, factory-default restore |
+| XikeStor SKS3200M-5GPY1XF | `SKS3200M_5GPY1XF` | all six ports, SFP at 10G, LEDs, system LED, factory MAC, reset button tri-state |
+
+All six were reflashed with the same build and reported the same software version, with their IP address,
+hostname and factory MAC preserved.
+
+### 5.2 Checking your own board
+
+On the host, before flashing:
+
+```bash
+make -C test          # host unit tests
+make machine_check    # machine.c must compile for every target
+```
+
+On a running board (console or web interface command line):
+
+```
+version        # target, board revision, retail model, build
+regget 0004    # byte 1: 0x73 = RTL8373, otherwise RTL8372
+gpio           # pin levels — move a module into each SFP cage and watch which bit flips
+leds           # dump or force LED sets, to match the panel against the machine definition
+sfp            # module presence and EEPROM of each cage
+port <n> show  # which logical port a cable lands on
+```
+
+For the reset button, write a marker into the startup configuration first (e.g. `hostname RESETTEST`)
+and use [`tools/reset_button_probe.py`](tools/reset_button_probe.py): a reboot shows as the uptime
+restarting with the marker intact, a factory reset as the marker disappearing.
+
+## 6. Sending these changes upstream
+
+The work sits on top of upstream `03311de` as a series of self-contained commits — one device, one fix or
+one document each — so they can also be proposed individually. To send all of them, open a pull request
+from `jzhou404gmail:main`:
+<https://github.com/logicog/RTLPlayground/compare/main...jzhou404gmail:RTLPlayground:main?expand=1>
+
+---
+
+# Upstream README (unchanged)
+
+<!-- Everything below this line is the README of logicog/RTLPlayground at 03311de, verbatim. -->
+# RTLPlayground
+A Playground for Firmware development for advanced user of RTL8372/RTL8373 based 2.5GBit Switches.
+
+For each hardware configuration of these devices, there is usually a managed and an
+unmanaged version sold, with mostly identical hardware. The aim is to provide management
+features also for unmanaged devices with additional features such as Management VLAN,
+DHCP servers, multi-language support, IPv6 and TLS-encrypted web-pages. At present, however
+only the following features are provided:
+- A modern web-interface with mouse-over to display further information
+- A serial console interface to configure all features
+- IGMP to configure Multicast streaming
+- Port configuration showing detailed information about own and Link-partner advertised
+  Speed settings and configuration of these settings on the local side
+- Per-port configuration of frame sizes (MTUs) for Jumbo-Frame support or limiting MTUs
+  for particular devices
+- EEE (Energy Efficient Ethernet) can be configured per-port. Detailed information is
+  provided for support offered by the link partner and the EEE status of a port.
+- VLAN configuration
+- SFP information is displayed on the inserted modules, the current sensor values such as
+  temperatures, RX and TX power are displayed in the CLI and as mouse-over on the web
+- Mirror configuration
+- Link Aggregation Groups can be set up
+- Detailed information on port packet statistics
+- Configuration saved to flash via the web-interface
+- Firmware updates via the web
+- Installation as a firmware upgrade from the original web-interface
+
+<img width="1673" height="977" alt="GUI" src="doc/images/gui.png" />
+
+While the firmware provides already considerable improvements over the original managed firmware,
+the firmware still lacks support for the proprietary loop prevention
+protocols as well as DHCP. Spanning Tree is available (see doc/stp.md), but is
+a simplified implementation - read that document before enabling it on a
+switch you administer over the network. If you need these features, do not install the playground on your managed
+devices. In any case, installation is strongly discouraged unless you can at least make
+a backup of the original flash content via a SOIC clamp such as also used for BIOS
+backups and can re-install that firmware in case something is wrong. For this no soldering
+skills are necessary.
+
+The firmware supports all hardware features of devices with
+- 4 2.5GBit ports + 2 SFP+ ports
+- 5 2.5GBIT + 1 SFP+ port
+- 8 2.5GBit + 1 SFP+ port
+Devices sold usually have a fairly common design, however there may be differences in the LED
+configuration (switches have LEDs with different colours and use types of LEDs). The list
+of tested devices can be found in [Supported devices](doc/supported_devices.md).
+
+To do meaningful development you will need to use a serial console, so soldering skills
+are required. Flashing must be done via a SOIC-8 PatchClamp or by soldering a socket
+for the flash chip.
+
+If you don't want to open your device, you can use the project's code to learn about the
+devices by looking at the image using e.g. Ghidra. If you want to contribute to the
+design of the web-interface or get a feeling for the interface first, a standalone
+device simulator is provided, which runs entirely under Linux as a local webserver.
+
+## (0) Compiling Requirements
+
+Install the following particular build requisites (Debian 12/13), note that Ubuntu 24.04
+still has an older version of sdcc, but you will need sdcc version 4.5 for the code to compile:
+```
+sudo apt install make gcc sdcc xxd python-is-python3 libjson-c-dev zlib1g-dev
+```
+
+<details>
+<summary>If using Docker (click to expand)</summary>
+
+### Prerequisites
+
+Install Docker for your platform:
+
+- **Linux (Debian/Ubuntu)**: `sudo apt install docker.io` then `sudo usermod -aG docker $USER` (log out and back in)
+- **Linux (other distros)**: Follow the [Docker Engine install guide](https://docs.docker.com/engine/install/)
+- **Windows**: Install [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/)
+- **macOS**: Install [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/)
+
+### Usage
+
+A Dockerfile is provided for a reproducible build environment:
+
+```
+docker build -t rtlplayground-dev .
+```
+
+Build the firmware (replace MACHINE with your target, e.g. `DEFAULT_8C_1SFP`):
+
+```
+docker run --rm -v $(pwd):/workspace rtlplayground-dev make MACHINE=DEFAULT_8C_1SFP
+```
+
+The resulting `.bin` file appears in `output/` on your host.
+
+Build host tools only:
+
+```
+docker run --rm -v $(pwd):/workspace rtlplayground-dev make -C tools
+```
+
+Run the web-interface simulator locally:
+
+```
+docker run --rm -p 8080:8080 -v $(pwd):/workspace rtlplayground-dev \
+  tools/output/httpd_sim /workspace/html
+```
+
+Edit `machine.h` or `config.txt` on your host, then re-run `make` — the
+source directory is mounted into the container, so changes take effect
+immediately. To build for a different machine, pass `MACHINE=...`.
+
+</details>
+
+## (1) Compiling for direct chip flashing AND upgrading an existing RTLPlayground running device
+
+Edit machine.h with an editor like vi or nano. Select the correct machine the firmware should build for.
+
+> [!TIP]
+> You can write configuration parameters in config.txt (see below) in order your switch to get
+> straight at the first boot, a correct IP configuration.
+
+Now, building the firmware image should work:
+```
+make 
+```
+Note, that the image generated ends in .bin, not .img, in order to make IMSProg happy.
+
+image location is stored in `RTLPlayground/output/rtlplayground_version_machine.bin`
+for example
+```
+rtlplayground-v0.1.0-12c98ba-dirty-LIANGUO_ZX_SWTGW215AS.bin
+```
+
+> [!CAUTION]
+> This image can be flashed directly to the chip OR through the firmware update/upgrade
+> interface of RTLPlayground interface
+
+## (2) Compiling for OEM running device with management options (web upgrade)
+
+Managed switches can be updated from the existing original firmware using a SPECIFIC upgrade image.
+You first need to build the firmware for direct chip flashing : See below (1)
+
+Then
+
+```
+cd installer
+make 
+```
+image location is stored in  `RTLPlayground/installer/output/rtlplayground_oem_upgrade.bin`
+
+> [!CAUTION]
+> This image must ONLY be used for original OEM firmware web interface firmware upgrade.
+> You do not need this image if you are already on RTLplayground firmware.
+> Unless you go back to the original OEM firmware, you would only flash this specific firmware
+> only once. Future upgrades of RTLPlayground will only need to follow (1)
+
+example of compilation console output
+
+```
+RTLPlayground/installer$ make
+mkdir -p output
+gcc updatebuilder.c -o output/updatebuilder
+sdas8051 -plosgff -o output/crtstart.rel crtstart.asm
+sdcc -mmcs51 --code-loc 0x1000 -o output/installer.rel -c installer.c
+sdcc -mmcs51 -Wl-bHOME=0x1100 -Wl-r -o output/rtlinstaller.ihx output/crtstart.rel output/installer.rel
+./output/updatebuilder -i output/rtlinstaller.ihx -o output/rtlplayground_oem_upgrade.bin ../output/rtlplayground.bin
+Input file size: 524288
+Bytes read: 524288
+EOF
+Payload sum 1 is: 0x25100
+Payload sum 2 is: 0x25100
+Payload sum with header is: 0x264ec
+Payload sum is: 0xf8fe94
+Header checksum is: 0x5a1
+```
+
+## (3) Sandbox Usage with Ghidra (optional)
+
+You can play with the image using ghidra or flash real Switch Hardware. For
+ghidra see this information about [Ghidra images](doc/ghidra.md).
+
+## (4) Installation through the Web interface (software way)
+
+Managed switches (OEM firmware of RTLplayground firmware) can be upgraded via the web interface.
+Unmanaged switch cannot be flashed this way (see 5).
+
+Go to "Firmware update" tab, select the correct file.
+
+> [!IMPORTANT]
+> If your device already runs RTLPlayground, you must upload the binary file /RTLPlayground/output/rtlplayground_Version_Machine.bin
+> If your device is OEM, you must upload the binary file /RTLPlayground/installer/outputrtlplayground_oem_upgrade.bin
+
+> [!CAUTION]
+> Check one more time that your device matches the machine type before flashing.
+> Be sure you have a backup of the original firmware before diving in RTLPlayground.
+
+Finally, push the Upload File Button and you're done !
+
+
+## (5) Flashing the ROM directly (hardware way, but also only way to rescue)
+
+This procedure is the only way to flash unmanaged switches, if the ROM chip is large enough.
+This is also the only way to unbrick your device if something went wrong.
+
+> [!IMPORTANT]
+> You need a SOIC-8 clip to flash the ROM chip directly onboard.
+> Alternatively you can de-solder the flash chip and install a SOIC adapter).
+> For flashing the chip directly, you must use the binary file /RTLPlayground/output/rtlplayground_Version_Machine.bin
+
+> [!CAUTION]
+> As you need to open your switch case, consider that the warranty is gone.
+
+- Disconnect power from switch.
+- Open the switch.
+- Attach the clip onto the flash chip (Red line on Pin 1, Pin 1 has a point marker).
+- Connect USB of flash programmer, the power LED on the switch will light up, check cabling if not.
+- Don't panic, mixing up GND and 3.3V usually does not destroy the switch.
+- Use IMSProg, Flashrom, or whatever Programmer to detect the chip.
+- MAKE A BACKUP (DUMP) OF THE EXISTING FIRMWARE !
+- ERASE THE ROM (BLANK) !
+- Load the firmware into IMSProg.
+- Flash is to the ROM chip.
+- Disconnect the clip from the ROM chip.
+- You're done, ready for the first boot.
+
+## (6) Connecting a serial interface (optional)
+
+You can connect a serial cable to the UART port found on all the devices, set 8N1 @ 115200 baud.
+
+## (7) Power Up
+
+When you power up the switch, the device will perform some examples and provide a minimal console
+(if wired to a serial interface), the documentation of which can be found in the source code rtlplayground.c`.
+
+## (8) The web-interface
+
+The web-interface can be reached under the [default 192.168.10.247](http://192.168.10.247) unless you
+specified an IP address in the config.txt before compilation.
+
+> [!TIP]
+> The default password is `1234`.
+
+## (9) The command line
+
+The command line is very rudimentary and mostly for testing purposes.
+The following is a boot-log with some examples:
+```
+Detecting CPU
+RTL8373 detected
+Starting up...
+  Flash controller
+
+NIC reset
+rtl8372_init called
+
+RTL837X_REG_SDS_MODES: 0x00000bed
+
+phy_config_8224 called
+
+phy_config_8224 done
+
+rtl8224_phy_enable called
+
+rtl8224_phy_enable done
+
+rtl8372_init done
+
+A minimal prompt to explore the RTL8372:
+
+CPU detected: RTL8373
+Clock register: 0x00001101
+Register 0x7b20/RTL837X_REG_SDS_MODES: 0x00000bed
+Verifying PHY settings:
+
+ Port   State   Link    TxGood          TxBad           RxGood          RxBad
+1       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+2       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+3       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+4       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+5       On      2.5G    0x00000008      0x00000000      0x00000000      0x00000000
+6       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+7       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+8       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+9       NO SFP  Down    0x00000000      0x00000000      0x00000000      0x00000000
+
+> port 5 1g
+  CMD: port 5 1g
+PORT 04 1G
+
+> stat
+  CMD: stat
+ Port   State   Link    TxGood          TxBad           RxGood          RxBad
+1       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+2       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+3       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+4       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+5       On      1000M   0x00000035      0x00000000      0x00000017      0x00000000
+6       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+7       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+8       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+9       NO SFP  Down    0x00000000      0x00000000      0x00000000      0x00000000
+
+>
+<SFP-RX OK>
+
+<MODULE INSERTED>  Rate: 67  Encoding: 01
+Lightron Inc.   WSPXG-ES3LC-IHA 0000
+
+> stat
+  CMD: stat
+ Port   State   Link    TxGood          TxBad           RxGood          RxBad
+1       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+2       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+3       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+4       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+5       On      1000M   0x00000065      0x00000000      0x0000003b      0x00000000
+6       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+7       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+8       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
+9       SFP OK  10G     0x00000000      0x00000000      0x0000001c      0x00000000
+
+> sfp
+  CMD: sfp
+Rate: 67  Encoding: 01
+Lightron Inc.   WSPXG-ES3LC-IHA 0000
+```
+
+## (10) Advanced configuration
+
+You can configure more deeply the switch without the need of the console mode.
+
+While in compilation part, you might write directly to config.txt file before making the binary firmware
+
+```
+nano config.txt
+```
+
+If you want to modify settings after the flash is done, go to the System tab and find the Startup Configuration.
+
+<img width="1673" height="978" alt="ADVANCED SETTINGS" src="doc/images/advanced_settings.png" />
+
+```
+ip xxx.xxx.xxx.xxx      = IP address of the switch
+gw yyy.yyy.yyy.yyy      = IP address of the gateway
+netmask zzz.zzz.zzz.zzz = Network mask of the switch 
+port x name xxx         = Name xxx the port number x
+port z 1g               = Set 1g speed for port z
+igmp on/off             = Turn IGMP on or off
+session xxxx            = Web session timeout in seconds (default 200)
+```
+[To be continue]
+
+Enjoy playing!
+
+## (11) Other documents
+
+The following documents give further documentation on specific features of the RTL837x SoCs:
+- [RTL8372/3 Feature support](doc/hardware.md)
+- [CPU Port](doc/CpuPort.md)
+- [L2 learning](doc/l2.md) 
+- [IGMP (IP-MC streaming)](doc/igmp.md)
+- [SFP+ ports](doc/sfp.md) 
+- [Trunking aka. port aggregation](doc/link_aggregation.md)
+- [VLAN](doc/vlan.md)
+- [Storm control](doc/storm_control.md)
+- [Modifications and Flash replacement](doc/mods.md)

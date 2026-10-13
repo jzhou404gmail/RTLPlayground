@@ -1,724 +1,272 @@
-# RTLPlayground — device-support fork
+# RTLPlayground —— 机型支持分支（fork）
 
-**English** · [中文说明](README.zh-CN.md) · upstream project: [logicog/RTLPlayground](https://github.com/logicog/RTLPlayground)
+[English](README.en.md) · 上游项目：[logicog/RTLPlayground](https://github.com/logicog/RTLPlayground)
 
-This is a fork of [logicog/RTLPlayground](https://github.com/logicog/RTLPlayground). It carries the
-upstream firmware plus hardware support that upstream does not have yet:
+这是 [logicog/RTLPlayground](https://github.com/logicog/RTLPlayground) 的一个分支。在保留上游固件的基础上，它补充了上游目前还没有的硬件支持：
 
-- **five machine targets** for boards that were unsupported, or listed under a wrong model name,
-- **the fixes those boards needed** — a reset button that never did anything on RTL8372 silicon, a web
-  session that stopped being accepted seconds after login on the same silicon, and a factory MAC the
-  board stopped using,
-- **one feature they depend on** — restoring the factory configuration without a reset button, from the
-  web interface or the console,
-- **documentation and tools** for the next bring-up: device pages with board photos and measurements,
-  a serial capture and a reset-button probe.
+- **5 个新的机型 target**（上游不支持的板子，或上游写错型号的板子）
+- **这些板子必需的修复**：RTL8372 芯片上原本完全失效的复位键、同一颗芯片上登录几秒后就失效的 Web 会话、以及被固件遗忘的出厂 MAC
+- **它们依赖的新功能**：没有复位键也能恢复出厂设置（Web 界面按钮 + 控制台命令）
+- **给下一台机器做适配用的文档和工具**：带板卡照片和实测数据的机型文档、串口抓取脚本、复位键探针
 
-Everything on this page was measured on real hardware (six switches, 2026-10-11 … 2026-10-13).
-"Verified" always means *measured on the board*, and the device document quotes the command output or
-the observation that settles it.
+本页所有结论都是**在真机上实测得到的**（6 台设备，2026-10-11 … 2026-10-13）。文中"已验证 / verified"一律表示"在该板子上量过"，机型文档里会写出所用的命令和输出。
 
 | | |
 |---|---|
-| Firmware version | `v0.1.0`, with the commit stamped in — `version` on the switch reports it; the builds these measurements were taken with report `v0.1.0-6a8cd51`. A build from a clean checkout carries no `-dirty` suffix |
-| Based on upstream | `main` at [`03311de`](https://github.com/logicog/RTLPlayground/commit/03311de) |
-| License | MIT, same as upstream — see [LICENSE](LICENSE) |
-| Full device list | [doc/supported_devices.md](doc/supported_devices.md) |
-| Upstream instructions | kept unchanged at the [bottom of this file](#upstream-readme-unchanged) |
+| 固件版本 | `v0.1.0`，并盖上所用提交号（在机器上执行 `version` 可见）；本文实测所用的构建为 `v0.1.0-6a8cd51`。干净的工作区构建出来不带 `-dirty` 后缀 |
+| 基于上游 | `main` @ [`03311de`](https://github.com/logicog/RTLPlayground/commit/03311de) |
+| 许可证 | MIT，与上游一致 —— 见 [LICENSE](LICENSE) |
+| 完整机型清单 | [doc/supported_devices.md](doc/supported_devices.md) |
+| 上游通用说明 | 完整保留在 [README.en.md](README.en.md#upstream-readme-unchanged)（英文原文） |
+| 英文版 | [README.en.md](README.en.md)（本页的英文版 + 上游原文） |
 
-## Contents
+## 目录
 
-1. [Which target do I build?](#1-which-target-do-i-build)
-2. [Device notes](#2-device-notes) — build command, install path and verified state per board
-3. [What else this fork changes](#3-what-else-this-fork-changes)
-4. [Recipes](#4-recipes) — build, install, first boot
-5. [Verification](#5-verification) — the six units, and how to check your own board
-6. [Sending these changes upstream](#6-sending-these-changes-upstream)
+1. [我该编译哪个 target？](#1-我该编译哪个-target)
+2. [逐机型说明](#2-逐机型说明) —— 编译命令、刷机方式、已验证到什么程度
+3. [这个分支还改了什么](#3-这个分支还改了什么)
+4. [操作速查](#4-操作速查) —— 编译、刷机、首次启动
+5. [验证情况](#5-验证情况) —— 6 台实测设备，以及怎么验证你自己的板子
+6. [把改动回馈上游](#6-把改动回馈上游)
 
-## 1. Which target do I build?
+## 1. 我该编译哪个 target？
 
-### 1.1 The five targets this fork adds
+### 1.1 本分支新增的 5 个 target
 
-| Board silkscreen | Sold as | Managed | Ports | SoC | Flash | Machine target | Build |
+| 板卡丝印 | 零售型号 | 网管 | 端口 | 主控 | 闪存 | Machine target | 编译 |
 |---|---|---|---|---|---|---|---|
-| `PCB-K0402W-V1.0` / `DIP-K0402WS-V1.0` | Hisource **Hi-K0402WS** (众通源) | no | 4 × 2.5G + 2 × SFP+ | RTL8372 | 2 MiB Boya/BoHong `BY25Q16BS` | `PCB_K0402W_V1` | **needs `FLASH_NO_DIO=1`** |
-| `PCB-K0801W-V1.0` / `DIP-K0801WS-V1.0` | Hisource **Hi-K0801WS** (unit labelled `SFP-J08E-HG1`) | no | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Boya/BoHong | `PCB_K0801W_V1` | **needs `FLASH_NO_DIO=1`**, experimental |
-| `PCB-SWTG115AS-V2.1-17443` | XikeStor **SKS3200M-5GPY1XF** (兮克) | yes | 5 × 2.5G + 1 × 10G SFP+ | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_5GPY1XF` | `make MACHINE=…` |
-| `SWTG024AS-v1.0` | XikeStor **SKS3200M-4GPY2XF** | yes | 4 × 2.5G + 2 × SFP | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_4GPY2XF` | `make MACHINE=…` |
-| `SWTG118AS-V2.1-17462` | XikeStor **SKS3200M-8GPY1XF** | yes | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_8GPY1XF` | `make MACHINE=…` |
+| `PCB-K0402W-V1.0` / `DIP-K0402WS-V1.0` | 海思创 Hi-K0402WS（众通源） | 非网管 | 4 × 2.5G + 2 × SFP+ | RTL8372 | 2 MiB Boya/BoHong `BY25Q16BS` | `PCB_K0402W_V1` | **必须加 `FLASH_NO_DIO=1`** |
+| `PCB-K0801W-V1.0` / `DIP-K0801WS-V1.0` | 海思创 Hi-K0801WS（实物标签 `SFP-J08E-HG1`） | 非网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Boya/BoHong | `PCB_K0801W_V1` | **必须加 `FLASH_NO_DIO=1`**，实验性 |
+| `PCB-SWTG115AS-V2.1-17443` | 兮克 XikeStor **SKS3200M-5GPY1XF** | 网管 | 5 × 2.5G + 1 × 万兆 SFP+ | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_5GPY1XF` | `make MACHINE=…` |
+| `SWTG024AS-v1.0` | 兮克 XikeStor **SKS3200M-4GPY2XF** | 网管 | 4 × 2.5G + 2 × SFP | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_4GPY2XF` | `make MACHINE=…` |
+| `SWTG118AS-V2.1-17462` | 兮克 XikeStor **SKS3200M-8GPY1XF** | 网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_8GPY1XF` | `make MACHINE=…` |
 
-The three XikeStor units are not new boards: the PCB inside them is a board upstream already supports
-(the ZX-SWTGW215AS, the SWTG024AS family and the ZX-SWTGW218AS). The new targets exist because those
-boards are **sold under a different model name**, and the firmware should say so in the web interface —
-plus, on the 4GPY2XF, because the button and the factory MAC needed enabling for that retail variant.
+三个兮克机型**不是新板子**：里面的 PCB 上游本来就支持（分别是 ZX-SWTGW215AS、SWTG024AS 系列、ZX-SWTGW218AS）。新增 target 的原因是**同一块板子被厂商以另一个型号销售**，固件里应该显示实际型号；另外 4GPY2XF 那台还需要为这个零售版本单独打开复位键和出厂 MAC。
 
-### 1.2 Three upstream device-list entries this fork corrects
+### 1.2 本分支修正的 3 处上游机型信息
 
-| Upstream says | The unit actually is | Effect |
+| 上游写的是 | 实物其实是 | 影响 |
 |---|---|---|
-| `XikeStor SKS3200-8E1X` on SWTG118AS-V2.1-17462 | **`SKS3200M-8GPY1XF`** — stated on the case label and in the unit's own web interface | you would have looked for the wrong model, and the firmware reported a name the unit does not carry |
-| Hisource Hi-K0801WS is on `PCB-KO801W-V2.0` | **`PCB-K0801W-V2.0`** — the silkscreen has a digit `0`, not a letter `O` | the target and the document were renamed accordingly; the old spelling no longer exists anywhere in the tree |
-| `Hisource Hi-K0402WS` on `PCB-K0402W-V1.0`: not listed | added, supported, 2 MiB flash | a whole board revision was missing |
+| `XikeStor SKS3200-8E1X`（SWTG118AS-V2.1-17462） | **`SKS3200M-8GPY1XF`** —— 机壳标签和机器自己的 Web 界面都这么写 | 按上游名字去找会找不到；固件也会报一个实物上根本没有的型号 |
+| 海思创 Hi-K0801WS 的板卡是 `PCB-KO801W-V2.0` | **`PCB-K0801W-V2.0`** —— 丝印上是数字 `0`，不是字母 `O` | target 和文档已改名，代码树里不再有旧拼写 |
+| 海思创 Hi-K0402WS 的 `PCB-K0402W-V1.0`：未收录 | 已收录为**正式支持**，闪存 2 MiB | 原先整个板卡版本缺失 |
 
-Also corrected: the brand spelling `Xikestore` → `XikeStor`, the 4GPY2XF flash size (`?` → 2 MiB), and
-the flash size and PCB label of the 8GPY1XF row.
+同时还修正了：品牌拼写 `Xikestore` → `XikeStor`、4GPY2XF 的闪存容量（`?` → 2 MiB）、8GPY1XF 一行的闪存容量与 PCB 标签。
 
-### 1.3 Identifying your board in three steps
+### 1.3 三步确认你的板子
 
-1. **Open the case and read the silkscreen revision** — a `PCB-…` string printed near an edge, e.g.
-   `PCB-K0402W-V1.0`, `PCB-SWTG115AS-V2.1-17443`, `SWTG024AS-v1.0`. The accompanying `DIP-…` marking is
-   the same revision of the panel-side board.
-2. **Check the case label**: model name and port count. It tells you which retail variant you have, not
-   which PCB revision — a Hi-K0402WS exists on V1.0, V2.0 and V3.0 boards that need *different* targets.
-3. **Match the silkscreen, not the retail name.** If the silkscreen matches a row above, use that target.
-   If it does not, look it up in [doc/supported_devices.md](doc/supported_devices.md) — upstream covers
-   most of the other revisions (KP-9000, SWTG024AS-V2.0, ZX-SWTGW215AS, ZX-SWTGW218AS, PCB-K0402WS
-   V2.0/V3.0, and more).
+1. **拆机，看丝印版本号** —— 板边会印 `PCB-…` 字样，如 `PCB-K0402W-V1.0`、`PCB-SWTG115AS-V2.1-17443`、`SWTG024AS-v1.0`；旁边配套的 `DIP-…` 是同一版本的另一半板子。
+2. **看机壳标签**：型号名 + 端口数量。它只能告诉你买的是哪个零售版本，**不能**告诉你 PCB 版本 —— 同样是 Hi-K0402WS，就可能落在 V1.0 / V2.0 / V3.0 三种需要**不同 target** 的板子上。
+3. **以丝印为准，不要以零售名为准。** 丝印能对上下表就用对应 target；对不上就去 [doc/supported_devices.md](doc/supported_devices.md) 里查 —— 其它版本（KP-9000、SWTG024AS-V2.0、ZX-SWTGW215AS、ZX-SWTGW218AS、PCB-K0402WS V2.0/V3.0 等）上游已经覆盖。
 
 > [!IMPORTANT]
-> Two of the five targets **reset in a loop right after `Detecting CPU`** if you build them without
-> `FLASH_NO_DIO=1`. That is not a bricked board and not a wrong target — it is the flash chip refusing
-> the Dual-I/O read mode. Rebuild with `FLASH_NO_DIO=1` and flash again.
+> 上面 5 个 target 里有两个，如果**不加 `FLASH_NO_DIO=1`** 编译，会出现"`Detecting CPU` 之后每 10 ms 重启一次"的死循环。这不是板子坏了，也不是 target 选错了，而是闪存芯片不接受 Dual-I/O 读模式：重新加 `FLASH_NO_DIO=1` 编译再刷即可。
 
-## 2. Device notes
+## 2. 逐机型说明
 
-### 2.1 Hisource Hi-K0402WS — `PCB-K0402W-V1.0` → `MACHINE_PCB_K0402W_V1`
+### 2.1 海思创 Hi-K0402WS —— `PCB-K0402W-V1.0` → `MACHINE_PCB_K0402W_V1`
 
-RTL8372, 4 × 2.5GBASE-T + 2 × SFP+ (1G/2.5G/10G), one 2 MiB Boya/BoHong `BY25Q16BS` (`RDID 68 40 15`),
-SoC under a heatsink. **Status: supported — verified on two units.**
+RTL8372，4 × 2.5GBASE-T + 2 × SFP+（1G/2.5G/10G），单颗 2 MiB Boya/BoHong `BY25Q16BS`（`RDID 68 40 15`），主控在散热片下。**状态：正式支持，两台实测。**
 
 | | |
 |---|---|
-| Build | `make MACHINE=PCB_K0402W_V1 FLASH_NO_DIO=1` |
-| Install | SPI clamp only. The stock firmware is an unmanaged Realtek reference image with a factory-test console on **9600 8N1** and no web interface, so the web-upgrade path does not exist for the first install |
-| Image for the programmer | pad the 512 KiB build to 2 MiB (`truncate -s 2097152 …`); **never** use a padded image for web flashing |
-| Reset button | **none**, and no unpopulated footprint for one — restore the built-in configuration from the web UI or with `defaults` |
-| Default IP | `192.168.10.247` (from `config.txt`) |
-| Console | 115200 8N1 once RTLPlayground runs |
-| Document | [doc/devices/PCB-K0402W-V1.0.md](doc/devices/PCB-K0402W-V1.0.md) |
+| 编译 | `make MACHINE=PCB_K0402W_V1 FLASH_NO_DIO=1` |
+| 首次刷机 | 只能用 SPI 夹子。原厂是非网管的 Realtek 参考固件，**9600 8N1** 的工厂测试串口，没有 Web 界面，所以第一次装必须上编程器 |
+| 编程器镜像 | 把 512 KiB 的构建填充到 2 MiB（`truncate -s 2097152 …`）；**填充过的镜像绝对不能**用于 Web 升级 |
+| 复位键 | **没有**，连未焊的焊盘都没有 → 用 Web 界面按钮或 `defaults` 命令恢复内嵌配置 |
+| 默认 IP | `192.168.10.247`（来自 `config.txt`） |
+| 串口 | 跑起 RTLPlayground 后为 115200 8N1 |
+| 机型文档 | [doc/devices/PCB-K0402W-V1.0.md](doc/devices/PCB-K0402W-V1.0.md) |
 
-Verified on the board: boots with `FLASH_NO_DIO=1`, is an RTL8372 (`regget 0004` = `0x83720000`), all six
-ports in the right order (one cable per jack), copper LEDs (amber = 2.5G, green = 1G/100M/10M with
-activity, including a real 2.5G link), **both** SFP cages (module detect, RX_LOS, module EEPROM over I2C,
-10G link), and the *Restore factory defaults* path in the web UI.
+实测内容：加 `FLASH_NO_DIO=1` 后正常启动；`regget 0004` = `0x83720000`（RTL8372）；六个端口顺序正确（逐口插线验证）；铜口 LED（2.5G 亮橙、1G/100M/10M 亮绿并随流量闪，含真实 2.5G 对端）；**左右两个 SFP 笼**都验过（模块检测脚、RX_LOS、I2C 读 EEPROM、10G 链路）；Web 界面的"恢复出厂设置"可用。
 
-### 2.2 Hisource Hi-K0801WS — `PCB-K0801W-V1.0` → `MACHINE_PCB_K0801W_V1` (experimental)
+### 2.2 海思创 Hi-K0801WS —— `PCB-K0801W-V1.0` → `MACHINE_PCB_K0801W_V1`（实验性）
 
-RTL8373, 8 × 2.5GBASE-T + 1 × SFP+, 2 MiB Boya/BoHong flash. **Status: boots on hardware, but not fully
-verified — this target is deliberately *not* in the supported list.**
+RTL8373，8 × 2.5GBASE-T + 1 × SFP+，2 MiB Boya/BoHong 闪存。**状态：能启动，但未完全验证 —— 因此刻意*不*列入正式支持清单。**
 
 | | |
 |---|---|
-| Build | `make MACHINE=PCB_K0801W_V1 FLASH_NO_DIO=1` |
-| Install | SPI clamp only (same unmanaged stock firmware as above); keep the 2 MiB dump |
-| Reset button | **none**, and no unpopulated footprint for one |
-| Default IP | `192.168.10.247` |
-| Document | [doc/devices/PCB-K0801W-V1.0.md](doc/devices/PCB-K0801W-V1.0.md) |
+| 编译 | `make MACHINE=PCB_K0801W_V1 FLASH_NO_DIO=1` |
+| 首次刷机 | 同样只能用 SPI 夹子（原厂固件与上面同款非网管固件）；务必备份 2 MiB |
+| 复位键 | **没有**，也没有预留焊盘 |
+| 默认 IP | `192.168.10.247` |
+| 机型文档 | [doc/devices/PCB-K0801W-V1.0.md](doc/devices/PCB-K0801W-V1.0.md) |
 
-Verified: it boots with the V1.0 silkscreen, reports the RTL8373 class (no `INCORRECT MACHINE!`), lists
-all nine ports in the right places in the web UI, and the flash mode is right. **Not verified:** the LED
-sets, the LED pad mux, the system LED and the SFP pins are still the V2.0 values — expect wrong LEDs
-(dark, inverted or swapped) and possibly an SFP cage that does not see its module. The document lists the
-console commands that settle each of them; the photos show the revision, the date code and the flash
-chip.
+已验证：这块 V1.0 丝印能正常启动、判定为 RTL8373 类（无 `INCORRECT MACHINE!`）、Web 界面 9 个端口位置正确、闪存模式正确。**未验证**：LED 组、LED 焊盘映射、系统灯和 SFP 引脚目前仍是 V2.0 的值 —— 所以要做好"灯不对"的心理准备（不亮、反相或串位），SFP 也可能识别不到模块。文档里列出了逐项确认所需的控制台命令；照片里能看到版本号、日期码和闪存芯片。
 
-### 2.3 XikeStor SKS3200M-5GPY1XF — `PCB-SWTG115AS-V2.1-17443` → `MACHINE_SKS3200M_5GPY1XF`
+### 2.3 兮克 XikeStor SKS3200M-5GPY1XF —— `PCB-SWTG115AS-V2.1-17443` → `MACHINE_SKS3200M_5GPY1XF`
 
-RTL8372, 5 × 2.5GBASE-T + 1 × 10G SFP+ (the fifth RJ45 is driven by an external RTL8221B), 2 MiB Winbond
-`W25Q16JV` (`EF 40 15`). **Status: supported — all six ports verified.** Same PCB as the Lianguo
-ZX-SWTGW215AS; the two targets differ only in the board/model names they report.
+RTL8372，5 × 2.5GBASE-T + 1 × 万兆 SFP+（第 5 个电口由外置 RTL8221B 驱动），2 MiB Winbond `W25Q16JV`（`EF 40 15`）。**状态：正式支持，六个端口全部实测。** 与联果 ZX-SWTGW215AS 是同一块 PCB，两个 target 只差在向界面报告的板卡/型号名。
 
 | | |
 |---|---|
-| Build | `make MACHINE=SKS3200M_5GPY1XF` (or `MACHINE=LIANGUO_ZX_SWTGW215AS`, same wiring) |
-| Install | keep a full 2 MiB backup first — the stock image cannot be rebuilt from a dump. From the stock web UI: the OEM installer; once any RTLPlayground image runs: the web interface's *Firmware update* |
-| Reset button | `GPIO54` — **verified**: < 3 s nothing, ~5 s reboot with the startup configuration kept, ~13 s factory reset |
-| Default IP | `192.168.10.12` (the XikeStor targets embed `config-xikestor.txt`) |
-| Document | [doc/devices/SKS3200M-5GPY1XF.md](doc/devices/SKS3200M-5GPY1XF.md) |
+| 编译 | `make MACHINE=SKS3200M_5GPY1XF`（或 `MACHINE=LIANGUO_ZX_SWTGW215AS`，接线相同） |
+| 刷机 | 先完整备份 2 MiB（原厂镜像无法从 dump 复现）。还在原厂固件：用一键安装镜像；已经跑 RTLPlayground：Web 界面"固件升级"直接上传 |
+| 复位键 | `GPIO54` —— **实测三态**：< 3 s 无动作，约 5 s 重启（保留启动配置），约 13 s 恢复出厂设置 |
+| 默认 IP | `192.168.10.12`（兮克 target 内嵌 `config-xikestor.txt`） |
+| 机型文档 | [doc/devices/SKS3200M-5GPY1XF.md](doc/devices/SKS3200M-5GPY1XF.md) |
 
-Verified: port order (UI 1-5 = jacks 1-5, UI 6 = SFP), links at 1G and 2.5G, SFP module detect/RX_LOS,
-module EEPROM read and a port linked at 10G, RJ45 LEDs (2.5G right green, 1G/100M left amber), the
-system LED, the factory MAC at `0x1FC000`, and the reset button above.
+实测内容：端口顺序（界面 1-5 = 网口 1-5，界面 6 = 光口）、1G 与 2.5G 链路、光口模块检测/RX_LOS/EEPROM 读取与 10G 链路、电口 LED（2.5G 亮右绿、1G/100M 亮左橙）、系统灯、`0x1FC000` 处的出厂 MAC，以及上面的复位键三态。
 
-### 2.4 XikeStor SKS3200M-4GPY2XF — `SWTG024AS-v1.0` → `MACHINE_SKS3200M_4GPY2XF`
+### 2.4 兮克 XikeStor SKS3200M-4GPY2XF —— `SWTG024AS-v1.0` → `MACHINE_SKS3200M_4GPY2XF`
 
-RTL8372, 4 × 2.5GBASE-T + 2 × SFP, 2 MiB Winbond `W25Q16JV`. **Status: supported.** Same PCB family as
-the SWTG024AS-V2.0 boards; this target additionally enables the reset button and the factory MAC, which
-the V2.0 siblings may not have populated.
+RTL8372，4 × 2.5GBASE-T + 2 × SFP，2 MiB Winbond `W25Q16JV`。**状态：正式支持。** 与 SWTG024AS-V2.0 系列同族；这个 target 额外为它打开了复位键和出厂 MAC（V2.0 的兄弟版可能没焊）。
 
 | | |
 |---|---|
-| Build | `make MACHINE=SKS3200M_4GPY2XF` |
-| Install (stock → RTLPlayground) | the stock firmware is a CGI-based Realtek SDK image (固件版本 V10.9.4, `admin/admin`, `192.168.10.12`). Its 固件升级 page (`fwug.cgi`) switches the board into the vendor loader, which **keeps the same IP**; the loader then takes the OEM installer via `/httpupg.cgi?cmd=fw_upgrade` |
-| Reset button | `GPIO54` (K1) — **verified**: ~5 s reboot, ~11 s factory reset, < 3 s nothing |
-| Factory MAC | restored: `mac_flash_offset = 0x1FC000` makes the board report `1C:2A:A3:23:E4:5E` again instead of a generated MAC |
-| Default IP | `192.168.10.12` |
-| Document | [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md) |
+| 编译 | `make MACHINE=SKS3200M_4GPY2XF` |
+| 原厂 → RTLPlayground | 原厂是 CGI 版 Realtek SDK（固件版本 V10.9.4，`admin/admin`，`192.168.10.12`）。它的"固件升级"页（`fwug.cgi`）会把机器切进厂商 loader，**IP 不变**；loader 再用 `/httpupg.cgi?cmd=fw_upgrade` 接收一键安装镜像 |
+| 复位键 | `GPIO54`（K1）—— **实测**：约 5 s 重启，约 11 s 恢复出厂设置，< 3 s 无动作 |
+| 出厂 MAC | 已找回：`mac_flash_offset = 0x1FC000` 让机器重新报告 `1C:2A:A3:23:E4:5E`，不再是随机生成的 MAC |
+| 默认 IP | `192.168.10.12` |
+| 机型文档 | [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md) |
 
 > [!NOTE]
-> If your router has MAC-based DHCP reservations, re-create them for the factory MAC after flashing this
-> target — the generated MAC the board used before is gone for good.
+> 如果你的路由器/软路由有基于 MAC 的 DHCP 保留或绑定，刷完这个 target 后请按出厂 MAC 重新设置一次 —— 之前那个随机 MAC 不会再回来。
 
-### 2.5 XikeStor SKS3200M-8GPY1XF — `SWTG118AS-V2.1-17462` → `MACHINE_SKS3200M_8GPY1XF`
+### 2.5 兮克 XikeStor SKS3200M-8GPY1XF —— `SWTG118AS-V2.1-17462` → `MACHINE_SKS3200M_8GPY1XF`
 
-RTL8373, 8 × 2.5GBASE-T + 1 × SFP+, 2 MiB Winbond `W25Q16JV`. **Status: supported.** Same PCB as the
-Mokerlink ZX-SWTGW218AS (V2.0); the target exists to report the board as `PCB-SWTG118AS-V2.1` and the
-model as `SKS3200M-8GPY1XF`.
+RTL8373，8 × 2.5GBASE-T + 1 × SFP+，2 MiB Winbond `W25Q16JV`。**状态：正式支持。** 与 Mokerlink ZX-SWTGW218AS（V2.0）同板；这个 target 的存在是为了让界面报告板卡 `PCB-SWTG118AS-V2.1`、型号 `SKS3200M-8GPY1XF`。
 
 | | |
 |---|---|
-| Build | `make MACHINE=SKS3200M_8GPY1XF` (or `MACHINE=SWTGW218AS` for the V2.0 boards) |
-| Install (stock → RTLPlayground) | the stock firmware is a CGI image (固件版本 V1.9, `admin/admin`, `192.168.10.12`) whose 固件升级 page (`fwug.cgi`) accepts the OEM installer |
-| Reset button | `GPIO54` — **verified**: ~5 s reboot, ~13 s factory reset, < 3 s nothing |
-| Default IP | `192.168.10.12` |
-| Document | [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md) |
+| 编译 | `make MACHINE=SKS3200M_8GPY1XF`（V2.0 板子用 `MACHINE=SWTGW218AS`） |
+| 原厂 → RTLPlayground | 原厂是 CGI 固件（固件版本 V1.9，`admin/admin`，`192.168.10.12`），其"固件升级"页（`fwug.cgi`）可直接接收一键安装镜像 |
+| 复位键 | `GPIO54` —— **实测**：约 5 s 重启，约 13 s 恢复出厂设置，< 3 s 无动作 |
+| 默认 IP | `192.168.10.12` |
+| 机型文档 | [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md) |
 
-Verified: the button's three states, the session handling, and restoring the built-in configuration from
-the web UI.
+实测内容：按键三态、会话处理、Web 界面恢复出厂设置。
 
-## 3. What else this fork changes
+## 3. 这个分支还改了什么
 
-### 3.1 Restore the factory defaults without a reset button — new feature
+### 3.1 没有复位键也能恢复出厂设置 —— 新功能
 
-The System tab (*Maintenance*) has a **Restore factory defaults** button, and the console has the
-equivalent `defaults` command. Both write the configuration compiled into the image over the startup
-configuration and reboot the board, which then comes up at the image's default address (`192.168.10.12`
-on the XikeStor builds, otherwise the address in `config.txt`).
+System 标签页（*维护*）新增 **Restore factory defaults** 按钮，控制台新增等价的 `defaults` 命令。二者都会用镜像内嵌的配置覆盖启动配置并重启，之后机器会回到镜像的默认地址（兮克构建为 `192.168.10.12`，其它构建为 `config.txt` 里的地址）。
 
-It is deliberately **not** a configuration command: it never becomes part of the startup configuration.
-The UI text exists in all six interface languages (English, Japanese, Chinese, Spanish, French, German).
+它**刻意不是**一条配置命令：永远不会被写进启动配置。界面文案已补齐 6 种语言（英、日、中、西、法、德）。
 
-Why it matters: the Hi-K0402WS and the Hi-K0801WS have no reset button at all, so before this there was
-no way to get the built-in configuration back on those boards. Verified on the two Hi-K0402WS units and
-on the 4GPY2XF, 5GPY1XF and 8GPY1XF.
+为什么重要：Hi-K0402WS 和 Hi-K0801WS 根本没有复位键，在这个功能之前，这两块板子没有任何办法恢复内嵌配置。已在两台 Hi-K0402WS 以及 4GPY2XF、5GPY1XF、8GPY1XF 上实测。
 
-### 3.2 Reset button timing — fix, every RTL8372 board with a button
+### 3.2 复位键计时 —— 修复，影响所有带按键的 RTL8372 机型
 
-`handle_button()` measured how long the button was held from `RTL837X_REG_SEC_COUNTER`. That register
-only holds a written value on the RTL8373; on an RTL8372 it always reads back 0, so **every press looked
-like a short press and the button did nothing at all** on those boards. The press is now timed from the
-software tick counter (measured against a wall clock: 200.0 ticks/s, so the thresholds are real seconds):
+原 `handle_button()` 用 `RTL837X_REG_SEC_COUNTER` 计时。该寄存器只有 RTL8373 才存得住值，RTL8372 上**永远读回 0**，于是每次按键都被算作"短按"，**按键完全失效**。现在改用软件 tick 计数（用挂钟实测 200.0 ticks/s，所以阈值就是真实的秒）：
 
-| Press | What happens |
+| 按住时长 | 行为 |
 |---|---|
-| < 3 s | nothing |
-| > 3 s | the switch reboots, the startup configuration is kept |
-| > 10 s | the configuration compiled into the image replaces the startup configuration, then reboot |
+| < 3 s | 无动作 |
+| > 3 s | 重启，保留启动配置 |
+| > 10 s | 用镜像内嵌配置覆盖启动配置，然后重启 |
 
-Tri-state verified on the SKS3200M-4GPY2XF, -5GPY1XF and -8GPY1XF. This is shared code, so every RTL8372
-target with a button benefits — including boards this fork does not otherwise touch.
+三态已在 SKS3200M-4GPY2XF / -5GPY1XF / -8GPY1XF 上实测。这是共享代码，所以**所有**带按键的 RTL8372 机型都跟着受益，包括本分支没动过的机型。
 
-### 3.3 Web session timeout — fix, RTL8372
+### 3.3 Web 会话超时 —— 修复，RTL8372
 
-The HTTP session deadline was derived from the same seconds register, so on an RTL8372 a session cookie
-stopped being accepted a few seconds after login. Deadlines now come from the tick counter, which is
-correct on both chip generations (verified on each).
+HTTP 会话的截止时间同样来自那个秒寄存器，导致 RTL8372 上登录几秒后 cookie 就不再被接受。现在改用 tick 计数，两种芯片上都正确（各芯片分别实测过）。
 
-### 3.4 Factory MAC — fix, SKS3200M-4GPY2XF
+### 3.4 出厂 MAC —— 修复，SKS3200M-4GPY2XF
 
-That unit came up with a generated, locally administered MAC instead of the one its stock firmware
-showed. `.mac_flash_offset = 0x1FC000` — set for this target only, because that area is unverified on the
-V2.0 siblings — makes the factory MAC come back; `/information.json` reports `1c:2a:a3:23:e4:5e` and the
-hostname derives from it again.
+该机原来上报随机生成的本地管理 MAC，而不是原厂固件显示的 MAC。为这个 target 单独设置 `.mac_flash_offset = 0x1FC000`（只对它开，因为 V2.0 兄弟版那块区域未验证）之后，出厂 MAC 回来了：`/information.json` 重新显示 `1c:2a:a3:23:e4:5e`，hostname 也随之恢复。
 
-### 3.5 Board and model shown separately — new
+### 3.5 板卡与型号分两行显示 —— 新功能
 
-`struct machine` gained `model_name`. Targets fill in both the PCB revision (`machine_name`, shown as
-硬件 / hardware) and the retail model (`model_name`, shown as 型号 / model), so a board that is sold
-under a different name than its silkscreen says is no longer mistaken for another device. Targets that
-leave `model_name` empty behave exactly as before.
+`struct machine` 新增 `model_name` 字段。target 可以同时填 PCB 版本（`machine_name`，界面显示 硬件 / hardware）和零售型号（`model_name`，显示 型号 / model），这样"丝印与销售型号不一致"的板子不会再被误认成别的机器。不填 `model_name` 的 target 行为与以前完全一致。
 
-### 3.6 Per-target factory default configuration — new
+### 3.6 每个 target 自己的出厂默认配置 —— 新功能
 
-`config-xikestor.txt` (IP `192.168.10.12`) is embedded instead of `config.txt` for the three XikeStor
-targets; the Makefile picks the file per machine target (`DEFAULT_CONFIG`). A freshly flashed XikeStor
-board therefore comes up at `192.168.10.12` rather than `192.168.10.247`.
+三个兮克 target 内嵌的是 `config-xikestor.txt`（IP `192.168.10.12`）而不是 `config.txt`，由 Makefile 按 target 选择（`DEFAULT_CONFIG`）。所以刚刷好的兮克机器是 `192.168.10.12`，而不是 `192.168.10.247`。
 
-### 3.7 `FLASH_NO_DIO=1` — new build option
+### 3.7 `FLASH_NO_DIO=1` —— 新构建选项
 
-Some SPI NOR parts (Boya/BoHong `BY25Q16BS` and relatives, `RDID 68 40 15`) return garbage for the flash
-controller's Dual-I/O MMIO read mode. `FLASH_NO_DIO=1` selects single-bit fast read instead, which those
-parts handle correctly and which every 3.3 V SPI NOR seen so far also supports. It stays a build option
-because Dual-I/O is a speed optimisation that works on the other supported boards.
+部分 SPI NOR（Boya/BoHong `BY25Q16BS` 及同族，`RDID 68 40 15`）在闪存控制器的 Dual-I/O MMIO 读模式下会返回乱码。`FLASH_NO_DIO=1` 改用单比特 fast read：这类芯片正常，而目前见过的所有 3.3 V SPI NOR 也都支持。之所以做成构建选项而不是改默认值，是因为 Dual-I/O 对其它已支持板子是有效的提速优化。
 
-### 3.8 Build ergonomics
+### 3.8 构建体验
 
-Building without selecting a machine now prints the list of available targets instead of failing
-obscurely, and `make machine_check` compiles `machine.c` for every target in `machine.h` (both are also
-run by CI).
+没有选择机型时直接 `make`，现在会打印可用 target 列表，而不是抛出一堆难懂的报错；`make machine_check` 会把 `machine.h` 里所有 target 的 `machine.c` 全编一遍（CI 也会跑这两项）。
 
-### 3.9 Tools for the next bring-up
+### 3.9 给下一台机器准备的工具
 
-- [`tools/console_capture.py`](tools/console_capture.py) — timestamped serial capture that needs no
-  pyserial; useful because the unmanaged boards speak 9600 8N1 in stock firmware and 115200 8N1 once
-  RTLPlayground runs.
-- [`tools/reset_button_probe.py`](tools/reset_button_probe.py) — polls the button's GPIO level and the
-  uptime over HTTP, so a short press, a reboot and a factory reset can be told apart while someone
-  presses the button by hand. The method (write a marker hostname into the startup configuration first)
-  is written up in [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md).
+- [`tools/console_capture.py`](tools/console_capture.py) —— 带时间戳的串口抓取，不需要 pyserial。非网管板子原厂是 9600 8N1、跑 RTLPlayground 后是 115200 8N1，正好用它切换。
+- [`tools/reset_button_probe.py`](tools/reset_button_probe.py) —— 通过 HTTP 轮询按键 GPIO 电平和开机时长，从而在"人工按着按键"的情况下区分短按、重启和恢复出厂。具体方法（先在启动配置里写一个 marker hostname）写在 [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md)。
 
-### 3.10 Tests and documentation
+### 3.10 测试与文档
 
-`make -C test` (host tests, extended to cover the new model line) and `make machine_check` pass; CI
-builds both chip classes, with and without the health instrumentation. Documentation added or corrected:
-the three device pages above plus [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md) and
-[doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md), board photos for all five targets,
-[doc/supported_devices.md](doc/supported_devices.md), the RTL8372/RTL8373 seconds-register difference in
-[doc/hardware.md](doc/hardware.md), and the note that a firmware upgrade keeps the startup configuration
-(section 4.3 below).
+`make -C test`（主机侧单测，已扩展到覆盖新的型号行）和 `make machine_check` 全绿；CI 会编译两种芯片类别，并额外编译带 health 插桩的版本。文档新增/修正：上面 3 篇新机型文档，加 [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md)、[doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md)；5 个机型的板卡照片；[doc/supported_devices.md](doc/supported_devices.md)；[doc/hardware.md](doc/hardware.md) 里补了 RTL8372/RTL8373 秒寄存器差异；以及"升级会保留启动配置"的说明（见 4.3）。
 
-## 4. Recipes
+## 4. 操作速查
 
-### 4.1 Build
+### 4.1 编译
 
 ```bash
-# Hi-K0402WS (PCB-K0402W-V1.0) and Hi-K0801WS (PCB-K0801W-V1.0): the Boya flash needs this flag
+# Hi-K0402WS（PCB-K0402W-V1.0）与 Hi-K0801WS（PCB-K0801W-V1.0）：Boya 闪存必须加这个标志
 make MACHINE=PCB_K0402W_V1 FLASH_NO_DIO=1
 make MACHINE=PCB_K0801W_V1 FLASH_NO_DIO=1
 
-# the three XikeStor units
+# 三个兮克机型
 make MACHINE=SKS3200M_4GPY2XF
 make MACHINE=SKS3200M_5GPY1XF
 make MACHINE=SKS3200M_8GPY1XF
 ```
 
-The image lands in `output/<target>/rtlplayground-<version>-<target>.bin` (512 KiB).
+产物在 `output/<target>/rtlplayground-<版本>-<target>.bin`（512 KiB）。
 
-### 4.2 Install
+### 4.2 刷机
 
-| Your board now runs | Use |
+| 机器当前运行 | 用什么方式 |
 |---|---|
-| RTLPlayground | *Firmware update* in the web interface, upload the 512 KiB `output/<target>/rtlplayground-*.bin` |
-| stock **managed** firmware (the three XikeStor units) | the one-shot installer `installer/output/rtlplayground_oem_upgrade.bin`, uploaded through the stock 固件升级 page — see the per-device notes in section 2 for the loader differences |
-| stock **unmanaged** firmware (Hi-K0402WS, Hi-K0801WS) | an SPI clamp and a programmer: back up 2 MiB, erase, write the build padded to 2 MiB, verify. Padding is only for the programmer — never upload a padded file |
+| RTLPlayground | Web 界面"固件升级"，上传 512 KiB 的 `output/<target>/rtlplayground-*.bin` |
+| 原厂**网管**固件（三个兮克机型） | 一键安装镜像 `installer/output/rtlplayground_oem_upgrade.bin`，从原厂"固件升级"页上传 —— loader 的差异见第 2 节各机型说明 |
+| 原厂**非网管**固件（Hi-K0402WS、Hi-K0801WS） | SPI 夹子 + 编程器：先备份 2 MiB，擦除，写入填充到 2 MiB 的镜像，回读校验。填充只对编程器有意义，**不要**上传填充过的文件 |
 
-### 4.3 After flashing
+### 4.3 刷完之后
 
-- A freshly flashed XikeStor board comes up at `192.168.10.12` with the project's default password; a
-  Hi-K0402WS/Hi-K0801WS board comes up at `192.168.10.247`.
-- **An upgrade keeps the board's startup configuration.** The image is written up to the configuration
-  area, which is left alone, so VLANs, port names, the password and the IP address survive a firmware
-  update. The configuration compiled into the image only applies to a board that has none yet, or after
-  restoring the factory defaults.
-- Restore the built-in configuration with *Restore factory defaults* in the System tab, with the
-  `defaults` console command, or with a > 10 s press of the reset button where the board has one. The
-  board then moves to the image's default address, so reconnect there.
-- The boot log and the System tab state the board revision and the retail model on separate lines, so
-  you can always tell which target a board is running.
+- 刚刷好的兮克机器在 `192.168.10.12`，Hi-K0402WS / Hi-K0801WS 在 `192.168.10.247`；默认密码是项目默认密码。
+- **升级会保留启动配置。** 镜像只写到配置区之前就停下，所以 VLAN、端口名、密码、IP 地址都能跨版本保留。镜像内嵌的配置只在"机器还没有配置"（全新刷机）或"恢复出厂设置"之后生效。
+- 恢复内嵌配置有三种方式：System 标签页的 *Restore factory defaults*、控制台 `defaults` 命令、以及有按键的机型长按复位键 > 10 s。恢复后机器会换到镜像的默认地址，需要重新连过去。
+- 启动日志和 System 标签页会把**板卡版本**和**零售型号**分两行显示，随时能确认这台机器跑的是哪个 target。
 
-## 5. Verification
+## 5. 验证情况
 
-### 5.1 The six units this work was measured on
+### 5.1 实测过的 6 台设备
 
-| Unit | Target | What was verified on it |
+| 设备 | Target | 实测内容 |
 |---|---|---|
-| Hisource Hi-K0402WS #1 | `PCB_K0402W_V1` | full bring-up: ports, copper LEDs, both SFP cages, factory-default restore, session |
-| Hisource Hi-K0402WS #2 | `PCB_K0402W_V1` | factory-default restore from the UI, session |
-| Hisource Hi-K0801WS (`SFP-J08E-HG1`) | `PCB_K0801W_V1` | boots, nine ports correct, flash mode — LEDs and SFP pins still pending |
-| XikeStor SKS3200M-8GPY1XF | `SKS3200M_8GPY1XF` | reset button tri-state, session, factory-default restore |
-| XikeStor SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | reset button tri-state, factory MAC, factory-default restore |
-| XikeStor SKS3200M-5GPY1XF | `SKS3200M_5GPY1XF` | all six ports, SFP at 10G, LEDs, system LED, factory MAC, reset button tri-state |
+| 海思创 Hi-K0402WS 第 1 台 | `PCB_K0402W_V1` | 完整适配：端口、铜口 LED、左右两个光笼、恢复出厂设置、会话 |
+| 海思创 Hi-K0402WS 第 2 台 | `PCB_K0402W_V1` | 界面恢复出厂设置、会话 |
+| 海思创 Hi-K0801WS（`SFP-J08E-HG1`） | `PCB_K0801W_V1` | 能启动、9 个端口正确、闪存模式 —— LED 与 SFP 引脚待测 |
+| 兮克 SKS3200M-8GPY1XF | `SKS3200M_8GPY1XF` | 复位键三态、会话、恢复出厂设置 |
+| 兮克 SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | 复位键三态、出厂 MAC、恢复出厂设置 |
+| 兮克 SKS3200M-5GPY1XF | `SKS3200M_5GPY1XF` | 六个端口、光口 10G、LED、系统灯、出厂 MAC、复位键三态 |
 
-All six were reflashed with the same build and reported the same software version, with their IP address,
-hostname and factory MAC preserved.
+6 台都刷了同一份构建、上报相同的软件版本，并且各自的 IP、hostname、出厂 MAC 都原样保留。
 
-### 5.2 Checking your own board
+### 5.2 怎么验证你自己的板子
 
-On the host, before flashing:
+刷机前，在主机上：
 
 ```bash
-make -C test          # host unit tests
-make machine_check    # machine.c must compile for every target
+make -C test          # 主机侧单元测试
+make machine_check    # machine.c 必须对每个 target 都能编译
 ```
 
-On a running board (console or web interface command line):
+板子跑起来后（控制台或 Web 界面的命令行）：
 
 ```
-version        # target, board revision, retail model, build
-regget 0004    # byte 1: 0x73 = RTL8373, otherwise RTL8372
-gpio           # pin levels — move a module into each SFP cage and watch which bit flips
-leds           # dump or force LED sets, to match the panel against the machine definition
-sfp            # module presence and EEPROM of each cage
-port <n> show  # which logical port a cable lands on
+version        # target、板卡版本、零售型号、构建信息
+regget 0004    # 第 1 字节：0x73 = RTL8373，其余为 RTL8372
+gpio           # 引脚电平 —— 往两个光笼分别插模块，看哪一位翻转
+leds           # 导出/强制 LED 组，对照面板验证机型定义
+sfp            # 每个光笼的模块存在性与 EEPROM
+port <n> show  # 某根网线落在哪个逻辑口
 ```
 
-For the reset button, write a marker into the startup configuration first (e.g. `hostname RESETTEST`)
-and use [`tools/reset_button_probe.py`](tools/reset_button_probe.py): a reboot shows as the uptime
-restarting with the marker intact, a factory reset as the marker disappearing.
+验证复位键时，先在启动配置里写一个 marker（例如 `hostname RESETTEST`），再用 [`tools/reset_button_probe.py`](tools/reset_button_probe.py)：重启表现为开机时长归零而 marker 仍在，恢复出厂表现为 marker 消失。
 
-## 6. Sending these changes upstream
+## 6. 把改动回馈上游
 
-The work sits on top of upstream `03311de` as a series of self-contained commits — one device, one fix or
-one document each — so they can also be proposed individually. To send all of them, open a pull request
-from `jzhou404gmail:main`:
+这些改动是叠在上游 `03311de` 之上的一系列自成体系的提交（一个机型 / 一个修复 / 一篇文档），既可以整体提，也可以拆开单独提。整体提交可以从 `jzhou404gmail:main` 发起 PR：
 <https://github.com/logicog/RTLPlayground/compare/main...jzhou404gmail:RTLPlayground:main?expand=1>
 
----
+上游 README 的通用说明完整保留在 [README.en.md](README.en.md#upstream-readme-unchanged)（英文原文），包括：编译环境与 Docker 用法、两种编译目标（直接刷芯片 / 原厂固件升级镜像）、Web 界面安装、直接刷 ROM 的硬件方式、串口连接、Web 界面说明、命令行说明、高级配置，以及全部功能文档的索引。本页只讲**本分支新增/修正的部分**：机型怎么选、这几块板子怎么刷、以及它们特有的注意事项。
 
-# Upstream README (unchanged)
-
-<!-- Everything below this line is the README of logicog/RTLPlayground at 03311de, verbatim. -->
-# RTLPlayground
-A Playground for Firmware development for advanced user of RTL8372/RTL8373 based 2.5GBit Switches.
-
-For each hardware configuration of these devices, there is usually a managed and an
-unmanaged version sold, with mostly identical hardware. The aim is to provide management
-features also for unmanaged devices with additional features such as Management VLAN,
-DHCP servers, multi-language support, IPv6 and TLS-encrypted web-pages. At present, however
-only the following features are provided:
-- A modern web-interface with mouse-over to display further information
-- A serial console interface to configure all features
-- IGMP to configure Multicast streaming
-- Port configuration showing detailed information about own and Link-partner advertised
-  Speed settings and configuration of these settings on the local side
-- Per-port configuration of frame sizes (MTUs) for Jumbo-Frame support or limiting MTUs
-  for particular devices
-- EEE (Energy Efficient Ethernet) can be configured per-port. Detailed information is
-  provided for support offered by the link partner and the EEE status of a port.
-- VLAN configuration
-- SFP information is displayed on the inserted modules, the current sensor values such as
-  temperatures, RX and TX power are displayed in the CLI and as mouse-over on the web
-- Mirror configuration
-- Link Aggregation Groups can be set up
-- Detailed information on port packet statistics
-- Configuration saved to flash via the web-interface
-- Firmware updates via the web
-- Installation as a firmware upgrade from the original web-interface
-
-<img width="1673" height="977" alt="GUI" src="doc/images/gui.png" />
-
-While the firmware provides already considerable improvements over the original managed firmware,
-the firmware still lacks support for the proprietary loop prevention
-protocols as well as DHCP. Spanning Tree is available (see doc/stp.md), but is
-a simplified implementation - read that document before enabling it on a
-switch you administer over the network. If you need these features, do not install the playground on your managed
-devices. In any case, installation is strongly discouraged unless you can at least make
-a backup of the original flash content via a SOIC clamp such as also used for BIOS
-backups and can re-install that firmware in case something is wrong. For this no soldering
-skills are necessary.
-
-The firmware supports all hardware features of devices with
-- 4 2.5GBit ports + 2 SFP+ ports
-- 5 2.5GBIT + 1 SFP+ port
-- 8 2.5GBit + 1 SFP+ port
-Devices sold usually have a fairly common design, however there may be differences in the LED
-configuration (switches have LEDs with different colours and use types of LEDs). The list
-of tested devices can be found in [Supported devices](doc/supported_devices.md).
-
-To do meaningful development you will need to use a serial console, so soldering skills
-are required. Flashing must be done via a SOIC-8 PatchClamp or by soldering a socket
-for the flash chip.
-
-If you don't want to open your device, you can use the project's code to learn about the
-devices by looking at the image using e.g. Ghidra. If you want to contribute to the
-design of the web-interface or get a feeling for the interface first, a standalone
-device simulator is provided, which runs entirely under Linux as a local webserver.
-
-## (0) Compiling Requirements
-
-Install the following particular build requisites (Debian 12/13), note that Ubuntu 24.04
-still has an older version of sdcc, but you will need sdcc version 4.5 for the code to compile:
-```
-sudo apt install make gcc sdcc xxd python-is-python3 libjson-c-dev zlib1g-dev
-```
-
-<details>
-<summary>If using Docker (click to expand)</summary>
-
-### Prerequisites
-
-Install Docker for your platform:
-
-- **Linux (Debian/Ubuntu)**: `sudo apt install docker.io` then `sudo usermod -aG docker $USER` (log out and back in)
-- **Linux (other distros)**: Follow the [Docker Engine install guide](https://docs.docker.com/engine/install/)
-- **Windows**: Install [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/)
-- **macOS**: Install [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/)
-
-### Usage
-
-A Dockerfile is provided for a reproducible build environment:
-
-```
-docker build -t rtlplayground-dev .
-```
-
-Build the firmware (replace MACHINE with your target, e.g. `DEFAULT_8C_1SFP`):
-
-```
-docker run --rm -v $(pwd):/workspace rtlplayground-dev make MACHINE=DEFAULT_8C_1SFP
-```
-
-The resulting `.bin` file appears in `output/` on your host.
-
-Build host tools only:
-
-```
-docker run --rm -v $(pwd):/workspace rtlplayground-dev make -C tools
-```
-
-Run the web-interface simulator locally:
-
-```
-docker run --rm -p 8080:8080 -v $(pwd):/workspace rtlplayground-dev \
-  tools/output/httpd_sim /workspace/html
-```
-
-Edit `machine.h` or `config.txt` on your host, then re-run `make` — the
-source directory is mounted into the container, so changes take effect
-immediately. To build for a different machine, pass `MACHINE=...`.
-
-</details>
-
-## (1) Compiling for direct chip flashing AND upgrading an existing RTLPlayground running device
-
-Edit machine.h with an editor like vi or nano. Select the correct machine the firmware should build for.
-
-> [!TIP]
-> You can write configuration parameters in config.txt (see below) in order your switch to get
-> straight at the first boot, a correct IP configuration.
-
-Now, building the firmware image should work:
-```
-make 
-```
-Note, that the image generated ends in .bin, not .img, in order to make IMSProg happy.
-
-image location is stored in `RTLPlayground/output/rtlplayground_version_machine.bin`
-for example
-```
-rtlplayground-v0.1.0-12c98ba-dirty-LIANGUO_ZX_SWTGW215AS.bin
-```
-
-> [!CAUTION]
-> This image can be flashed directly to the chip OR through the firmware update/upgrade
-> interface of RTLPlayground interface
-
-## (2) Compiling for OEM running device with management options (web upgrade)
-
-Managed switches can be updated from the existing original firmware using a SPECIFIC upgrade image.
-You first need to build the firmware for direct chip flashing : See below (1)
-
-Then
-
-```
-cd installer
-make 
-```
-image location is stored in  `RTLPlayground/installer/output/rtlplayground_oem_upgrade.bin`
-
-> [!CAUTION]
-> This image must ONLY be used for original OEM firmware web interface firmware upgrade.
-> You do not need this image if you are already on RTLplayground firmware.
-> Unless you go back to the original OEM firmware, you would only flash this specific firmware
-> only once. Future upgrades of RTLPlayground will only need to follow (1)
-
-example of compilation console output
-
-```
-RTLPlayground/installer$ make
-mkdir -p output
-gcc updatebuilder.c -o output/updatebuilder
-sdas8051 -plosgff -o output/crtstart.rel crtstart.asm
-sdcc -mmcs51 --code-loc 0x1000 -o output/installer.rel -c installer.c
-sdcc -mmcs51 -Wl-bHOME=0x1100 -Wl-r -o output/rtlinstaller.ihx output/crtstart.rel output/installer.rel
-./output/updatebuilder -i output/rtlinstaller.ihx -o output/rtlplayground_oem_upgrade.bin ../output/rtlplayground.bin
-Input file size: 524288
-Bytes read: 524288
-EOF
-Payload sum 1 is: 0x25100
-Payload sum 2 is: 0x25100
-Payload sum with header is: 0x264ec
-Payload sum is: 0xf8fe94
-Header checksum is: 0x5a1
-```
-
-## (3) Sandbox Usage with Ghidra (optional)
-
-You can play with the image using ghidra or flash real Switch Hardware. For
-ghidra see this information about [Ghidra images](doc/ghidra.md).
-
-## (4) Installation through the Web interface (software way)
-
-Managed switches (OEM firmware of RTLplayground firmware) can be upgraded via the web interface.
-Unmanaged switch cannot be flashed this way (see 5).
-
-Go to "Firmware update" tab, select the correct file.
-
-> [!IMPORTANT]
-> If your device already runs RTLPlayground, you must upload the binary file /RTLPlayground/output/rtlplayground_Version_Machine.bin
-> If your device is OEM, you must upload the binary file /RTLPlayground/installer/outputrtlplayground_oem_upgrade.bin
-
-> [!CAUTION]
-> Check one more time that your device matches the machine type before flashing.
-> Be sure you have a backup of the original firmware before diving in RTLPlayground.
-
-Finally, push the Upload File Button and you're done !
-
-
-## (5) Flashing the ROM directly (hardware way, but also only way to rescue)
-
-This procedure is the only way to flash unmanaged switches, if the ROM chip is large enough.
-This is also the only way to unbrick your device if something went wrong.
-
-> [!IMPORTANT]
-> You need a SOIC-8 clip to flash the ROM chip directly onboard.
-> Alternatively you can de-solder the flash chip and install a SOIC adapter).
-> For flashing the chip directly, you must use the binary file /RTLPlayground/output/rtlplayground_Version_Machine.bin
-
-> [!CAUTION]
-> As you need to open your switch case, consider that the warranty is gone.
-
-- Disconnect power from switch.
-- Open the switch.
-- Attach the clip onto the flash chip (Red line on Pin 1, Pin 1 has a point marker).
-- Connect USB of flash programmer, the power LED on the switch will light up, check cabling if not.
-- Don't panic, mixing up GND and 3.3V usually does not destroy the switch.
-- Use IMSProg, Flashrom, or whatever Programmer to detect the chip.
-- MAKE A BACKUP (DUMP) OF THE EXISTING FIRMWARE !
-- ERASE THE ROM (BLANK) !
-- Load the firmware into IMSProg.
-- Flash is to the ROM chip.
-- Disconnect the clip from the ROM chip.
-- You're done, ready for the first boot.
-
-## (6) Connecting a serial interface (optional)
-
-You can connect a serial cable to the UART port found on all the devices, set 8N1 @ 115200 baud.
-
-## (7) Power Up
-
-When you power up the switch, the device will perform some examples and provide a minimal console
-(if wired to a serial interface), the documentation of which can be found in the source code rtlplayground.c`.
-
-## (8) The web-interface
-
-The web-interface can be reached under the [default 192.168.10.247](http://192.168.10.247) unless you
-specified an IP address in the config.txt before compilation.
-
-> [!TIP]
-> The default password is `1234`.
-
-## (9) The command line
-
-The command line is very rudimentary and mostly for testing purposes.
-The following is a boot-log with some examples:
-```
-Detecting CPU
-RTL8373 detected
-Starting up...
-  Flash controller
-
-NIC reset
-rtl8372_init called
-
-RTL837X_REG_SDS_MODES: 0x00000bed
-
-phy_config_8224 called
-
-phy_config_8224 done
-
-rtl8224_phy_enable called
-
-rtl8224_phy_enable done
-
-rtl8372_init done
-
-A minimal prompt to explore the RTL8372:
-
-CPU detected: RTL8373
-Clock register: 0x00001101
-Register 0x7b20/RTL837X_REG_SDS_MODES: 0x00000bed
-Verifying PHY settings:
-
- Port   State   Link    TxGood          TxBad           RxGood          RxBad
-1       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-2       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-3       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-4       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-5       On      2.5G    0x00000008      0x00000000      0x00000000      0x00000000
-6       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-7       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-8       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-9       NO SFP  Down    0x00000000      0x00000000      0x00000000      0x00000000
-
-> port 5 1g
-  CMD: port 5 1g
-PORT 04 1G
-
-> stat
-  CMD: stat
- Port   State   Link    TxGood          TxBad           RxGood          RxBad
-1       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-2       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-3       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-4       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-5       On      1000M   0x00000035      0x00000000      0x00000017      0x00000000
-6       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-7       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-8       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-9       NO SFP  Down    0x00000000      0x00000000      0x00000000      0x00000000
-
->
-<SFP-RX OK>
-
-<MODULE INSERTED>  Rate: 67  Encoding: 01
-Lightron Inc.   WSPXG-ES3LC-IHA 0000
-
-> stat
-  CMD: stat
- Port   State   Link    TxGood          TxBad           RxGood          RxBad
-1       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-2       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-3       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-4       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-5       On      1000M   0x00000065      0x00000000      0x0000003b      0x00000000
-6       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-7       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-8       On      Down    0x00000000      0x00000000      0x00000000      0x00000000
-9       SFP OK  10G     0x00000000      0x00000000      0x0000001c      0x00000000
-
-> sfp
-  CMD: sfp
-Rate: 67  Encoding: 01
-Lightron Inc.   WSPXG-ES3LC-IHA 0000
-```
-
-## (10) Advanced configuration
-
-You can configure more deeply the switch without the need of the console mode.
-
-While in compilation part, you might write directly to config.txt file before making the binary firmware
-
-```
-nano config.txt
-```
-
-If you want to modify settings after the flash is done, go to the System tab and find the Startup Configuration.
-
-<img width="1673" height="978" alt="ADVANCED SETTINGS" src="doc/images/advanced_settings.png" />
-
-```
-ip xxx.xxx.xxx.xxx      = IP address of the switch
-gw yyy.yyy.yyy.yyy      = IP address of the gateway
-netmask zzz.zzz.zzz.zzz = Network mask of the switch 
-port x name xxx         = Name xxx the port number x
-port z 1g               = Set 1g speed for port z
-igmp on/off             = Turn IGMP on or off
-session xxxx            = Web session timeout in seconds (default 200)
-```
-[To be continue]
-
-Enjoy playing!
-
-## (11) Other documents
-
-The following documents give further documentation on specific features of the RTL837x SoCs:
-- [RTL8372/3 Feature support](doc/hardware.md)
-- [CPU Port](doc/CpuPort.md)
-- [L2 learning](doc/l2.md) 
-- [IGMP (IP-MC streaming)](doc/igmp.md)
-- [SFP+ ports](doc/sfp.md) 
-- [Trunking aka. port aggregation](doc/link_aggregation.md)
-- [VLAN](doc/vlan.md)
-- [Storm control](doc/storm_control.md)
-- [Modifications and Flash replacement](doc/mods.md)
+上游项目本身的文档（与机型无关的通用功能）都在 [README.en.md](README.en.md) 里，也可以直接看上游仓库：[logicog/RTLPlayground](https://github.com/logicog/RTLPlayground)。

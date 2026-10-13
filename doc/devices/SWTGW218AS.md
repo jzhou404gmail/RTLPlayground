@@ -31,7 +31,7 @@ one that matches the silkscreen of your board so the UI states it correctly.
 The stock firmware is a CGI-based Realtek SDK image ("固件版本 V1.9",
 `用户名/密码 admin/admin`, IP `192.168.10.12`) whose **固件升级 (`fwug.cgi`)**
 page accepts the one-shot installer from `installer/output/`; see
-[installation method 2](../../README.md). The installer copies the RTLPlayground
+[installation method 2](../../README.en.md). The installer copies the RTLPlayground
 image into flash, after which the board runs RTLPlayground and is updated
 through RTLPlayground's own web UI from then on.
 

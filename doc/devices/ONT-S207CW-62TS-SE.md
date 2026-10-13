@@ -89,7 +89,7 @@ Custom mapping for ONT-S207CW-62TS-SE:
 
 ## Flashing Instructions
 
-See the [README.md](../../README.md) for general flashing instructions.
+See the [README.en.md](../../README.en.md) for general flashing instructions.
 
 ## Stock Firmware Information
 

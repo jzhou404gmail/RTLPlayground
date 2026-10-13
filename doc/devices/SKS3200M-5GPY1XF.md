@@ -28,7 +28,7 @@ behave exactly as before.
 
 ## Relation to the ZX-SWTGW215AS
 
-The board is identical to the one in [SWTG215AS](SWTG215AS.md)
+The board is identical to the one in [ZX-SWTGW215AS](SWTGW215AS.md)
 (`PCB-SWTG115AS-V2.0` / `V2.1`), which documents the same port layout, the same
 SFP pins, the reset button on GPIO54 and the LED wiring, and for which
 `MACHINE_LIANGUO_ZX_SWTGW215AS` is the verified target. This device is that

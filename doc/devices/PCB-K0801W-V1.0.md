@@ -107,7 +107,7 @@ have nothing to read.
 To restore the configuration built into the image, use the **Restore factory
 defaults** button in the System tab, or the equivalent console command
 `defaults`; both were added for exactly this case and do what a long press of the
-reset button does elsewhere (see the [README](../../README.md#8-the-web-interface)).
+reset button does elsewhere (see the [README](../../README.en.md#8-the-web-interface)).
 Note that the board then takes the address the image was built with, i.e.
 `config.txt` here, and not the address it had before.
 
