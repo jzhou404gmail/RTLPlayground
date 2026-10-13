@@ -35,7 +35,8 @@
 // #define MACHINE_PCB_SWTG018AS_V2_1_0
 // #define MACHINE_PCB_K0402WS_V3
 // #define MACHINE_PCB_K0402WS_V2
-// Experimental target, parameters not verified yet: doc/devices/PCB-K0402W-V1.0.md
+// Hisource Hi-K0402WS on PCB-K0402W-V1.0: verified on hardware; build it with
+// FLASH_NO_DIO=1 (Boya/BoHong flash). doc/devices/PCB-K0402W-V1.0.md
 // #define MACHINE_PCB_K0402W_V1
 // #define MACHINE_K0501W_V2_0
 // #define MACHINE_LIANGUO_ZX_SWTGW215AS
