@@ -11,7 +11,7 @@ The following devices have been tested and are fully working:
 | Hasivo   | S1100WP_8GT_1SX_SE | Yes  | [S1100WP_8GT_1SX_SE-V1.05](devices/HASIVO_S1100WP_8GT_1SX_SE.md)          | 2M    | 8 + 1 |
 | Hisource | Hi-K0402WS      | No      | [PCB-K0402WS-V3.0](devices/PCB-K0402WS-V3.0.md)                           |       | 4 + 2 |
 | Hisource | Hi-K0402WS      | No      | [PCB-K0402WS-V2.0](devices/PCB-K0402WS-V2.0.md)                           | 2M    | 4 + 2 |
-| Hisource | Hi-L0402WS      | No      | [PCB-K0402W-V1.0](devices/PCB-K0402W-V1.0.md)                             | 2M    | 4 + 2 |
+| Hisource | Hi-K0402WS      | No      | [PCB-K0402W-V1.0](devices/PCB-K0402W-V1.0.md)                             | 2M    | 4 + 2 |
 | Hisource | Hi-K0801WS      | No      | [PCB-K0801W-V2.0](devices/HI-K0801WS.md)                                  |       | 8 + 1 |
 | Hisource | Hi-K0801WS      | No      | [PCB-K0801W-V1.0 (experimental)](devices/PCB-K0801W-V1.0.md)              | ?     | 8 + 1 |
 | hongyavision | LG-SG5T1    | No      | [PCB-SWTG024AS-V2.0_16895](devices/SWTG024AS-V2.0.md)                     | 0.5M  | 5 + 1 |
@@ -40,7 +40,7 @@ The following devices have been tested and are fully working:
 | Sodola   | SL-SWTG124AS-D  | Yes     | [SWTG024AS-v2.0-17452](devices/SWTG024AS.md)                              | 2M    | 4 + 2 |
 | Steamemo | IG204-V1        | No      | [PB-2131](devices/STEAMEMO_IG204_V1.md)                                   |       | 4 + 2 |
 | TrendNet | TEG-S562        | No      | [TEG-S563/EU H/W: V1.0R](devices/TEG-S562.md)                             | 2M    | 4 + 2 |
-| Xikestore| SKS3200M-4GPY2XF| Yes     | [SWTG024AS-v1.0](devices/SWTG024AS.md)                                    | 2M    | 4 + 2 |
+| XikeStor | SKS3200M-4GPY2XF| Yes     | [SWTG024AS-v1.0](devices/SWTG024AS.md)                                    | 2M    | 4 + 2 |
 | XikeStor | SKS3200M-5GPY1XF| Yes     | [PCB-SWTG115AS-V2.1-17443](devices/SKS3200M-5GPY1XF.md)                  | 2M    | 5 + 1 |
 | XikeStor | SKS3200M-8GPY1XF| Yes     | [SWTG118AS-V2.1-17462](devices/SWTGW218AS.md)                             | 2M    | 8 + 1 |
 | Ztyuav   | Z-QWYT0402      | No      | [PCB-K0402WS-V3.0](devices/PCB-K0402WS-V3.0.md)                           |       | 4 + 2 |
@@ -50,17 +50,20 @@ For KP-9000-6XH-X2 / KP-9000-6XHML-X2 / Mokerlink 2G040210GSM devices, select
 the machine target by PCB revision. The ML/non-ML or managed/unmanaged label
 alone does not identify the wiring.
 
-The Hi-L0402WS (PCB-K0402W-V1.0) carries a Boya/BoHong BY25Q16BS flash which does not
+The Hi-K0402WS (PCB-K0402W-V1.0) carries a Boya/BoHong BY25Q16BS flash which does not
 work with the flash controller's Dual-I/O MMIO read mode, so it must be built with
 `FLASH_NO_DIO=1`; otherwise the firmware resets in a loop right after
 `Detecting CPU`. See [PCB-K0402W-V1.0](devices/PCB-K0402W-V1.0.md).
 
-The Hi-K0801WS also exists in an older PCB revision, `PCB-K0801W-V1.0`. The target
-`MACHINE_PCB_K0801W_V1` is derived from `MACHINE_HI_K0801WS`; it boots and runs on the
-board (first bring-up 2026-10-12, ports correct in the web UI), but its LED wiring and SFP
-pins still have to be measured, so the device is not listed as supported. Its flash is a
-Boya/BoHong part of the same family as the PCB-K0402W-V1.0 one, so build it with
-`FLASH_NO_DIO=1`. See [PCB-K0801W-V1.0](devices/PCB-K0801W-V1.0.md).
+The Hi-K0801WS also exists in an older PCB revision, `PCB-K0801W-V1.0` (sold as
+`SFP-J08E-HG1` on the owner's unit). The target `MACHINE_PCB_K0801W_V1` is derived from
+`MACHINE_HI_K0801WS`; it boots and runs on the board (first bring-up 2026-10-12, ports
+correct in the web UI, photos in the device document), but its LED wiring and SFP pins
+still have to be measured, so the device is deliberately **not** listed as supported yet.
+It has no reset button and no footprint for one, so the configuration built into the image
+is restored from the web UI or with the `defaults` command. Its flash is a Boya/BoHong
+part of the same family as the PCB-K0402W-V1.0 one, so build it with `FLASH_NO_DIO=1`.
+See [PCB-K0801W-V1.0](devices/PCB-K0801W-V1.0.md).
 
 Other device based on RTL8272/3 that may work are described here: [Up-N-Atoms 2.5 GBit RTL Switch hacking guide](https://github.com/up-n-atom/SWTG118AS)
 

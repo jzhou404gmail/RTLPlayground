@@ -123,6 +123,13 @@ make
 ```
 Note, that the image generated ends in .bin, not .img, in order to make IMSProg happy.
 
+> [!IMPORTANT]
+> Two boards need an extra build option: the Hisource Hi-K0402WS (PCB-K0402W-V1.0) and the
+> Hi-K0801WS (PCB-K0801W-V1.0) carry a Boya/BoHong SPI NOR that returns garbage in the flash
+> controller's Dual-I/O read mode, so build them with `make MACHINE=PCB_K0402W_V1 FLASH_NO_DIO=1`
+> (respectively `MACHINE=PCB_K0801W_V1`). Without it the board resets in a loop right after
+> `Detecting CPU`. See [PCB-K0402W-V1.0](doc/devices/PCB-K0402W-V1.0.md).
+
 image location is stored in `RTLPlayground/output/rtlplayground_version_machine.bin`
 for example
 ```
@@ -391,7 +398,7 @@ The following documents give further documentation on specific features of the R
 - [L2 learning](doc/l2.md) 
 - [IGMP (IP-MC streaming)](doc/igmp.md)
 - [SFP+ ports](doc/sfp.md) 
-- [Trunking aka. port aggregation](doc/trunking.md)
+- [Trunking aka. port aggregation](doc/link_aggregation.md)
 - [VLAN](doc/vlan.md)
 - [Storm control](doc/storm_control.md)
 - [Modifications and Flash replacement](doc/mods.md)
