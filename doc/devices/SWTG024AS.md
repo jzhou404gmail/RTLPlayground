@@ -292,6 +292,57 @@ Reset-line found at `T-D3-D` active-low.
 | PORT3-LED-YELLOW |  | GPIO20 | Low |
 | PORT4-LED-YELLOW |  | GPIO23 | Low |
 
+## Which pad drives which lamp (measured on the SKS3200M-4GPY2XF)
+
+The table above names the yellow lamps but not the green ones, and on the
+XikeStor unit the green lamps are **not** on the pads the shared table implies.
+Measured on the unit (2026-10-13) by driving one pad at a time and watching the
+front panel:
+
+| jack | green (2.5G) | amber (1G/100M/10M) |
+|------|--------------|---------------------|
+| 1    | pad 12       | pad 14              |
+| 2    | pad 15       | pad 17              |
+| 3    | pad 18       | pad 20              |
+| 4    | pad 21       | pad 23              |
+| SFP1 (jack 5) | pad 24 | –                  |
+| SFP2 (jack 6) | pad 9  | –                  |
+| SYS  | pad 28, driven from `LED_MODE` bits 17:16, not through the mux | – |
+
+How to measure that without a datasheet, using only the switch itself:
+
+- `LED_GLB_MUX_1..6` (0x65e0..0x65f4) hold 28 six-bit fields, five per
+  register, field *i* at bits `6 * (i % 5)` of `0x65e0 + (i / 5) * 4`. The
+  **field index is the pad**, the **value is the LED signal** driving it,
+  `id = ASIC port * 4 + slot`; the slot order is the one of `led_sets[set]`,
+  i.e. slot 0 = `2G5|LINK|ACT`, slot 1 = `1G|100M|10M|LINK|ACT`, slot 2 =
+  `DUPLEX`, slot 3 = `2G5|LINK|ACT`.
+- Drive one pad with a signal that is true right now (`22`, the DUPLEX of a
+  linked port, is steady - a signal containing `ACT` blinks with traffic and
+  makes the reading ambiguous) and point every other pad at a signal this board
+  does not have (`4`, port 1).
+- `LED_GLB_ACTIVE` (0x65d8) is the per-pad active level. It is a reset value of
+  the chip and **nothing in the firmware writes it**; toggling the bit of the
+  pad under test makes its lamp blink whichever way it is wired, so the
+  measurement does not depend on that value.
+- Leaving a pad at `0x3f` ("no signal") does not switch its lamp off: the pad
+  floats, and every lamp whose pad is pulled down lights up - which is what
+  made the ambers glow with no link. A never-true signal (`4`) drives them to
+  their inactive level instead.
+- `gpio` (CLI) and the GPIO input registers report the pad levels, which is how
+  the drive was checked without looking at the board; the lamp itself can only
+  be seen on the panel.
+
+The same measurement gives the per-port link signals: with a 2.5G link on jack 1
+the true ids are 16/18/19 (slots 0, 2, 3), with a 1G link on jack 2 they are
+21/22 (slots 1, 2) - the speed encoding is the ordinary one, and a 2.5G link does
+*not* also set the 1G condition.
+
+`MACHINE_SKS3200M_4GPY2XF` therefore carries its own `.led_mux`, `.port_led_set`
+and `led_sets`, and the V2.0 target keeps the values above. Both SFP cages get
+`led_sets[1]` (one lamp each, lit at any speed), which is why port 3 and port 8
+select set 1.
+
 # Power supply
 
 Board has two supply rails.

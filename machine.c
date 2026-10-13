@@ -1298,6 +1298,43 @@ __code const struct machine machine = {
     .reset_pin = GPIO_NA,
 #endif
     .high_leds = { .mux =  LED_28_SYS | LED_29, .enable = LED_27 | LED_28_SYS | LED_29 },
+#if defined(MACHINE_SKS3200M_4GPY2XF)
+    /*
+     * Measured on the unit (2026-10-13, by driving one pad at a time through
+     * the LED controller and watching the front panel, see the "LEDs" section
+     * of doc/devices/SWTG024AS.md). The lamps are NOT on the pads the V2.0
+     * table assumes: green/amber sit on pad 12/14 (port 1), 15/17 (port 2),
+     * 18/20 (port 3) and 21/23 (port 4), and the two SFP lamps on pad 24
+     * (SFP1) and pad 9 (SFP2). The mux index is the pad, the value is the LED
+     * signal driving it, id = ASIC port * 4 + slot, with slot 0 =
+     * 2G5|LINK|ACT (green) and slot 1 = 1G|100M|10M|LINK|ACT (amber). The
+     * value 4 is a port this board does not have, so it is never true: the
+     * pad is then driven to its inactive level, while leaving it unset (0x3f)
+     * lets it float - and a floating lamp is lit on every pad that is pulled
+     * down, which is what made the ambers glow with no link.
+     */
+    .port_led_set = { 0, 0, 0, 1, 0, 0, 0, 0, 1},
+    .led_sets = {
+                    {
+                            LEDS_2G5 | LEDS_LINK | LEDS_ACT,
+                            LEDS_1G | LEDS_100M | LEDS_10M | LEDS_LINK | LEDS_ACT,
+                            LEDS_DUPLEX,
+                            LEDS_2G5 | LEDS_LINK | LEDS_ACT
+                    },
+                    {
+                            /* the SFP cages have one lamp each: light it at
+                             * any speed, not only at 2.5G/1G/100M */
+                            LEDS_2G5 | LEDS_1G | LEDS_100M | LEDS_10M | LEDS_10G | LEDS_LINK | LEDS_ACT,
+                            LEDS_10G | LEDS_LINK | LEDS_ACT,
+                            LEDS_2G5 | LEDS_LINK,
+                            LEDS_COL | LEDS_DUPLEX
+                    },
+     },
+    .led_mux_custom = 1,
+    .led_mux = {
+                            0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x20,0x04,0x04,0x10,0x04,0x11,0x14,0x04,0x15,0x18,0x04,0x19,0x1c,0x04,0x1d,0x0c,0x04,0x04,0x04
+            },
+#else
     .port_led_set = { 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	/* Ports 1-5 RJ45 use set 0, port 9 SFP uses set 1 
 	 * Ports 1-5: Green: 2.5GBit, Amber: 10/100/1000MBit
@@ -1321,6 +1358,7 @@ __code const struct machine machine = {
     .led_mux = {
                             0x00,0x01,0x04,0x05,0x08,0x09,0x0c,0x3f,0x0d,0x10,0x11,0x0e,0x14,0x11,0x12,0x15,0x15,0x16,0x18,0x19,0x1a,0x19,0x1d,0x1e,0x1c,0x1d,0x20,0x21
             },
+#endif
     };
 
 #elif defined MACHINE_ZX310S_4T2XT

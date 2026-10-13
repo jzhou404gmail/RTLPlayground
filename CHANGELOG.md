@@ -79,6 +79,12 @@
     again (verified on the unit).
   - The XikeStor units are identified by the model name on their label and in their own web UI, not by
     the name an earlier revision of the device list assumed.
+  - The XikeStor SKS3200M-4GPY2XF lit the wrong lamps: it inherited the LED pad map of the SWTG024AS-V2.0
+    board, on which the lamps sit on other pads. Ports and colours were crossed (a 1000M link lit the
+    right-hand green - the 2.5G - lamp, LAN3 lit LAN4's lamp), both SFP lamps stayed dark and several
+    ambers glowed without a link. The target now carries the pad map measured on the unit, its SFP cages
+    get one lamp lit at any speed, and the pads of unused signals are driven to their inactive level
+    instead of floating. See the "LEDs" section of doc/devices/SWTG024AS.md.
 
 ## Breaking changes
 
