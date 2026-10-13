@@ -65,6 +65,16 @@ is restored from the web UI or with the `defaults` command. Its flash is a Boya/
 part of the same family as the PCB-K0402W-V1.0 one, so build it with `FLASH_NO_DIO=1`.
 See [PCB-K0801W-V1.0](devices/PCB-K0801W-V1.0.md).
 
+The two SFP cages of the SWTG024AS family (LIANGUO SWTG024AS, Horaco ZX-SWTG124AS,
+Sodola SL-SWTG124AS-D, XikeStor SKS3200M-4GPY2XF, and the Binardat/ONT boards of the
+`SWTG024AS-A-2.0.1` layout) **cross over in the logical port numbering**: the left cage
+(`J4`, jack 5) is 10GMAC 8 on SerDes 1 and the right one (`J2`, jack 6) is 10GMAC 3 on
+SerDes 0. A machine table that lists them the other way round reports a module in the left
+cage as the right one - and lights the wrong lamp - while a module in the right cage is not
+seen at all. Corrected for the targets that share the family's machine block (2026-10-13);
+see [Port numbering](devices/SWTG024AS.md#port-numbering-of-the-two-sfp-jacks). Measured on
+the XikeStor unit, and the same mapping the `SWGT024_V2_0_*` targets already used.
+
 Other device based on RTL8272/3 that may work are described here: [Up-N-Atoms 2.5 GBit RTL Switch hacking guide](https://github.com/up-n-atom/SWTG118AS)
 
 Many of the RTL8272/3 devices come in versions with PoE support. The RTLPlayground usually also

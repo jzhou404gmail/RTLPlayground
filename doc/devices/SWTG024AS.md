@@ -15,17 +15,43 @@ Also the RJ45 connectors can be all plastic/non-shielded or with metal shielding
 
 ## RTLPlayground targets
 
-Both PCB revisions take the same machine parameters, so they share one machine
-block. They differ in what they report as the board, which the web UI shows as
-硬件 (hardware) and 型号 (model):
+Both PCB revisions share one machine block, because the copper ports and their
+order, the cross-over of the two SFP jacks and the package layout are properties
+of the board. They differ in what they report as the board - which the web UI
+shows as 硬件 (hardware) and 型号 (model) - and in what could be verified on
+them:
 
 | Target | 硬件 (hardware) | 型号 (model) | Use for |
 |---|---|---|---|
 | `MACHINE_SWTG024AS_V2_0` | `SWTG024AS-V2.0` | – | the SWTG024AS-v2.0 boards: Lianguo SWTG024AS, Horaco ZX-SWTG124AS, Sodola SL-SWTG124AS-D |
 | `MACHINE_SKS3200M_4GPY2XF` | `PCB-SWTG024AS-V1.0` | `SKS3200M-4GPY2XF` | the XikeStor unit on the SWTG024AS-v1.0 PCB |
 
-The two targets are interchangeable as far as the hardware is concerned; pick the
-one that matches the silkscreen of your board so the UI states it correctly.
+The two targets are **not** interchangeable:
+
+- the XikeStor target describes **both** SFP cages and carries the LED pad map
+  measured on the unit, so its lamps show the right jack and colour (see
+  [Which pad drives which lamp](#which-pad-drives-which-lamp-measured-on-the-sks3200m-4gpy2xf)).
+  The V2.0 target keeps one cage and the inherited LED table, because those were
+  not measured on a V2.0 board.
+- it enables the reset button (`K1`, `GPIO54`), which the V2.0 boards may not
+  have populated, and reads the factory MAC at `0x1FC000`, an area that is
+  unverified on the V2.0 boards.
+
+Pick the target that matches the silkscreen of your board, so the UI states it
+correctly; on a V2.0 board the XikeStor target would be a guess in the parts
+listed above.
+
+## Port numbering of the two SFP jacks
+
+The port overview above is the authority, and it is what the machine block
+follows: **jack 5 (`J4`, left) is 10GMAC 8 on SerDes 1 and jack 6 (`J2`, right)
+is 10GMAC 3 on SerDes 0**, so the two cages cross over in the logical numbering
+(`log_to_phys_port = {0,0,0,6,1,2,3,4,5}`). Table entries that had jack 5 on
+logical port 3 and jack 6 on logical port 8 were the other way round, which made
+a module in jack 5 come up - and light its lamp - as jack 6, while a module in
+jack 6 was not seen at all. Corrected 2026-10-13 on the XikeStor unit; the
+overview and the two cages themselves are a property of the board, so every
+variant of this family uses the same mapping.
 
 ## Installing on the XikeStor unit from its stock firmware
 
