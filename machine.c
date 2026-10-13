@@ -1273,15 +1273,39 @@ __code const struct machine machine = {
 #endif
     .min_port = 3,
     .max_port = 8,
-    .n_sfp = 1,
     .log_to_phys_port = {0, 0, 0, 5, 1, 2, 3, 4, 6},
     .phys_to_log_port = {4, 5, 6, 7, 3, 8, 0, 0, 0},
+#if defined(MACHINE_SKS3200M_4GPY2XF)
+    /*
+     * Both cages are SFP on this board, and they are the two the sibling
+     * boards use for their single one: jack 5 is SFP1 on logical port 3
+     * (module detect GPIO30, RX-LOS GPIO37, SerDes 0, I2C SDA4/SCL3) and jack 6
+     * is SFP2 on logical port 8 (detect GPIO18, RX-LOS GPIO51, SerDes 1, I2C
+     * SDA3/SCL3). The unit shipped with one slot that watched SFP1's pins but
+     * belonged to port 8, so a module in jack 5 was reported - and lit - as
+     * jack 6, and a module in jack 6 was not seen at all (found 2026-10-13).
+     */
+    .n_sfp = 2,
+    .is_sfp = {0, 0, 0, 1, 0, 0, 0, 0, 2},
+    .sfp_port[0].pin_detect = GPIO30_ACL_BIT3_EN,
+    .sfp_port[0].pin_los = GPIO37,
+    .sfp_port[0].pin_tx_disable = GPIO_NA,
+    .sfp_port[0].sds = 0,
+    .sfp_port[0].i2c = I2CBUS( GPIO39_I2C_SDA4, GPIO40_I2C_SCL3_MDC1 ),
+    .sfp_port[1].pin_detect = GPIO18_LED18,
+    .sfp_port[1].pin_los = GPIO51_I2C_SDA2_UART1_RX,
+    .sfp_port[1].pin_tx_disable = GPIO_NA,
+    .sfp_port[1].sds = 1,
+    .sfp_port[1].i2c = I2CBUS( GPIO41_I2C_SDA3_MDIO1, GPIO40_I2C_SCL3_MDC1 ),
+#else
+    .n_sfp = 1,
     .is_sfp = {0, 0, 0, 0, 0, 0, 0, 0, 1},
 	.sfp_port[0].pin_detect = GPIO30_ACL_BIT3_EN,
     .sfp_port[0].pin_los = GPIO37,
     .sfp_port[0].pin_tx_disable = GPIO_NA,
     .sfp_port[0].sds = 1,
     .sfp_port[0].i2c = I2CBUS( GPIO39_I2C_SDA4, GPIO40_I2C_SCL3_MDC1 ),
+#endif
 
 #if defined(MACHINE_SKS3200M_4GPY2XF)
     /*

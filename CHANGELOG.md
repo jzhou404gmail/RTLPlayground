@@ -79,6 +79,11 @@
     again (verified on the unit).
   - The XikeStor units are identified by the model name on their label and in their own web UI, not by
     the name an earlier revision of the device list assumed.
+  - The XikeStor SKS3200M-4GPY2XF reported only one SFP cage, and it was the wrong one: the single
+    slot watched SFP1's detect and RX-LOS pins (GPIO30 / GPIO37) but belonged to logical port 8, so a
+    module in jack 5 was reported - and lit - as jack 6, while a module in jack 6 was not seen at all.
+    The target now has both cages: jack 5 is SFP1 on port 3 (SerDes 0) and jack 6 is SFP2 on port 8
+    (detect GPIO18, RX-LOS GPIO51, SerDes 1).
   - The XikeStor SKS3200M-4GPY2XF lit the wrong lamps: it inherited the LED pad map of the SWTG024AS-V2.0
     board, on which the lamps sit on other pads. Ports and colours were crossed (a 1000M link lit the
     right-hand green - the 2.5G - lamp, LAN3 lit LAN4's lamp), both SFP lamps stayed dark and several
