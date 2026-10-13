@@ -1280,14 +1280,12 @@ __code const struct machine machine = {
     .phys_to_log_port = {4, 5, 6, 7, 8, 3, 0, 0, 0},
 #if defined(MACHINE_SKS3200M_4GPY2XF)
     /*
-     * Both cages are SFP on this board: jack 5 is SFP1 on logical port 3
-     * (module detect GPIO30, RX-LOS GPIO37, I2C SDA4/SCL3) and jack 6 is SFP2
-     * on logical port 8 (detect GPIO50, RX-LOS GPIO51, I2C SDA3/SCL3). The
-     * SerDes differs from the sibling boards: the cage at jack 5 is the one on
-     * SerDes 1 - that is what the unit's single inherited slot pointed at
-     * before, and with SerDes 0 on port 3 a module in jack 5 came up as port 8.
-     * The unit shipped with one slot that watched SFP1's pins but belonged to
-     * port 8, so a module in jack 5 was reported - and lit - as jack 6, and a
+     * Both cages are SFP on this board: jack 5 (J4, SFP1) is logical port 8,
+     * which is where the sibling boards put their single cage - detect GPIO30,
+     * RX-LOS GPIO37, I2C SDA4/SCL3, SerDes 1 - and jack 6 (J2, SFP2) is logical
+     * port 3 - detect GPIO50, RX-LOS GPIO51, I2C SDA3/SCL3, SerDes 0. The unit
+     * shipped with one slot that watched SFP1's pins but belonged to logical
+     * port 3, so a module in jack 5 was reported - and lit - as jack 6 while a
      * module in jack 6 was not seen at all (found 2026-10-13).
      */
     .n_sfp = 2,
