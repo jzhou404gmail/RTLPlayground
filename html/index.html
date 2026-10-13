@@ -194,6 +194,16 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
   if(pref==="auto-sel")t=dark?"sel-dark":"sel-light";
   document.documentElement.dataset.theme=t;
 })();
+// Name the tab before the first paint. app.js replaces this with the live
+// hostname as soon as /information.json answers, but a reload of one of
+// several open switches must never come up as a nameless "Switch": the name
+// remembered for this address (each switch has its own origin), or the
+// address itself on a first visit.
+(function(){
+  var seen=null;
+  try{seen=localStorage.getItem("rtl_host");}catch(e){}
+  document.title=seen||location.hostname||"Switch";
+})();
 </script>
 </head>
 <body>

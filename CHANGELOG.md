@@ -14,6 +14,11 @@
   - The System tab states the board revision and the retail model of the running target on two lines
     (`.machine_name` / `.model_name`), so a board sold under a different model name than its silkscreen
     says is not mistaken for another device.
+  - Open switches are told apart by their browser tab: the dashboard names the tab (and the nav bar)
+    after the hostname, and the login page after the hostname seen at the last login on that address,
+    the address itself before the first one. While a hostname is unknown - the name has just been
+    cleared, the request failed, or the image reports none - the dashboard falls back to the name this
+    browser saw at that address last, the model, and then the address, so no tab is left as "Switch".
 - Console
   - `defaults`: restores the configuration compiled into the image and reboots. Deliberately not a
     configuration command, so it never becomes part of the startup configuration.

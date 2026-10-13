@@ -1063,6 +1063,30 @@ function portDetail(i){
   S.detail=i;
 }
 
+/* The name this switch is known by. Several switches are usually open at once
+ * and a tab called "Switch" tells them apart as badly as no title at all, so
+ * the tab and the nav bar carry the hostname - the name the user gave the
+ * switch. Until that is known (the head script of index.html has only the
+ * browser's memory to go by, and an image or a request may report no hostname
+ * at all), the name this browser saw at this address last, the model, and
+ * finally the address keep the tabs distinguishable. */
+function switchName(){
+  var i=S.info||{};
+  if(i.hostname)return i.hostname;
+  var seen=null;
+  try{seen=localStorage.getItem("rtl_host");}catch(e){}
+  return seen||i.model||location.hostname||"Switch";
+}
+function nameTab(){
+  var n=switchName();
+  document.title=n;
+  $("brandname").textContent=$("brandname").title=n;
+  if(S.info&&S.info.hostname){
+    // Remembered per switch (each has its own origin) for the login page tab
+    try{localStorage.setItem("rtl_host",S.info.hostname);}catch(e){}
+  }
+}
+
 function renderInfo(){
   var m=[["i_host","hostname"],["i_ip","ip_address"],["i_mask","ip_netmask"],
     ["i_gw","ip_gateway"],["i_mac","mac_address"],["i_fw","sw_ver"],["i_built","build_date"],
@@ -1073,11 +1097,7 @@ function renderInfo(){
     if(v==null||v==="")return;
     tb.appendChild(h("tr",null,[h("td",{class:"mut",text:t(r[0])}),h("td",{class:"mono",text:String(v)})]));
   });
-  if(S.info.hostname){
-    $("brandname").textContent=$("brandname").title=document.title=S.info.hostname;
-    // Remembered per switch (each has its own origin) for the login page tab
-    try{localStorage.setItem("rtl_host",S.info.hostname);}catch(e){}
-  }
+  nameTab();
   if(S.info.sw_ver)$("fver").textContent="RTLPlayground "+S.info.sw_ver;
 }
 function pollInfo(){
@@ -2496,6 +2516,10 @@ window.addEventListener("hashchange",function(){
 (function(){
   var id=location.hash.slice(1);
   if(!TABS.some(function(tb){return tb.id===id}))id="dash";
+  // Name the tab and the nav bar before the first answer arrives: the head
+  // script of index.html could only set the title, and a switch whose hostname
+  // arrives late (or never) must not sit there as "Switch".
+  nameTab();
   pollInfo().catch(function(){});
   getText("/cmd_log").then(function(x){
     x=x.replace(/\0[\s\S]*$/,"").trim();
