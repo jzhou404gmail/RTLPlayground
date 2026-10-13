@@ -1,16 +1,49 @@
-# PCB-K0402W-V1.0 (Hisource Hi-L0402WS / 众通源)
+# PCB-K0402W-V1.0
 
-**Status: FULLY VERIFIED on hardware — listed in [doc/supported_devices.md](../supported_devices.md).**
+RTL8372-based 4 × 2.5GBASE-T + 2 × SFP+ unmanaged switch, sold as Hisource Hi-K0402WS
+(众通源). Older PCB revision of the [PCB-K0402WS-V2.0](PCB-K0402WS-V2.0.md) and
+[PCB-K0402WS-V3.0](PCB-K0402WS-V3.0.md) boards — all three share the silkscreen family
+(`PCB-K0402W-Vx.y` / `DIP-K0402WS-Vx.y`), and RTLPlayground names them `PCB_K0402WS_*` /
+`PCB_K0402W_*` after the silkscreen revision.
+
+**Status: SUPPORTED — verified on hardware (2026-10-11 … 2026-10-13), listed in
+[doc/supported_devices.md](../supported_devices.md).**
 Machine target: `MACHINE_PCB_K0402W_V1` (see `machine.h`), built with `FLASH_NO_DIO=1`
 (this board's flash chip needs it — see below).
 
-Verified on a real board: the firmware boots, detects the SoC (RTL8372), initialises the
-switch, comes up on 192.168.10.247, the four front-panel LAN ports map to physical ports
-1-4, the copper LEDs show orange = 2.5G and green = 1G/100M/10M + activity (both seen with
-real links, including a 2.5G peer), and both SFP cages report their module over the
-inherited detect/LOS pins with the module EEPROM readable over I2C. The only field that
-cannot be verified on this board is `high_leds`: the front-panel power LED is hard-wired
-and stays lit even with the system-LED bits cleared.
+## Label specifications
+
+- **Manufacturer**: HISOURCE / 深圳市众通源科技发展有限公司 (the board is also sold
+  under other brands)
+- **Model**: Hi-K0402WS
+- **Ports**:
+  - 4 × RJ45: 10/100/1000/2500 Mbps
+  - 2 × SFP+: 1G / 2.5G / 10G
+- **Original software**: unmanaged Realtek reference firmware with a factory-test
+  console, UART at **9600 8N1**, no web interface
+
+The label on the owner's unit reads `Hisource众通源 / 交换机 / 型号 Hi-K0402WS /
+输出 DC12V`, with the serial number `Hi-K0402WS202310100146`:
+
+<img src="photos/PCB-K0402W-V1.0/label.jpg" width="300" />
+
+## What works
+
+Verified on two units of this board:
+
+- Firmware boots, detects the SoC (RTL8372), initialises the switch and comes up on
+  192.168.10.247
+- All four front-panel LAN ports (physical ports 1-4) at 10/100/1000/2500 Mbps
+- Both SFP+ cages: module detect and RX_LOS on the pins below, module EEPROM readable
+  over I2C, port links (10G module) and the SFP LED lights
+- Copper LEDs: amber = 2.5G, green = 1G/100M/10M with activity (both seen with real
+  links, including a 2.5G peer)
+- Restoring the configuration built into the image works (web UI *Restore factory
+  defaults*, or the `defaults` console command)
+- `gpio` and `leds` console commands work, so any remaining parameter can be measured
+  in-circuit without extra hardware
+- The front-panel power LED is hard-wired and stays lit even with the system-LED bits
+  cleared, so `high_leds` cannot be observed on this board (and drives nothing)
 
 ## Flash chip quirk: DIO MMIO reads fail, build with FLASH_NO_DIO=1
 
@@ -38,7 +71,9 @@ make MACHINE=PCB_K0402W_V1 FLASH_NO_DIO=1
 ```
 
 The fix is a build-time option rather than a change of the default, because the
-Dual-I/O path is an optimisation that works on the other supported boards.
+Dual-I/O path is an optimisation that works on the other supported boards. The
+[PCB-K0801W-V1.0](PCB-K0801W-V1.0.md) board carries the same part family and needs the
+same option.
 
 ## Boot log on this board (after the fix)
 
@@ -62,16 +97,17 @@ Setting ip: 192.168.10.247
 
 `regget 0004` returns `0x83720000`, i.e. the SoC is an **RTL8372** (byte 1 = 0x72, not
 0x73) — the "RTL8371B" in the stock firmware's banner is the Realtek SDK's name for this
-silicon generation, not a different, unsupported chip. `gpio` and `leds` console commands
-work, so the remaining parameters can be measured in-circuit without any extra hardware.
+silicon generation, not a different, unsupported chip.
 
+The web UI states the board and the retail model on separate lines, taken from
+`.machine_name` and `.model_name` of the machine block:
 
-V1.0 is the predecessor of the documented [PCB-K0402WS-V2.0](PCB-K0402WS-V2.0.md) and
-[PCB-K0402WS-V3.0](PCB-K0402WS-V3.0.md) boards: all three carry the same silkscreen
-family (`PCB-K0402W-Vx.y` / `DIP-K0402WS-Vx.y`), and RTLPlayground names them
-`PCB_K0402WS_*` after the retail model.
+```
+硬件 (hardware): PCB-K0402W-V1.0
+型号 (model):    Hi-K0402WS
+```
 
-## Board overview (from PCB photos)
+## PCB overview
 
 **Board markings**
 - Top silkscreen: `PCB-K0402W-V1.0` / `DIP-K0402WS-V1.0`
@@ -86,6 +122,86 @@ family (`PCB-K0402W-Vx.y` / `DIP-K0402WS-Vx.y`), and RTLPlayground names them
 - Ports: 4 × RJ45 2.5GBASE-T + 2 × SFP+ (same chassis/port layout as the V2.0/V3.0
   boards: SFP left, 4 × RJ45, SFP right).
 - `QC PASS 24` sticker, same as the sibling revisions.
+- **No reset button and no unpopulated footprint for one** — see below.
+
+PCB overview, with the board markings and the date code
+
+<img src="photos/PCB-K0402W-V1.0/PCB-K0402W-V1.0-silkscreen.jpg" width="300" />
+
+Second view (power section, `QC PASS` sticker)
+
+<img src="photos/PCB-K0402W-V1.0/PCB-K0402W-V1.0-phys.jpg" width="300" />
+
+Flash chip `U2` — BeyoMicro `25Q16BSSIG`, 2 MiB
+
+<img src="photos/PCB-K0402W-V1.0/flash-U2-BeyoMicro-25Q16BSSIG.jpg" width="300" />
+
+Component detail
+
+<img src="photos/PCB-K0402W-V1.0/PCB-detail.jpg" width="300" />
+
+## Port layout
+
+Identical to the [PCB-K0402WS-V2.0](PCB-K0402WS-V2.0.md) board, whose parameters this
+target inherits. Verified for all six ports on this revision (one cable per jack, plus a
+module in each SFP cage).
+
+| Front panel position | Logical port | Physical port | Type    |
+|----------------------|--------------|---------------|---------|
+| SFP left             | 8            | 5             | SFP+    |
+| RJ45 1               | 4            | 1             | Copper  |
+| RJ45 2               | 5            | 2             | Copper  |
+| RJ45 3               | 6            | 3             | Copper  |
+| RJ45 4               | 7            | 4             | Copper  |
+| SFP right            | 3            | 6             | SFP+    |
+
+## LED configuration
+
+Copper ports use LED SET0, SFP ports use LED SET1 — verified on the board.
+
+| SET  | LED0                                          | LED2                                   |
+|------|-----------------------------------------------|----------------------------------------|
+| SET0 | Amber — lights on 2.5G link                   | Green — lights on 1G / 100M / 10M link with activity |
+| SET1 | All speeds — lights on any link with activity | —                                      |
+
+`high_leds` (the system/power LED) is the one field that cannot be checked on this board:
+the front-panel power LED is hard-wired and stays lit even after clearing the system-LED
+bits (17:16) of `RTL837X_REG_LED_MODE`, so nothing on the panel is controlled by it. The
+value is inherited from the sibling board and harmless.
+
+## SFP GPIO assignments
+
+Inherited from, and identical to, [PCB-K0402WS-V2.0](PCB-K0402WS-V2.0.md); verified on
+this board by inserting a module into each cage in turn and reading its EEPROM over I2C.
+
+| SFP               | pin\_detect (ModAbs)         | pin\_los                      | SerDes | I2C SDA                  | I2C SCL                   |
+|-------------------|------------------------------|-------------------------------|--------|--------------------------|---------------------------|
+| Left (logical 8)  | GPIO30\_ACL\_BIT3\_EN        | GPIO37                        | SDS1   | GPIO39\_I2C\_SDA4        | GPIO40\_I2C\_SCL3\_MDC1   |
+| Right (logical 3) | GPIO50\_I2C\_SCL2\_UART1\_TX | GPIO51\_I2C\_SDA2\_UART1\_RX  | SDS0   | GPIO41\_I2C\_SDA3\_MDIO1 | GPIO40\_I2C\_SCL3\_MDC1   |
+
+`pin_tx_disable` is GPIO\_NA on both ports.
+
+## No reset button
+
+This board has **no reset button and no unpopulated footprint for one**: the front-left
+area of the PCB carries neither a 4.5 × 4.5 mm push-button footprint (compare
+[KP-9000-6XH-X2](KP-9000-6XH-X2.md#reset-button), where that footprint exists unpopulated
+and the case even has the hole) nor a spare pad to solder one to. `.reset_pin` is
+therefore `GPIO_NA` for this target — the firmware would have nothing to read.
+
+To restore the configuration built into the image, use the **Restore factory defaults**
+button in the System tab, or the equivalent console command `defaults`; both were added
+for exactly this case and do what a long press of the reset button does elsewhere (see
+the [README](../../README.md#8-the-web-interface)). The board then takes the address the
+image was built with, i.e. `config.txt` here, and not the address it had before.
+
+## Serial console
+
+RTLPlayground runs its console at **115200 8N1** on the board's UART pads; the stock
+firmware uses **9600 8N1** on the same pads. `tools/console_capture.py` records either
+without needing pyserial. The unpopulated three-hole footprint near the edge is wired to
+UART0; on the siblings the leftmost hole is RX (GPIO32\_UART0\_RX), the middle one GND
+and the rightmost TX (GPIO31\_UART0\_TX).
 
 ## Programming
 
@@ -96,16 +212,19 @@ web interface, so the web-upgrade path of the OEM installer is not available).
 For flashrom/IMSProg the built image must be padded to the chip size:
 
 ```bash
-make MACHINE=PCB_K0402W_V1
+make MACHINE=PCB_K0402W_V1 FLASH_NO_DIO=1
 truncate -s 2097152 output/PCB_K0402W_V1/rtlplayground-*-PCB_K0402W_V1.bin
 ```
 
-Do **not** use the padded file for web flashing or for a RTLPlayground web upgrade.
+Do **not** use the padded file for web flashing or for a RTLPlayground web upgrade. Keep
+the 2 MiB dump of the untouched chip for rollback (see below).
 
 ## Stock firmware dump analysis
 
-A programmer dump of an untouched board (`Hi-L0402WS-20250527.bin`, 2 MiB, sha256
-`6d73dcd9a30fc3d735b16b7ceba4caa06c82dc3e26b69f8879229f4be56876e0`) was analysed:
+A programmer dump of an untouched board (kept as `Hi-L0402WS-20250527.bin` — the file
+name was chosen before the case label was read, the unit is labelled Hi-K0402WS —
+2 MiB, sha256 `6d73dcd9a30fc3d735b16b7ceba4caa06c82dc3e26b69f8879229f4be56876e0`) was
+analysed:
 
 | Property | Stock image | RTLPlayground image | Verdict |
 | --- | --- | --- | --- |
@@ -127,7 +246,8 @@ stock image finds **zero** writes of any 0x65xx switch-register address
 (`MOV DPTR,#0x65xx` and `MOV direct,#0x65` patterns), whereas RTLPlayground's own build
 contains 70 such sites; the stock SDK evidently reaches the LED/GPIO registers through a
 different, computed access path. `.led_mux`, `.led_sets`, `.port_led_set` and the SFP
-GPIO pins therefore cannot be read out of the flash dump and must be measured.
+GPIO pins therefore cannot be read out of the flash dump and were measured on the board
+instead (see the verification sections below).
 
 ## Console / chip identification
 
@@ -141,38 +261,8 @@ The `RTL8371B` banner is a **string compiled into the stock firmware** (the Real
 build target name), not something RTLPlayground reads. RTLPlayground identifies the SoC
 by reading `RTL837X_REG_CHIP_ID` (register 0x0004) and looking at byte 1: `0x73` means
 RTL8373, anything else is treated as RTL8372 (`rtlplayground.c`, `Detecting CPU:` /
-`INCORRECT MACHINE!`).
-
-The same "RTL8371B" stock firmware runs on the Keeplink KP-9000-6XH-X, a board family
-that is already supported, and every 4-copper/5-copper board in `machine.c` — including
-that Keeplink — is defined with `isRTL8373 = 0`; only the 8-copper boards are
-`isRTL8373 = 1`. A 4 x 2.5G + 2 x SFP+ board therefore belongs to the same class as the
-already-supported siblings.
-
-Definitive checks, in order of preference:
-
-1. **Without flashing:** read register 0x0004 over I2C (SoC slave address `0x5C`) with the
-   stock firmware running — `tools/led_gpio_utils/i2c_dump_rtl_regs.py` and look at the
-   line starting `0004:`.
-2. **After flashing RTLPlayground:** the first console lines print `Detecting CPU: RTL8372`
-   or `RTL8373`; a mismatch with the machine definition additionally prints
-   `INCORRECT MACHINE!`.
-
-## First boot: what each outcome means
-
-RTLPlayground does not compare chip *names* — it reads register 0x0004 and branches
-between two init paths only. The first console lines (115200 8N1) therefore decide
-everything:
-
-| Console output | Meaning | Action |
-| --- | --- | --- |
-| `Detecting CPU: RTL8372`, no warning | chip is the supported 4-PHY/2-SerDes class | continue with port/LED bring-up |
-| `Detecting CPU: RTL8373` + `INCORRECT MACHINE!` | chip is the 8-copper class | set `isRTL8373 = 1` in the definition and rebuild |
-| no output at all / no ports come up | chip cannot be driven by this firmware | restore the 2 MiB backup with the programmer |
-
-The stock firmware's factory menu (`rst`, IOL test modes, SDS test modes) contains no
-register read/write and no firmware-update command, so it can neither dump the LED
-configuration nor flash anything; the SPI programmer is the only way in.
+`INCORRECT MACHINE!`). On this board the first console lines print
+`Detecting CPU: RTL8372` with no warning, and `regget 0004` shows `0x83720000`.
 
 ## Console evidence gathered from the stock firmware
 
@@ -191,41 +281,6 @@ Read directly from the board's UART (`/dev/ttyUSB0`, 9600 8N1) with
 Note when talking to this console: hold the port open **read-write**. With a read-only
 fd the switch's RX input floats and the firmware echoes a prompt for every noise byte,
 flooding the log with `RTL8371B:` lines.
-
-Everything that is still unknown (`.led_mux`, `.led_sets`, `.port_led_set`, SFP
-`pin_detect`/`pin_los`, exact port order) therefore has to come from either an I2C
-register dump of the running stock firmware (`tools/led_gpio_utils/`) or from
-RTLPlayground's own console once it is flashed — its `regget`, `regset`, `leds` and
-`gpio` commands allow the same values to be derived by experiment, and `regget 0x0004`
-settles the RTL8372-vs-RTL8373 question directly.
-
-## Bring-up: record the stock LED behaviour BEFORE flashing
-
-Once RTLPlayground is flashed, the stock firmware's LED/GPIO register values are gone,
-and this board's UART console cannot read registers (see the section above). The cheap
-way to get equivalent ground truth is to write down what the *stock* LEDs do — it is
-then a one-to-one comparison against the candidate configurations (`PCB_K0402WS_V2` and
-`PCB_K0402WS_V3`, which differ in exactly these fields):
-
-| Scenario | Which LED lights (position + colour) |
-| --- | --- |
-| RJ45 1, link at 2.5G | |
-| RJ45 1, link at 1G | |
-| RJ45 1, link at 100M | |
-| RJ45 1, no link, activity only | |
-| RJ45 4 (right-most copper) at 1G | |
-| SFP left with module inserted, link up | |
-| SFP right with module inserted, link up | |
-| SFP cage empty (any LED?) | |
-| System LED at idle / after boot | |
-
-Also note the front-panel LED count and colour per port (the board is sold as
-4 x 2.5G + 2 x SFP+; the siblings have two LEDs per copper port, amber = 2.5G and
-green = 1G/100M/10M).
-
-After flashing, the same table is filled in again. Identical behaviour ⇒ the
-configuration is right. Differences point at `.led_sets`/`.port_led_set` (which
-condition lights which LED) versus `.led_mux` (which pad drives which physical LED).
 
 ## LED behaviour and how it was verified
 
@@ -259,12 +314,13 @@ Verified in two steps:
    and read back to confirm.
 
 So for the copper ports `.port_led_set`, `.led_sets` and `.led_mux` all match this board.
-Only the SFP LED set and the system LED (`high_leds`) remain to be checked.
+The SFP LED (SET1) lights green while a module is linked; only the system/power LED is
+uncontrolled because it is hard-wired.
 
-## SFP verification (left slot done)
+## SFP verification (both cages)
 
-With a module in the left cage and a link up, the console reports it through the inherited
-pin assignment (detect GPIO30, LOS GPIO37, I2C SDA4/SCL3):
+A module was moved from one cage to the other and the console output compared. Both cages
+report through the inherited pin assignment:
 
 ```
 > sfp
@@ -274,67 +330,39 @@ Temp: 25e9  Vcc: 8076  TX Bias: 07d8  TX Power: 1784  RX Power: 190b
 Slot 2 - empty
 ```
 
-`gpio` follows: inserting the module flips bit 30 (GPIO30) and the LOS bit (GPIO37), and
-`sds` changes from `0x00000bff` to `0x0000035f` once the link is established. The module's
-LED lights green (SFP LED set = SET1). The right cage uses GPIO50/51 and SDA3/SCL3 and
-still needs a module for confirmation.
+| Evidence | Result |
+| --- | --- |
+| `sfp`, module in the **left** cage | `Slot 1 - JDSU PLRXPLSCS43HW` with Temp/Vcc/TX/RX values, `Slot 2 - empty` |
+| `sfp`, module in the **right** cage | `Slot 1 - empty`, `Slot 2 - JDSU PLRXPLSCS43HW` with the same values |
+| `gpio`, left → right | GPIO word `0a3fdb9f` → `0a33dfbb`; the bits that differ are **50** and **51** (right cage detect/LOS) plus **37** (left cage LOS) |
+| `sds` | `0x0000035f` → `0x0000035a`, i.e. the SerDes is re-armed for the other cage |
+| Front panel | the SFP LED lights green with the port linked (SET1), and the port links at 10G |
 
-## What is assumed vs. what is verified
+## What was verified, and how
 
-The initial definition copies the wired parameters from `PCB_K0402WS_V2.0` (the nearest
-documented revision, and single-flash like V1.0).
+The parameters were copied from `PCB_K0402WS_V2.0` (the nearest documented revision, and
+single-flash like V1.0) and then confirmed on the board:
 
 | Parameter | Status |
 | --- | --- |
 | Flash size / boot compatibility | **verified** (dump analysis above) |
-| 4 × copper + 2 × SFP+, no external PHY | **verified** (photos, port layout, sibling defs, `dump` on the stock console) |
 | Flash chip needs `FLASH_NO_DIO=1` | **verified** (boot loop → fixed → boots, reproducible build) |
+| 4 × copper + 2 × SFP+, no external PHY | **verified** (photos, port layout, sibling defs, `dump` on the stock console) |
 | `isRTL8373 = 0` (RTL8372) | **verified** — boot prints `Detecting CPU: RTL8372`, `regget 0004` = 0x83720000 |
 | Both SFP slots and 4 copper ports present | **verified** — boot prints `Port 1..4 On`, `Port 5/6 NO SFP` |
-| SFP I2C pins (SDA4/SCL3 and SDA3/SCL3) | **verified for the left slot** — `sfp` reads the EEPROM of a JDSU PLRXPLSCS43HW (vendor, part number, Temp/Vcc/TX Bias/TX Power/RX Power); the right slot still needs a module |
-| `log_to_phys_port` / `phys_to_log_port` | **verified** — cable in front LAN 1/2/3/4 brought up physical port 1/2/3/4 respectively (checked on the console with `port <phys> show`) |
-| SFP `pin_detect` / `pin_los` (GPIO30/37, GPIO50/51) | **left slot verified** — inserting a module flips bit 30 (GPIO30) in the `gpio` dump and makes `sfp` report the module; GPIO37 (LOS) changes with the signal. Right slot (GPIO50/51) still to be confirmed |
-| `high_leds` mux/enable | **not applicable** — the only non-port LED on the panel is a hard-wired power LED: it stays lit even after clearing the system-LED bits (17:16) of `RTL837X_REG_LED_MODE`, and a module is unaffected. No SoC-driven system LED was found, so the inherited value is harmless |
-| `led_sets` / `port_led_set` / `led_mux` | **verified for the copper ports** (orange = 2.5G, green = 1G/100M/10M + activity, both confirmed on hardware incl. a real 2.5G link); the SFP LED set (SET1) lights green with a linked module ✓ |
+| `log_to_phys_port` / `phys_to_log_port` | **verified** — a cable in front LAN 1/2/3/4 brings up physical port 1/2/3/4 respectively (checked on the console with `port <phys> show`) |
+| SFP `pin_detect` / `pin_los` (GPIO30/37, GPIO50/51) | **verified for both cages** — inserting a module flips the detect bit and makes `sfp` report the module; the LOS bit changes with the signal |
+| SFP I2C pins (SDA4/SCL3 and SDA3/SCL3) | **verified for both cages** — `sfp` reads the EEPROM of a JDSU PLRXPLSCS43HW (vendor, part number, Temp/Vcc/TX Bias/TX Power/RX Power) |
+| `led_sets` / `port_led_set` / `led_mux` | **verified for the copper ports** (orange = 2.5G, green = 1G/100M/10M + activity, both confirmed on hardware incl. a real 2.5G link) and for the SFP set (LED lights with a linked module) |
+| `high_leds` mux/enable | **not applicable** — the only non-port LED on the panel is a hard-wired power LED: it stays lit even after clearing the system-LED bits (17:16) of `RTL837X_REG_LED_MODE`. No SoC-driven system LED was found, so the inherited value is harmless |
+| Reset button | **not present** — no button and no footprint for one (see above) |
 
-## How to finish the definition (bring-up procedure)
-
-1. **Read the stock LED configuration without flashing anything** — the SoC exposes an
-   I2C slave (address `0x5C`) and the sibling FNS-1200P board has an unpopulated SOP8
-   footprint wired to it. With an I2C dongle attached to the running *stock* firmware:
-
-   ```bash
-   python3 tools/led_gpio_utils/i2c_dump_rtl_regs.py -b <bus> > reg_dump.txt
-   python3 tools/led_gpio_utils/dec_leds_from_dump.py
-   ```
-
-   The script prints ready-to-paste `.led_mux`, the four LED sets and the per-port set
-   assignment. Those values are the ground truth for `machine.c`.
-
-2. **Find the SFP pins** — run `tools/led_gpio_utils/i2c_read_rtl_gpio.py` (or, once
-   RTLPlayground runs, the `gpio` console command) and insert/remove a module into each
-   cage; the GPIO that changes is that slot's `pin_detect`. `pin_los` needs a module
-   without a signal.
-
-3. **Confirm the port order** — link up one RJ45 port at a time and watch the port
-   status (`port` console command / web UI); repeat for the two SFP cages.
-
-4. **Confirm the chip** — on the RTLPlayground console the first lines print
-   `Detecting CPU: RTL8372` (or `RTL8373`). `INCORRECT MACHINE!` means the
-   `isRTL8373` value in the definition is wrong.
-
-5. Update the parameters in `machine.c`, rebuild, and only then move the board from
-   "experimental" to supported.
-
-## Serial console
-
-Stock firmware: **9600** 8N1 (as on the V2.0/V3.0 boards). RTLPlayground: **115200** 8N1.
-The unpopulated switch footprint (`S1`-like, three through-holes) is wired to UART0;
-on the siblings the leftmost hole is RX (GPIO32_UART0_RX), the middle one GND and the
-rightmost TX (GPIO31_UART0_TX). Verify on this revision before trusting it.
-
-## Rollback
+## Flash upgrade and rollback
 
 Keep the 2 MiB dump. Restore it with the same programmer and the board is back to stock —
 the analysis above shows nothing outside the first 0.5 MiB is used by the stock firmware,
 and the unused area is erased (`0xFF`), so a full-chip restore is a faithful rollback.
+
+Once RTLPlayground runs on the board, later versions are installed from the web interface
+(*Firmware update*), which writes the 512 KiB image and leaves the startup configuration
+alone — see the [README](../../README.md#4-installation-through-the-web-interface-software-way).
