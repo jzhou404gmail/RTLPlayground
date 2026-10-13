@@ -110,7 +110,7 @@ RTL8372，5 × 2.5GBASE-T + 1 × 万兆 SFP+（第 5 个电口由外置 RTL8221B
 
 ### 2.4 兮克 XikeStor SKS3200M-4GPY2XF —— `SWTG024AS-v1.0` → `MACHINE_SKS3200M_4GPY2XF`
 
-RTL8372，4 × 2.5GBASE-T + 2 × SFP，2 MiB Winbond `W25Q16JV`。**状态：正式支持。** 与 SWTG024AS-V2.0 系列同族；这个 target 额外为它打开了复位键和出厂 MAC（V2.0 的兄弟版可能没焊）。
+RTL8372，4 × 2.5GBASE-T + 2 × SFP，2 MiB Winbond `W25Q16JV`。**状态：正式支持（2026-10-13 完成 LED、双光口实测）。** 与 SWTG024AS-V2.0 系列同族，但**两个 target 不可互换**：这个 target 有实测的 LED 焊盘映射、描述了两个光笼，并且为它单独打开了复位键和出厂 MAC。
 
 | | |
 |---|---|
@@ -118,11 +118,15 @@ RTL8372，4 × 2.5GBASE-T + 2 × SFP，2 MiB Winbond `W25Q16JV`。**状态：正
 | 原厂 → RTLPlayground | 原厂是 CGI 版 Realtek SDK（固件版本 V10.9.4，`admin/admin`，`192.168.10.12`）。它的"固件升级"页（`fwug.cgi`）会把机器切进厂商 loader，**IP 不变**；loader 再用 `/httpupg.cgi?cmd=fw_upgrade` 接收一键安装镜像 |
 | 复位键 | `GPIO54`（K1）—— **实测**：约 5 s 重启，约 11 s 恢复出厂设置，< 3 s 无动作 |
 | 出厂 MAC | 已找回：`mac_flash_offset = 0x1FC000` 让机器重新报告 `1C:2A:A3:23:E4:5E`，不再是随机生成的 MAC |
+| 两个光口 | `J4`（左，插孔 5）= 逻辑口 **8**（SerDes 1，检测 GPIO30 / LOS GPIO37，I2C SDA4+SCL3）；`J2`（右，插孔 6）= 逻辑口 **3**（SerDes 0，检测 GPIO50 / LOS GPIO51，I2C SDA3+SCL3）。两个光口在逻辑编号上是**交叉**的 |
+| LED | 本机实测的焊盘映射：绿/橙分别在焊盘 12/14（口 1）、15/17（口 2）、18/20（口 3）、21/23（口 4），两个光口灯在焊盘 24（J4）和 9（J2）；光口灯任何速率都会亮 |
 | 默认 IP | `192.168.10.12` |
 | 机型文档 | [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md) |
 
 > [!NOTE]
 > 如果你的路由器/软路由有基于 MAC 的 DHCP 保留或绑定，刷完这个 target 后请按出厂 MAC 重新设置一次 —— 之前那个随机 MAC 不会再回来。
+>
+> 光口编号的交叉是**板子本身**的属性，所以同一个修复也让上游支持的 SWTG024AS-V2.0（联果/ Horaco / Sodola）受益：在这之前，插在左笼（J4）的模块会被报成右笼。
 
 ### 2.5 兮克 XikeStor SKS3200M-8GPY1XF —— `SWTG118AS-V2.1-17462` → `MACHINE_SKS3200M_8GPY1XF`
 
@@ -193,6 +197,18 @@ HTTP 会话的截止时间同样来自那个秒寄存器，导致 RTL8372 上登
 
 `make -C test`（主机侧单测，已扩展到覆盖新的型号行）和 `make machine_check` 全绿；CI 会编译两种芯片类别，并额外编译带 health 插桩的版本。文档新增/修正：上面 3 篇新机型文档，加 [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md)、[doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md)；5 个机型的板卡照片；[doc/supported_devices.md](doc/supported_devices.md)；[doc/hardware.md](doc/hardware.md) 里补了 RTL8372/RTL8373 秒寄存器差异；以及"升级会保留启动配置"的说明（见 4.3）。
 
+### 3.11 SWTG024AS 系列的两个光口编号交叉 —— 修复，影响整个系列
+
+板子丝印的端口总览里，左笼 `J4`（插孔 5）是 **10GMAC 8 / SerDes 1**，右笼 `J2`（插孔 6）是 **10GMAC 3 / SerDes 0** —— 也就是两个光口在逻辑编号上是交叉的。上游的 machine 表把它们写反了（插孔 5 记成逻辑口 3、插孔 6 记成逻辑口 8），于是插在左笼的模块会被报成右笼（灯也亮错），而插在右笼的模块根本不被识别。现在 `log_to_phys_port` / `phys_to_log_port` 与端口总览一致，两个 SFP 槽的 SerDes、检测/LOS 引脚和指示灯也都跟着各自的插孔走。这是板子的属性，所以**上游支持的 SWTG024AS-V2.0 系列（联果 / Horaco / Sodola）也一起修好了**。
+
+### 3.12 SKS3200M-4GPY2XF 的 LED 焊盘映射与两个光笼 —— 修复
+
+该机原来沿用 SWTG024AS-V2.0 的 LED 表，而那台机器的灯在别的焊盘上，导致：端口与颜色全部串位（1000M 链路点亮了右边的绿灯即 2.5G 灯，LAN3 点亮 LAN4 的灯）、两个光口灯完全不亮、还有几个橙灯在没有链路时自己发亮。现在这个 target 带的是**在真机上一个焊盘一个焊盘量出来的映射**（绿/橙 = 12/14、15/17、18/20、21/23，光口灯 = 焊盘 24 和 9），光口灯任何速率都会亮，未使用信号对应的焊盘被驱动到非激活电平而不是悬空（悬空时，凡是被下拉的灯都会亮）。测量方法写进了 [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md) 的 "LEDs" 一节。同一台机器的两个光笼也补齐了，见 [2.4](#24-兮克-xikestor-sks3200m-4gpy2xf--swtg024as-v10--machine_sks3200m_4gpy2xf)。
+
+### 3.13 浏览器标签页名 —— 修复
+
+上游让面板标签页显示交换机 hostname，但只在 `/information.json` 已经返回 hostname 之后才生效：页面加载中、请求失败、或者镜像本身没有 hostname 时，几个同时打开的交换机就都变回 "Switch"。现在登录页在首次绘制前就用本机记住的名字命名标签页（每台交换机是独立 origin），面板则按"实时 hostname → 记住的名字 → 型号 → IP"依次回退，并同时写到导航栏。
+
 ## 4. 操作速查
 
 ### 4.1 编译
@@ -235,7 +251,7 @@ make MACHINE=SKS3200M_8GPY1XF
 | 海思创 Hi-K0402WS 第 2 台 | `PCB_K0402W_V1` | 界面恢复出厂设置、会话 |
 | 海思创 Hi-K0801WS（`SFP-J08E-HG1`） | `PCB_K0801W_V1` | 能启动、9 个端口正确、闪存模式 —— LED 与 SFP 引脚待测 |
 | 兮克 SKS3200M-8GPY1XF | `SKS3200M_8GPY1XF` | 复位键三态、会话、恢复出厂设置 |
-| 兮克 SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | 复位键三态、出厂 MAC、恢复出厂设置 |
+| 兮克 SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | 复位键三态、出厂 MAC、恢复出厂设置；**两个光笼**（插孔 5/6 = 逻辑口 8/3）、**逐焊盘实测的 LED 映射**、端口编号交叉修正（2026-10-13） |
 | 兮克 SKS3200M-5GPY1XF | `SKS3200M_5GPY1XF` | 六个端口、光口 10G、LED、系统灯、出厂 MAC、复位键三态 |
 
 6 台都刷了同一份构建、上报相同的软件版本，并且各自的 IP、hostname、出厂 MAC 都原样保留。

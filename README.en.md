@@ -142,9 +142,11 @@ system LED, the factory MAC at `0x1FC000`, and the reset button above.
 
 ### 2.4 XikeStor SKS3200M-4GPY2XF — `SWTG024AS-v1.0` → `MACHINE_SKS3200M_4GPY2XF`
 
-RTL8372, 4 × 2.5GBASE-T + 2 × SFP, 2 MiB Winbond `W25Q16JV`. **Status: supported.** Same PCB family as
-the SWTG024AS-V2.0 boards; this target additionally enables the reset button and the factory MAC, which
-the V2.0 siblings may not have populated.
+RTL8372, 4 × 2.5GBASE-T + 2 × SFP, 2 MiB Winbond `W25Q16JV`. **Status: supported — the lamps and both
+cages were measured on the unit on 2026-10-13.** Same PCB family as the SWTG024AS-V2.0 boards, but the
+two targets are **not** interchangeable: this one has the LED pad map measured on the unit, describes
+both cages, and enables the reset button and the factory MAC, which the V2.0 siblings may not have
+populated.
 
 | | |
 |---|---|
@@ -152,6 +154,8 @@ the V2.0 siblings may not have populated.
 | Install (stock → RTLPlayground) | the stock firmware is a CGI-based Realtek SDK image (固件版本 V10.9.4, `admin/admin`, `192.168.10.12`). Its 固件升级 page (`fwug.cgi`) switches the board into the vendor loader, which **keeps the same IP**; the loader then takes the OEM installer via `/httpupg.cgi?cmd=fw_upgrade` |
 | Reset button | `GPIO54` (K1) — **verified**: ~5 s reboot, ~11 s factory reset, < 3 s nothing |
 | Factory MAC | restored: `mac_flash_offset = 0x1FC000` makes the board report `1C:2A:A3:23:E4:5E` again instead of a generated MAC |
+| The two cages | `J4` (left, jack 5) is logical port **8** — SerDes 1, detect GPIO30 / RX-LOS GPIO37, I2C SDA4+SCL3 — and `J2` (right, jack 6) is logical port **3** — SerDes 0, detect GPIO50 / RX-LOS GPIO51, I2C SDA3+SCL3. The two jacks **cross over** in the logical numbering |
+| Lamps | pad map measured on the unit: green/amber on pad 12/14 (jack 1), 15/17 (2), 18/20 (3), 21/23 (4), the two cage lamps on pad 24 (`J4`) and pad 9 (`J2`); a cage lamp lights at any speed |
 | Default IP | `192.168.10.12` |
 | Document | [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md) |
 
@@ -267,6 +271,38 @@ the three device pages above plus [doc/devices/SWTGW218AS.md](doc/devices/SWTGW2
 [doc/hardware.md](doc/hardware.md), and the note that a firmware upgrade keeps the startup configuration
 (section 4.3 below).
 
+### 3.11 The two SFP jacks of the SWTG024AS family cross over — fix, the whole family
+
+The board's own port overview has the left cage `J4` (jack 5) on **10GMAC 8 / SerDes 1** and the right one
+`J2` (jack 6) on **10GMAC 3 / SerDes 0**, so the two cages cross over in the logical numbering. The
+machine table had them the other way round — jack 5 on logical port 3 and jack 6 on logical port 8 — so a
+module in the left cage came up (and lit its lamp) as the right one, while a module in the right cage was
+not seen at all. `log_to_phys_port` / `phys_to_log_port` follow the port overview now, and the SFP slots,
+their SerDes, their detect/RX-LOS pins and their lamps follow their own jack. This is a property of the
+board, so the SWTG024AS-V2.0 boards upstream supports (Lianguo, Horaco, Sodola) are fixed by the same
+change.
+
+### 3.12 The SKS3200M-4GPY2XF lamps and its second cage — fix
+
+That unit inherited the LED table of the SWTG024AS-V2.0 board, whose lamps sit on other pads: ports and
+colours were crossed (a 1000M link lit the right-hand green — the 2.5G — lamp, LAN3 lit LAN4's lamp),
+both cage lamps stayed dark and several ambers glowed with no link at all. The target now carries the pad
+map **measured on the unit, one pad at a time** (green/amber on pad 12/14, 15/17, 18/20 and 21/23, the
+cage lamps on pad 24 and pad 9), a cage lamp lights at any speed, and the pads of unused signals are
+driven to their inactive level instead of floating (a floating pad lights every lamp that is pulled
+down). The same unit also got its second cage described, see [2.4](#24-xikestor-sks3200m-4gpy2xf--swtg024as-v10--machine_sks3200m_4gpy2xf).
+The measuring method is written up in the "LEDs" section of
+[doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md).
+
+### 3.13 Browser tab names — fix
+
+Upstream named the dashboard tab after the switch hostname, but only once `/information.json` had
+answered with one: while the page was loading, after a failed request, or on an image that reports no
+hostname, several switches open side by side all went back to sitting there as "Switch". The login page
+now names the tab from the name this browser remembered for that address before the first paint (each
+switch is its own origin), and the dashboard resolves the name as the live hostname, the remembered name,
+the model and finally the address, and writes it to the nav bar as well.
+
 ## 4. Recipes
 
 ### 4.1 Build
@@ -316,7 +352,7 @@ The image lands in `output/<target>/rtlplayground-<version>-<target>.bin` (512 K
 | Hisource Hi-K0402WS #2 | `PCB_K0402W_V1` | factory-default restore from the UI, session |
 | Hisource Hi-K0801WS (`SFP-J08E-HG1`) | `PCB_K0801W_V1` | boots, nine ports correct, flash mode — LEDs and SFP pins still pending |
 | XikeStor SKS3200M-8GPY1XF | `SKS3200M_8GPY1XF` | reset button tri-state, session, factory-default restore |
-| XikeStor SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | reset button tri-state, factory MAC, factory-default restore |
+| XikeStor SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | reset button tri-state, factory MAC, factory-default restore; **both cages** (jacks 5/6 = logical ports 8/3), the **pad map measured lamp by lamp**, the port-numbering crossover fixed (2026-10-13) |
 | XikeStor SKS3200M-5GPY1XF | `SKS3200M_5GPY1XF` | all six ports, SFP at 10G, LEDs, system LED, factory MAC, reset button tri-state |
 
 All six were reflashed with the same build and reported the same software version, with their IP address,
