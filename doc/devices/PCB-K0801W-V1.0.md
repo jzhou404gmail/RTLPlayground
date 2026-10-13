@@ -12,11 +12,13 @@ currently in the supported-devices list — because the owner's board is the *ea
 revision of the same retail model:
 
 - Panel: 8 × RJ45 10/100/1000/2500 Mbps + 1 × SFP+ (same 8 + 1 layout as V2.0).
-- Silkscreen: `PCB-K0801W-V1.0` (V2.0 boards read `PCB-K0801W-V2.0` /
-  `DIP-K0801WS-V2.0`; whether the V1.0 companion marking is `DIP-K0801WS-V1.0` has not
-  been confirmed).
-- Nothing else about the board is known yet: no photo and no stock dump of the board
-  itself. (The flash part and the first-boot behaviour are known — see below.)
+- Silkscreen: `PCB-K0801W-V1.0` / `DIP-K0801WS-V1.0`, date code `2307` — read from the
+  board photos below (V2.0 boards read `PCB-K0801W-V2.0` / `DIP-K0801WS-V2.0`).
+- Case label: `2.5G万兆交换机 / 型号 SFP-J08E-HG1 / 传输速率 10000M / 供电电压 DC12V`,
+  serial number `202311030003`. That model name is what the firmware reports as 型号.
+- No stock firmware dump of this board was taken. The spare flash of the same part
+  family (see below) held the Realtek reference image of this device family, which is
+  the same firmware the sibling 4 + 2 board ships.
 
 The web UI states the board and the retail model on separate lines, taken from
 `.machine_name` and `.model_name` of the machine block:
@@ -60,6 +62,39 @@ swapped) and possibly an SFP slot that does not see its module.
 | `.led_sets`, `.port_led_set`, `high_leds` | **not verified** — still the V2.0 values | needs a 2.5G and a 1G peer plus the `leds` command |
 | SFP `pin_detect`, `pin_los`, `i2c` | **not verified** — still the V2.0 values | needs a module in the cage and the `sfp` command |
 
+## PCB overview
+
+Photos of the owner's board (2026-10-13). They confirm the revision and the date code, and
+show where the flash chip sits, which is what the programming instructions below refer to.
+
+Board markings: `PCB-K0801W-V1.0` / `DIP-K0801WS-V1.0`, date code `2307`, `PASS QC` sticker
+
+<img src="photos/PCB-K0801W-V1.0/PCB-K0801W-V1.0-silkscreen.jpg" width="300" />
+
+Second view (power section on the right, SFP cage at the bottom edge)
+
+<img src="photos/PCB-K0801W-V1.0/PCB-K0801W-V1.0-phys.jpg" width="300" />
+
+Front panel: 8 × RJ45, leftmost cage is the SFP+ slot
+
+<img src="photos/PCB-K0801W-V1.0/front-panel.jpg" width="300" />
+
+Case label: `SFP-J08E-HG1`, DC 12 V
+
+<img src="photos/PCB-K0801W-V1.0/back-label.jpg" width="300" />
+
+Flash chip area (`U2`)
+
+<img src="photos/PCB-K0801W-V1.0/flash-U2-area.jpg" width="300" />
+
+SFP cage area
+
+<img src="photos/PCB-K0801W-V1.0/sfp-cage-area.jpg" width="300" />
+
+Component detail
+
+<img src="photos/PCB-K0801W-V1.0/PCB-detail.jpg" width="300" />
+
 ## No reset button, and what to do instead
 
 This board has **no reset button and no unpopulated footprint for one**: the
@@ -102,7 +137,7 @@ choice.
 | Step | Result |
 | --- | --- |
 | Chip ID | Boya/BoHong `B.25D16AS/BY25Q16BS/BY25Q16ES`, 2048 kB — **the same part as on PCB-K0402W-V1.0** |
-| Pre-write contents | not blank: byte-identical to the Realtek reference image of this family (`md5 e28790b6a1bc096413152d722d7f91d4`, i.e. the same image as `Hi-L0402WS-20250527.bin`); saved as `output/PCB_K0801W_V1/spare-chip-before-write.bin` |
+| Pre-write contents | not blank: byte-identical to the Realtek reference image of this family (`md5 e28790b6a1bc096413152d722d7f91d4`, i.e. the same image as the board dump kept as `Hi-L0402WS-20250527.bin`); saved as `output/PCB_K0801W_V1/spare-chip-before-write.bin` |
 | Image written | the pre-rename build of the nodio image (banner `PCB-KO801W-V1.0`), sha256 `316f3f10…5e92f2`, preserved as `spare-chip-after-write.bin` |
 | Write result | `Erase/write done.` + `Verifying flash... VERIFIED.` |
 | Independent readback | `spare-chip-after-write.bin`, sha256 identical to the pre-rename image (`cmp` clean) |
@@ -231,7 +266,7 @@ Once it boots, these commands answer the open TODOs without any extra hardware:
 | SFP `pin_detect` / `pin_los` | `sfp` with the cage empty and with a module inserted; the module EEPROM read over I2C identifies `sfp_port[0].i2c` |
 | `led_mux` (only if `led_mux_custom` is enabled) | `tools/led_gpio_utils/i2c_dump_rtl_regs.py` + `dec_leds_from_dump.py`, which need an external USB-to-I2C dongle on the SoC's I2C slave port (see that directory's README) — optional, the `leds` command is enough to find working LED sets |
 
-Send back:
+To finish the definition, capture (and add to this document):
 
 1. the full 115200 boot log,
 2. `regget 0004`, `gpio`, `leds` and `sfp` output with one 2.5G peer on RJ45 and a module
@@ -243,9 +278,8 @@ Send back:
 `Detecting CPU: RTL8372` with `INCORRECT MACHINE!` means the board is not an 8-copper
 class device. Two possibilities, and the panel settles which:
 
-- the board really is 4 × RJ45 + 2 × SFP (i.e. the chassis matches the earlier
-  Hi-L0402WS after all): use the already-verified
-  [PCB-K0402W-V1.0](PCB-K0402W-V1.0.md) target instead of this one;
+- the board really is 4 × RJ45 + 2 × SFP (i.e. the 4 + 2 Hi-K0402WS board after all): use
+  the already-verified [PCB-K0402W-V1.0](PCB-K0402W-V1.0.md) target instead of this one;
 - the board is 8 + 1 but built around the 4-PHY class silicon with external PHYs: set
   `.isRTL8373 = 0` in the `MACHINE_PCB_K0801W_V1` block, rebuild, and re-run the bring-up
   — `.log_to_phys_port`, `.phys_to_log_port`, `.is_sfp` and `.n_sfp` then have to be
