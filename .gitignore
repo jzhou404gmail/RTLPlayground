@@ -12,5 +12,8 @@ tools/fileadder
 !test/stub/html_data.h
 !test/stub/version.h
 
+# host unit-test build output
+test/build/
+
 # local flash dumps / working images
 /backup_*.bin
