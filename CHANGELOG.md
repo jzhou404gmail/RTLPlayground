@@ -19,9 +19,19 @@
     the address itself before the first one. While a hostname is unknown - the name has just been
     cleared, the request failed, or the image reports none - the dashboard falls back to the name this
     browser saw at that address last, the model, and then the address, so no tab is left as "Switch".
+  - The Time card is translated into Chinese, like the rest of the System tab: the NTP strings had only
+    English entries, so a Chinese UI showed that one card in English.
+  - Command reference in the Console card: a fold-out list of the main console commands, their format and
+    one example each, in English and Chinese, so the console does not need the README at hand.
+  - The Network card sets the TCP port of the web interface (`HTTP port`, default 80): the field sits
+    with the address settings, Apply moves the listener at once, the page redirects itself to the new
+    address, and the port is written to the startup configuration with the rest of the network settings.
+    A session that is already open keeps working, so the answer to the command still arrives.
 - Console
   - `defaults`: restores the configuration compiled into the image and reboots. Deliberately not a
     configuration command, so it never becomes part of the startup configuration.
+  - `http [port <1-65535>]`: shows or moves the TCP port the web interface listens on. 0 and values
+    above 65535 are refused, and the listener stays where it was.
 - Devices
   - `MACHINE_PCB_K0402W_V1` — Hisource Hi-K0402WS (PCB-K0402W-V1.0, 4 x 2.5GBASE-T + 2 x SFP+).
     Needs `FLASH_NO_DIO=1`. See doc/devices/PCB-K0402W-V1.0.md.
@@ -59,6 +69,15 @@
 
 ## Fixed
 
+- NTP
+  - An NTP server given by host name never synced on a board that has no DNS server: the client sent
+    nothing, `ntp`/`time` only said *Time not synchronised* and the Time card showed `Server address -`,
+    which reads like a server that does not answer rather than a look-up that was never made. That is
+    what a board configured with a static address and without a `dns server` line is - as the factory
+    default configuration is. The client now names the reason on the console and in the Time card:
+    `no DNS server for <name>`, `cannot resolve <name>`, `no usable answer from <address>`, `waiting for the
+    first answer`, or `NTP is off`. An IPv4 address in the NTP server field was, and is, used as it is,
+    without a look-up.
 - Config
   - A startup configuration line longer than the command buffer no longer stops the replay:
     the offending line is skipped and the following lines are still applied.
