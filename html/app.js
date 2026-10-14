@@ -97,6 +97,15 @@ sy_dst_us:"United States",sy_now:"Local time",
 sy_sync:"Last synchronisation",sy_ntpaddr:"Server address",sy_nosync:"not synchronised",sy_waiting:"waiting for the server",
 sy_ago:"{n} min ago",sy_ntp_err:"Enter the host name or IPv4 address of the NTP server",sy_ntpint_err:"Poll interval must be 1-1440",
 sy_time_note:"The switch has no battery backed clock: the time is lost at every restart and set again from the NTP server once the network is up. Save to flash to keep the settings.",
+sy_ntp_first:"waiting for the first answer",
+sy_ntp_nodns:"No DNS server is set, so {name} cannot be looked up. Set one in the Network card, or give the NTP server as an IPv4 address.",
+sy_ntp_resolve:"The DNS server did not answer for {name}. Check the DNS server and the gateway in the Network card.",
+sy_ntp_noans:"No usable answer from {ip}: the NTP server, or the way to it, is unreachable.",
+sy_httpport:"HTTP port",sy_httpport_err:"The HTTP port must be 1-65535",
+sy_httpport_q:"Change the HTTP port?",
+sy_httpport_d:"The web interface listens on port {port} from now on. This page stays open until it is closed; reopen it at http://{ip}:{port}/",
+sy_cmdref:"Command reference",
+sy_cmdref_text:"System and network\n  version                          firmware version and build date\n  hostname [name]                  show or set the switch name        hostname sw-1\n  ip [<addr>|dhcp]                 management address (dhcp: ask)     ip 192.168.32.203\n  netmask <mask>                   set the netmask                    netmask 255.255.255.0\n  gw <addr>                        set the default gateway            gw 192.168.32.254\n  dns server <ip> [<ip>]           DNS servers, 0.0.0.0 clears them   dns server 192.168.32.254\n  dns lookup <name>                resolve a name now                 dns lookup ntp.tencent.com\n  http port <1-65535>              web interface port (default 80)    http port 8000\n  passwd <text>                    admin password, 1-20 characters    passwd 1234\n  session <1-65535>                web session timeout in seconds     session 600\nServices\n  ntp [on|off]                     start or stop the time client      ntp on\n  ntp server <name|ip>             NTP server (ntp.tencent.com)       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            offset from UTC (default +08:00)   ntp timezone +08:00\n  ntp interval <1-1440>            minutes between syncs              ntp interval 60\n  ntp dst off|eu|us                daylight saving rule               ntp dst off\n  time                             local time and the last sync\n  syslog on|off|ip <ip>|port <n>   send the log to a syslog server    syslog ip 192.168.32.10\nSwitching\n  stat                             port state and counters\n  port <n> [show|on|off]           port state, speed, name, lldp      port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN membership, t = tagged        vlan 10 1 2 3t\n  pvid <port> <1-4094>             port VLAN ID                       pvid 1 10\n  l2 [forget]                      show the MAC table, or flush it\n  stp on|off|status ...            spanning tree                      stp on\n  igmp on|off|show                 IGMP snooping                      igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        show or set the management MAC\n  bw in|out|status <port> ...      bandwidth limits                   bw in 1 off\n  mirror <port> [port]...          port mirroring                     mirror 1 2\n  history                          the commands typed since the boot\n  defaults                         factory configuration, then reboot\n\nSettings apply at once. To keep them across a reboot, write the line into the\nstartup configuration.",
 sy_sysport_err:"Syslog port must be 1-65535",
 sy_pw_len:"Password: 1-20 characters",sy_pw_space:"Password cannot contain spaces",sy_pw_match:"Passwords do not match",
 sy_pw_q:"Change admin password?",sy_pw_d:"Takes effect immediately for new logins. Save to flash to persist.",
@@ -317,6 +326,20 @@ sy_network:"网络",sy_dhcp:"使用 DHCP",sy_dhcp_t:"通过 DHCP 获取地址",s
 sy_igmp:"IGMP 侦听",sy_sysip:"服务器 IP",sy_server:"服务器",sy_port:"端口",
 sy_sesstmo:"会话超时（秒）",sy_sesstmo_err:"会话超时必须为 1-65535 秒",
 sy_services_note:"服务状态反映启动配置；运行时状态无法读取。",
+sy_time:"时间",sy_ntp:"NTP",sy_ntpsrv:"NTP 服务器",sy_ntpsrv_p:"主机名或 IPv4 地址",sy_ntpint:"同步间隔 [分钟]",
+sy_tz:"时区",sy_dst:"夏令时",sy_dst_eu:"欧洲",sy_dst_us:"美国",sy_now:"本地时间",
+sy_sync:"上次同步",sy_ntpaddr:"服务器地址",sy_nosync:"未同步",sy_waiting:"等待服务器",
+sy_ago:"{n} 分钟前",sy_ntp_err:"请输入 NTP 服务器的主机名或 IPv4 地址",sy_ntpint_err:"同步间隔必须为 1-1440",
+sy_time_note:"交换机没有带电池的时钟：每次重启都会丢失时间，网络连通后由 NTP 服务器重新对时。如需重启后保留请保存到 Flash。",
+sy_ntp_first:"等待第一次应答",
+sy_ntp_nodns:"没有配置 DNS 服务器，无法解析 {name}。请在上方「网络」卡片中设置 DNS，或把 NTP 服务器填成 IPv4 地址。",
+sy_ntp_resolve:"DNS 服务器没有应答 {name} 的查询。请检查「网络」卡片中的 DNS 服务器与网关。",
+sy_ntp_noans:"{ip} 没有返回可用的应答：NTP 服务器或到它的路径不可达。",
+sy_httpport:"HTTP 端口",sy_httpport_err:"HTTP 端口必须为 1-65535",
+sy_httpport_q:"修改 HTTP 端口?",
+sy_httpport_d:"管理界面从现在起监听 {port} 端口。当前页面在关闭前仍可用，之后请用 http://{ip}:{port}/ 打开。",
+sy_cmdref:"常用命令速查",
+sy_cmdref_text:"系统与网络\n  version                          固件版本与编译日期\n  hostname [name]                  查看/设置交换机名                      hostname sw-1\n  ip [<addr>|dhcp]                 管理地址（dhcp 为自动获取）            ip 192.168.32.203\n  netmask <mask>                   设置子网掩码                          netmask 255.255.255.0\n  gw <addr>                        设置默认网关                          gw 192.168.32.254\n  dns server <ip> [<ip>]           设置 DNS，0.0.0.0 表示清除             dns server 192.168.32.254\n  dns lookup <name>                立即解析一个域名                      dns lookup ntp.tencent.com\n  http port <1-65535>              管理界面端口（默认 80）               http port 8000\n  passwd <text>                    修改管理密码（1-20 个字符）            passwd 1234\n  session <1-65535>                网页会话超时秒数                      session 600\n服务\n  ntp [on|off]                     开启/关闭时间同步                     ntp on\n  ntp server <name|ip>             设置 NTP 服务器                       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            时区偏移（默认 +08:00）               ntp timezone +08:00\n  ntp interval <1-1440>            同步间隔（分钟）                      ntp interval 60\n  ntp dst off|eu|us                夏令时规则                            ntp dst off\n  time                             查看本地时间与上次同步\n  syslog on|off|ip <ip>|port <n>   日志发送到 syslog 服务器              syslog ip 192.168.32.10\n交换功能\n  stat                             端口状态与计数器\n  port <n> [show|on|off]           端口开关、速率、名称、lldp            port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN 成员，t 表示 tagged              vlan 10 1 2 3t\n  pvid <port> <1-4094>             端口 PVID                             pvid 1 10\n  l2 [forget]                      查看 MAC 表，forget 清空\n  stp on|off|status ...            生成树                                stp on\n  igmp on|off|show                 IGMP 侦听                             igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        查看/设置管理 MAC\n  bw in|out|status <port> ...      端口限速                              bw in 1 off\n  mirror <port> [port]...          端口镜像                              mirror 1 2\n  history                          本次启动以来输入过的命令\n  defaults                         恢复出厂配置并重启\n\n命令立即生效；如需重启后保留，请把该行写入上面的「启动配置」。",
 sy_password:"管理员密码",sy_newpw:"新密码",sy_repeat:"重复输入",sy_pwapply:"修改密码",
 sy_pw_note:"立即生效；如需重启后保留请保存到 Flash。",sy_console:"控制台",
 sy_cmd:"CLI 命令...",sy_send:"发送",sy_startup:"启动配置",sy_replayed:"每次启动时重新执行",
@@ -800,7 +823,7 @@ var CONF_CMDS=[
   /^ip\s+(\d{1,3}\.){3}\d{1,3}$/,/^ip\s+dhcp$/,
   /^gw\s+(\d{1,3}\.){3}\d{1,3}$/,/^netmask\s+(\d{1,3}\.){3}\d{1,3}$/,
   /^syslog\s+(on|off)$/,/^syslog\s+ip\s+(\d{1,3}\.){3}\d{1,3}$/,/^syslog\s+port\s+\d{1,5}$/,
-  /^session\s+\d{1,5}$/,
+  /^session\s+\d{1,5}$/,/^http\s+port\s+\d{1,5}$/,
   /^dns\s+server\s+(\d{1,3}\.){3}\d{1,3}(\s+(\d{1,3}\.){3}\d{1,3})?$/,
   /^ntp\s+(on|off)$/,/^ntp\s+server\s+[A-Za-z0-9.-]{1,47}$/,/^ntp\s+interval\s+\d{1,4}$/,
   /^ntp\s+timezone\s+[+-]?\d{1,2}(:\d{2})?$/,/^ntp\s+dst\s+(off|eu|us)$/,
@@ -1092,11 +1115,17 @@ function renderInfo(){
     ["i_gw","ip_gateway"],["i_mac","mac_address"],["i_fw","sw_ver"],["i_built","build_date"],
     ["i_model","model"],["i_hw","hw_ver"],["i_temp","chip_temp"],["i_flash","flash_size"],["i_syslog","syslog_server"]];
   var tb=$("sysinfo");tb.innerHTML="";
+  var clock=h("tr",null,[h("td",{class:"mut",text:t("sy_now")}),
+    h("td",{class:"mono",id:"dash-time",text:ntpClock()})]);
+  var at=0,seen=0;
   m.forEach(function(r){
     var v=S.info[r[1]];
     if(v==null||v==="")return;
     tb.appendChild(h("tr",null,[h("td",{class:"mut",text:t(r[0])}),h("td",{class:"mono",text:String(v)})]));
+    seen++;
+    if(r[1]==="hostname")at=seen;		/* the clock goes directly below the name */
   });
+  tb.insertBefore(clock,tb.rows[at]||null);
   nameTab();
   if(S.info.sw_ver)$("fver").textContent="RTLPlayground "+S.info.sw_ver;
 }
@@ -1125,8 +1154,12 @@ function dashStatus(){
   });
 }
 tabHooks.dash={
-  enter:function(){statusPoller.start();pollInfo().catch(function(){})},
-  leave:function(){statusPoller.stop()},
+  enter:function(){
+    statusPoller.start();pollInfo().catch(function(){});
+    ntpLoad().catch(function(){});		/* the local time comes from the NTP client */
+    clearInterval(dashTimer);dashTimer=setInterval(dashClock,1000);dashClock();
+  },
+  leave:function(){statusPoller.stop();clearInterval(dashTimer)},
   status:dashStatus,
 };
 
@@ -2066,6 +2099,9 @@ function sysLoad(){
     if(sl[0]&&sl[0]!=="0.0.0.0")$("sy-sysip").value=sl[0];
     if(sl[1])$("sy-sysport").value=sl[1];
     if(S.info.session_timeout)$("sy-sesstmo").value=S.info.session_timeout;
+    /* fall back to the port this page was fetched over, for a firmware that
+     * does not report it */
+    $("sy-httpport").value=S.info.http_port||location.port||80;
   }).catch(function(){});
   cfgReload();
   dnsLoad();
@@ -2096,6 +2132,8 @@ $("sy-apply").addEventListener("click",function(){
   if(!okIp(ip)||!okIp(mask)||!okIp(gw)){toast(t("sy_ip_err"),"err");return;}
   var d1=$("sy-dns1").value.trim(),d2=$("sy-dns2").value.trim();
   if((d1&&!okIp(d1))||(d2&&!okIp(d2))){toast(t("sy_dns_err"),"err");return;}
+  var hport=$("sy-httpport").value.trim();
+  if(!(+hport>=1&&+hport<=65535&&/^\d+$/.test(hport))){toast(t("sy_httpport_err"),"err");return;}
   var cmds=[];
   var hn=$("sy-host").value.trim();
   if(hn&&hn!==S.info.hostname){
@@ -2104,9 +2142,23 @@ $("sy-apply").addEventListener("click",function(){
   }
   cmds.push("ip "+ip+"\nnetmask "+mask+"\ngw "+gw+"\ndns server "+(d1||"0.0.0.0")+(d2?" "+d2:""));
   var changingIp=ip!==S.info.ip_address;
-  confirmModal(t("sy_net_q"),changingIp?t("sy_net_d",{ip:ip}):"",function(){
+  var changingPort=+hport!==+(S.info.http_port||80);
+  /* last: the listener moves while this batch is still being answered */
+  if(changingPort)cmds.push("http port "+hport);
+  var note=changingIp?t("sy_net_d",{ip:ip}):"";
+  if(changingPort)note+=(note?" ":"")+t("sy_httpport_d",{ip:ip,port:hport});
+  confirmModal(t("sy_net_q"),note,function(){
     postCmds(cmds).then(function(){
-      if(changingIp)toast(t("sy_ip_changed",{ip:ip}),"ok");
+      if(changingPort){
+        /* the answer just came back on the old port; from the next request
+         * on the page has to be fetched on the new one */
+        toast(t("sy_httpport_d",{ip:ip,port:hport}),"ok");
+        setTimeout(function(){
+          location.href=location.protocol+"//"+location.hostname+":"+hport+"/";
+        },2000);
+        return;
+      }
+      if(changingIp)toast(t("sy_ip_changed",{ip:ip+(+hport===80?"":":"+hport)}),"ok");
       else sysLoad();
     }).catch(function(){});
   });
@@ -2203,8 +2255,28 @@ $("cfgreload").addEventListener("click",cfgReload);
 $("cfgwrite").addEventListener("click",function(){
   writeConfig($("cfgedit").value,t("cw_title"));
 });
-var ntpBase=null,ntpTimer=null;
+var ntpBase=null,ntpTimer=null,dashTimer=null;
 function tzText(m){var a=Math.abs(m);return(m<0?"-":"+")+String(Math.floor(a/60)).padStart(2,"0")+":"+String(a%60).padStart(2,"0")}
+/* "+08:00" -> "+8", "-05:30" -> "-5:30", for the GMT label of the local time */
+function gmtText(tz){
+  var m=/^([+-])(\d\d):(\d\d)$/.exec(tz||"");
+  if(!m)return tz||"";
+  return m[1]+String(+m[2])+(+m[3]?":"+m[3]:"");
+}
+/* Local time of the switch, taken from the last NTP answer, in the format
+ * "2026年10月14日 GMT+8 16:24:42". Without a synchronised clock there is no
+ * time to show: the switch has no battery backed clock of its own. */
+function ntpClock(){
+  if(!ntpBase)return t("sy_nosync");
+  var d=new Date(ntpBase.ms+(Date.now()-ntpBase.at));
+  function p(n){return String(n).padStart(2,"0")}
+  return d.getUTCFullYear()+"年"+(d.getUTCMonth()+1)+"月"+d.getUTCDate()+"日 GMT"+ntpBase.gmt
+    +" "+p(d.getUTCHours())+":"+p(d.getUTCMinutes())+":"+p(d.getUTCSeconds());
+}
+function dashClock(){
+  var el=$("dash-time");
+  if(el)el.textContent=ntpClock();
+}
 function ntpTick(){
   if(!ntpBase)return;
   var d=new Date(ntpBase.ms+(Date.now()-ntpBase.at));
@@ -2213,15 +2285,28 @@ function ntpTick(){
   $("sy-now").textContent=d.getUTCFullYear()+"-"+p(d.getUTCMonth()+1)+"-"+p(d.getUTCDate())+" "
     +p(d.getUTCHours())+":"+p(d.getUTCMinutes())+":"+p(d.getUTCSeconds())+" UTC"+ntpBase.tz;
 }
+function ntpWhy(s){
+  var m;
+  if(!s||s==="NTP is off")return "";
+  if(m=s.match(/^no DNS server for (.+)$/))return t("sy_ntp_nodns",{name:m[1]});
+  if(m=s.match(/^cannot resolve (.+)$/))return t("sy_ntp_resolve",{name:m[1]});
+  if(m=s.match(/^no usable answer from (.+)$/))return t("sy_ntp_noans",{ip:m[1]});
+  return t("sy_ntp_first");
+}
 function ntpLoad(){
   return api("/cmd",{method:"POST",body:"ntp"}).then(function(r){
     var m=r.body.match(/NTP (on|off), server (\S*), address ([\d.]+), interval (\d+) min, timezone ([+-]\d\d:\d\d), dst (\w+)/);
     if(!m)return;
     var x=r.body.match(/Time (\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d) UTC([+-]\d\d:\d\d)( DST)?, synchronised (\d+) min ago/);
+    var w=r.body.match(/Time not synchronised, ([^\n]+)/);
     $("sy-ntpaddr").textContent=m[3]==="0.0.0.0"?"-":m[3];
+    var why=x||m[1]==="off"?"":ntpWhy(w?w[1]:"");
+    $("sy-ntpwhy").textContent=why;
+    $("sy-ntpwhy").hidden=!why;
     if(x){
-      ntpBase={at:Date.now(),ms:Date.UTC(+x[1],+x[2]-1,+x[3],+x[4],+x[5],+x[6]),tz:x[7]+(x[8]?" DST":""),sync:+x[9]};
-      ntpTick();
+      ntpBase={at:Date.now(),ms:Date.UTC(+x[1],+x[2]-1,+x[3],+x[4],+x[5],+x[6]),tz:x[7]+(x[8]?" DST":""),
+        gmt:gmtText(x[7]),sync:+x[9]};
+      ntpTick();dashClock();
     }else{
       ntpBase=null;
       $("sy-now").textContent=t("sy_nosync");
@@ -2253,7 +2338,7 @@ tabHooks.system={
 
 var CONF_OVERWRITE=[
   /^ip\b/,/^gw\b/,/^netmask\b/,/^hostname\b/,
-  /^syslog\s+ip\b/,/^syslog\s+port\b/,/^dns\s+server\b/,/^passwd\b/,/^session\b/,
+  /^syslog\s+ip\b/,/^syslog\s+port\b/,/^dns\s+server\b/,/^passwd\b/,/^session\b/,/^http\s+port\b/,
   /^ntp\s+server\b/,/^ntp\s+interval\b/,/^ntp\s+timezone\b/,/^ntp\s+dst\b/,
   /^vlan\s+\d{1,4}\s+mgmt$/,/^vlan\s+\d{1,4}(?!\s+mgmt\b)/,
   /^pvid\s+\d{1,2}\b/,
