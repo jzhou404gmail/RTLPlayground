@@ -100,12 +100,17 @@ FILENAME_EXTENSION = $(VERSION_EXTENSION)-$(MACHINE)
 # Deterministic build date: honor SOURCE_DATE_EPOCH, else the HEAD commit date,
 # else wall-clock (no-git fallback). Keeps same-commit builds byte-identical
 # (BUILD_DATE is baked into the image and covered by the trailing CRC).
+#
+# It is the commit time, not the wall clock of the build, so a rebuild of the
+# same sources produces the same image. It is rendered in the build host's time
+# zone, so the System tab shows a date the operator reads in their own clock -
+# build in one zone (or set TZ) if two hosts have to produce identical bytes.
 SOURCE_DATE_EPOCH ?= $(shell git show -s --format=%ct HEAD 2>/dev/null)
 ifeq ($(SOURCE_DATE_EPOCH),)
 BUILD_DATE := $(shell date +"%Y-%m-%d %H:%M:%S")
 else
-BUILD_DATE := $(shell date -u -d @$(SOURCE_DATE_EPOCH) +"%Y-%m-%d %H:%M:%S" 2>/dev/null \
-	|| date -u -r $(SOURCE_DATE_EPOCH) +"%Y-%m-%d %H:%M:%S")
+BUILD_DATE := $(shell date -d @$(SOURCE_DATE_EPOCH) +"%Y-%m-%d %H:%M:%S" 2>/dev/null \
+	|| date -r $(SOURCE_DATE_EPOCH) +"%Y-%m-%d %H:%M:%S")
 endif
 
 all: create_build_dir $(VERSION_HEADER) $(SUBDIRS) $(BUILDDIR)/rtlplayground-$(FILENAME_EXTENSION).bin
