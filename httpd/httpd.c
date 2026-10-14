@@ -13,10 +13,15 @@
 
 #define SESSION_ID_LENGTH 12
 #define SESSION_TIMEOUT_DEFAULT 200
+#define HTTP_PORT_DEFAULT 80
 
 /* Seconds of inactivity after which a session cookie stops validating.
  * Configurable with the "session" command, see cmd_parser.c. */
 __xdata uint16_t session_timeout = SESSION_TIMEOUT_DEFAULT;
+
+/* TCP port the web interface listens on. Configurable with the "http port"
+ * command, see cmd_parser.c; 80 unless something else is asked for. */
+__xdata uint16_t http_port = HTTP_PORT_DEFAULT;
 
 #define CMARK_S 6
 
@@ -105,12 +110,25 @@ inline uint8_t is_separator(uint8_t c)
 void httpd_init(void) __banked
 {
 	config_upload = 0; // xdata is not zeroed by the startup code
-	// Start listening to port 80
-	uip_listen(HTONS(80));
+	// Start listening to the configured port
+	uip_listen(HTONS(http_port));
 	// Not through uip_conn: it only points at a connection while uIP is
 	// handling one, and nothing has set it yet at init time.
 	uip_conns[0].appstate.tstate = TSTATE_CLOSED;
 	fw_reset_pending = 0; // xdata is not zeroed by the startup code
+}
+
+
+/* Move the listener to another port. A connection that is already open keeps
+ * its own local port and stays usable, so the page that asked for the change
+ * still gets its answer; the browser has to reconnect on the new port. */
+void httpd_set_port(uint16_t port) __banked
+{
+	if (!port || port == http_port)
+		return;
+	uip_unlisten(HTONS(http_port));
+	http_port = port;
+	uip_listen(HTONS(http_port));
 }
 
 

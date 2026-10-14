@@ -22,4 +22,11 @@ void httpd_appcall(void);
 
 void httpd_init(void) __banked;
 
+/* TCP port the web interface listens on, and the only way to change it:
+ * uIP has to be told about the new port, so the global is not written to
+ * from anywhere else. 0 is refused, a port that is already in use is a
+ * no-op. */
+extern __xdata uint16_t http_port;
+void httpd_set_port(uint16_t port) __banked;
+
 #endif

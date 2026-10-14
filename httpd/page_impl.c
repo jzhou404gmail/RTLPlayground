@@ -284,6 +284,8 @@ void send_basic_info(void)
 	itoa16_html(syslog_state.server_port);
 	slen += strtox(outbuf + slen, "\",\"session_timeout\":");
 	itoa16_html(session_timeout);
+	slen += strtox(outbuf + slen, ",\"http_port\":");
+	itoa16_html(http_port);
 	slen += strtox(outbuf + slen, ",\"mac_address\":\"");
 	byte_to_html(uip_ethaddr.addr[0]); char_to_html(':');
 	byte_to_html(uip_ethaddr.addr[1]); char_to_html(':');

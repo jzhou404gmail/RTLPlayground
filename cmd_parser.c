@@ -1728,6 +1728,32 @@ void parse_session(void)
 }
 
 
+/* "http port <1-65535>": the TCP port the web interface listens on. The
+ * listener is moved at once, so the page that asked for it has to be
+ * reopened on the new port; a connection that is already open keeps
+ * working until it is closed. */
+void parse_http(void)
+{
+	if (cmd_words_len >= 2) {
+		if (!cmd_compare(1, "port") || cmd_words_len != 3) {
+			cmd_error("http [port <1-65535>]\n");
+			return;
+		}
+		/* atoi_short() returns zero for no digits and for a value past
+		 * 65535, and port 0 is not a port either. */
+		if (!atoi_short(cmd_words_b[2]) || !atoi_results_short) {
+			cmd_error("The HTTP port must be 1-65535\n");
+			return;
+		}
+		httpd_set_port(atoi_results_short);
+	}
+	/* Also the confirmation after setting: one message for both. */
+	print_string("HTTP port: ");
+	itoa_short(http_port);
+	write_char('\n');
+}
+
+
 // Parse command into words
 // cmd_words_len contains the number of words found.
 // cmd_words_b[] contains only start of a word offset.
@@ -2056,6 +2082,8 @@ void cmd_parser(void) __banked
 			parse_ingress();
 		} else if (cmd_compare(0, "session")) {
 			parse_session();
+		} else if (cmd_compare(0, "http")) {
+			parse_http();
 		} else if (cmd_compare(0, "lldp")) {
 			if (cmd_compare(1, "on")) {
 				print_string("LLDP enabled\n");

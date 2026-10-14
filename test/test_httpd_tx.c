@@ -492,6 +492,69 @@ static void scenario_bad_l4_checksum(void)
 	      "bad checksum control: the file that follows is intact");
 }
 
+/* uip_listenports holds HTONS(port) as the firmware computes it, and on this
+ * host harness the macro in uip.h does not always resolve to the same thing in
+ * every translation unit (uip-conf.h defines UIP_CONF_BYTE_ORDER as the bare
+ * LITTLE_ENDIAN, which the host libc may already have defined). Rather than
+ * guess, take the byte order from what httpd_init() put in the table for the
+ * default port and apply the same mapping to the port under test. */
+static uint16_t listened_80;
+static uint16_t swap16(uint16_t v) { return (uint16_t)((v << 8) | (v >> 8)); }
+static uint16_t as_listened(uint16_t port) { return listened_80 == 80 ? port : swap16(port); }
+
+static int uip_watches(uint16_t stored)
+{
+	for (int i = 0; i < UIP_LISTENPORTS; i++)
+		if (uip_listenports[i] == stored)
+			return 1;
+	return 0;
+}
+
+static int listeners(void)
+{
+	int n = 0;
+
+	for (int i = 0; i < UIP_LISTENPORTS; i++)
+		if (uip_listenports[i])
+			n++;
+	return n;
+}
+
+/* The web interface listens on 80 unless "http port" moved it, and the move
+ * has to be one uIP knows about: the old port is dropped, the new one taken,
+ * and the listener count does not grow. */
+static void scenario_http_port(void)
+{
+	int before;
+
+	session_start(MSS_FULL);	/* uip_init() + httpd_init(): the default port */
+	listened_80 = uip_listenports[0];
+	before = listeners();
+	if (verbose)
+		printf("      port 80 stored as 0x%04x\n", listened_80);
+
+	CHECK(http_port == 80, "http port: the default is 80");
+	CHECK(before == 1, "http port: init leaves exactly one listener");
+	CHECK(uip_watches(as_listened(80)), "http port: uIP listens on 80");
+
+	httpd_set_port(8000);
+
+	CHECK(http_port == 8000, "http port: the setting is kept");
+	CHECK(listeners() == before, "http port: no second listener is added");
+	CHECK(!uip_watches(as_listened(80)), "http port: 80 is no longer watched");
+	CHECK(uip_watches(as_listened(8000)), "http port: 8000 is watched");
+
+	/* port 0 is not a port: the listener must stay where it is */
+	httpd_set_port(0);
+	CHECK(http_port == 8000, "http port: 0 is refused");
+	CHECK(uip_watches(as_listened(8000)), "http port: the listener survives a bad value");
+
+	httpd_set_port(80);
+	CHECK(http_port == 80, "http port: and moves back");
+	CHECK(uip_watches(as_listened(80)), "http port: 80 is watched again");
+	CHECK(!uip_watches(as_listened(8000)), "http port: 8000 is dropped again");
+}
+
 int main(int argc, char **argv)
 {
 	if (argc > 1 && !strcmp(argv[1], "-v"))
@@ -503,6 +566,7 @@ int main(int argc, char **argv)
 	scenario_growing_window();
 	scenario_rexmit_after_shrink();
 	scenario_bad_l4_checksum();
+	scenario_http_port();
 
 	printf("\n%s (%d failure%s)\n",
 	       failures ? "BENCH: FAILURES" : "BENCH: ALL PASS",
