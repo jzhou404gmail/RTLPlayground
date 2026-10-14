@@ -8,6 +8,15 @@
 #define NTP_DST_EU	1
 #define NTP_DST_US	2
 
+/* Why there is no time yet, so "time" and the web UI can say more than
+ * "not synchronised". Set on every attempt, so it always names the last
+ * outcome. */
+#define NTP_WHY_OFF	0	/* the client is turned off */
+#define NTP_WHY_IDLE	1	/* turned on, no answer to the first attempt yet */
+#define NTP_WHY_NODNS	2	/* the server is a name and no DNS server is set */
+#define NTP_WHY_DNSFAIL	3	/* the DNS server did not answer for the name */
+#define NTP_WHY_NOANSWER 4	/* the request went out, no usable answer came back */
+
 struct uip_udp_conn;
 
 struct ntp_state {
@@ -20,6 +29,7 @@ struct ntp_state {
 	uint8_t phase;
 	uint8_t tries;
 	uint8_t synced;
+	uint8_t why;		/* NTP_WHY_* */
 	uint8_t stratum;
 	uint32_t utc;		/* seconds since 1970 UTC at the last synchronisation */
 	uint32_t at;		/* uptime seconds at the last synchronisation */

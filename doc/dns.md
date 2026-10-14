@@ -16,7 +16,10 @@ interface, run `dns` afterwards to see it.
 Without a configured server the resolver uses the one handed out by DHCP.
 Only address records are looked up; a query goes to the servers in turn,
 every two seconds, and gives up after six tries. A name that already is a
-dotted address is taken as it is, without a query.
+dotted address is taken as it is, without a query. A board that gets its
+address from neither a `dns server` line nor DHCP has nowhere to send a
+query: the NTP client then says so instead of waiting for an answer that
+cannot come.
 
 The DNS servers are set in the Network card of the System page as well.
 Settings made there or on the console are kept only once the configuration is

@@ -38,7 +38,7 @@ __xdata uint8_t  ntp_mon, ntp_mday, ntp_hour, ntp_min, ntp_sec, ntp_wday, ntp_ml
 /* days in each month of a common year */
 static __code const uint8_t ntp_mdays[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-static __code const char ntp_default_server[] = "pool.ntp.org";
+static __code const char ntp_default_server[] = "ntp.tencent.com";
 
 
 static uint32_t ntp_uptime(void) __reentrant
@@ -179,6 +179,7 @@ static void ntp_receive(void) __reentrant
 	if (ntp_state.phase != NTP_WAIT || uip_datalen() < 48)
 		return;
 	if ((p[0] & 7) != 4 || (p[0] & 0xc0) == 0xc0 || !p[1] || p[1] > 15) {
+		ntp_state.why = NTP_WHY_NOANSWER;
 		ntp_retry();
 		return;
 	}
@@ -189,6 +190,7 @@ static void ntp_receive(void) __reentrant
 	ntp_state.utc -= NTP_UNIX_EPOCH;
 	ntp_state.at = ntp_uptime();
 	ntp_state.stratum = p[1];
+	ntp_state.why = NTP_WHY_IDLE;
 	if (!ntp_state.synced) {
 		ntp_state.synced = 1;
 		print_string("NTP: time set from ");
@@ -206,10 +208,11 @@ void ntp_init(void) __banked
 		ntp_state.server[ntp_mon] = ntp_default_server[ntp_mon];
 	ntp_state.enabled = 0;
 	ntp_state.interval = 60;
-	ntp_state.offset = 0;
+	ntp_state.offset = 480;		/* UTC+8, the default time zone */
 	ntp_state.dst = NTP_DST_OFF;
 	ntp_state.phase = NTP_IDLE;
 	ntp_state.synced = 0;
+	ntp_state.why = NTP_WHY_OFF;
 	ntp_state.conn = 0;
 }
 
@@ -218,6 +221,7 @@ void ntp_start(void) __banked
 {
 	ntp_state.enabled = 1;
 	ntp_state.phase = NTP_IDLE;
+	ntp_state.why = NTP_WHY_IDLE;
 	ntp_state.next = 0;
 	ntp_state.addr[0] = ntp_state.addr[1] = ntp_state.addr[2] = ntp_state.addr[3] = 0;
 	ntp_connect(ntp_state.addr);
@@ -227,10 +231,38 @@ void ntp_start(void) __banked
 void ntp_stop(void) __banked
 {
 	ntp_state.enabled = 0;
+	ntp_state.why = NTP_WHY_OFF;
 	if (ntp_state.conn) {
 		uip_udp_remove(ntp_state.conn);
 		ntp_state.conn = 0;
 	}
+}
+
+
+static void ntp_print_why(void) __reentrant
+{
+	print_string("Time not synchronised, ");
+	switch (ntp_state.why) {
+	case NTP_WHY_NODNS:
+		print_string("no DNS server for ");
+		print_string_x(ntp_state.server);
+		break;
+	case NTP_WHY_DNSFAIL:
+		print_string("cannot resolve ");
+		print_string_x(ntp_state.server);
+		break;
+	case NTP_WHY_NOANSWER:
+		print_string("no usable answer from ");
+		print_ip(ntp_state.addr);
+		break;
+	case NTP_WHY_OFF:
+		print_string("NTP is off\n");
+		return;
+	default:
+		print_string("waiting for the first answer\n");
+		return;
+	}
+	write_char('\n');
 }
 
 
@@ -241,7 +273,7 @@ void ntp_show_time(void) __banked __reentrant
 	uint32_t t;
 
 	if (!ntp_state.synced) {
-		print_string("Time not synchronised\n");
+		ntp_print_why();
 		return;
 	}
 	t = ntp_state.utc + (ntp_uptime() - ntp_state.at);
@@ -317,6 +349,7 @@ void ntp_callback(uint16_t lport) __banked __reentrant
 		if (dns_state.status == DNS_PENDING)
 			return;
 		if (dns_state.status != DNS_DONE) {
+			ntp_state.why = dns_has_server() ? NTP_WHY_DNSFAIL : NTP_WHY_NODNS;
 			ntp_retry();
 			return;
 		}
@@ -333,9 +366,11 @@ void ntp_callback(uint16_t lport) __banked __reentrant
 	case NTP_WAIT:
 		if (ticks - ntp_state.sent < NTP_TIMEOUT)
 			return;
-		if (++ntp_state.tries < NTP_TRIES)
+		if (++ntp_state.tries < NTP_TRIES) {
 			ntp_state.phase = NTP_SEND;
-		else
+		} else {
+			ntp_state.why = NTP_WHY_NOANSWER;
 			ntp_retry();
+		}
 	}
 }

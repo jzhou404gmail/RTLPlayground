@@ -191,6 +191,16 @@ void dns_lookup(void) __banked
 }
 
 
+/* 1 if a lookup has somewhere to go: a configured server, or the one DHCP
+ * handed out. A failed lookup means "no answer" when this is 1 and "nothing
+ * to ask" when it is 0, which is what the NTP client tells the user. */
+uint8_t dns_has_server(void) __banked __reentrant
+{
+	return dns_used(dns_state.server[0]) || dns_used(dns_state.server[1])
+	       || dns_used(dhcp_state.dns);
+}
+
+
 void dns_show(void) __banked
 {
 	print_string("DNS servers ");
