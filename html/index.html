@@ -83,6 +83,10 @@ section.tab.act{display:block}
 .card h2 .hint{font-weight:400;font-size:12px;color:var(--fg2);margin-left:8px}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;align-items:start}
 .grid2 .card{margin-bottom:0}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
+.grid3 .card{margin-bottom:0}
+@media (max-width:1080px){.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:720px){.grid3{grid-template-columns:minmax(0,1fr)}}
 table.t{width:100%;border-collapse:collapse;font-size:13px}
 table.t th{
   text-align:left;font-weight:600;color:var(--fg2);font-size:12px;
@@ -393,12 +397,13 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
     </section>
 
     <section class="tab" id="tab-system">
-      <div class="grid2">
+      <div class="grid3">
         <div class="card"><h2 data-i18n="sy_network">Network</h2>
           <label class="row"><span class="lb" data-i18n="i_host">Hostname</span><input class="in" id="sy-host" maxlength="23"></label>
           <label class="row"><span class="lb" data-i18n="i_ip">IP address</span><input class="in" id="sy-ip" size="15"></label>
           <label class="row"><span class="lb" data-i18n="i_mask">Netmask</span><input class="in" id="sy-mask" size="15"></label>
           <label class="row"><span class="lb" data-i18n="i_gw">Gateway</span><input class="in" id="sy-gw" size="15"></label>
+          <label class="row"><span class="lb" data-i18n="sy_httpport">HTTP port</span><input class="in" id="sy-httpport" style="width:80px" type="number" min="1" max="65535"></label>
           <label class="row"><span class="lb" data-i18n="sy_dns1">DNS server</span><input class="in" id="sy-dns1" size="15"></label>
           <label class="row"><span class="lb" data-i18n="sy_dns2">Second DNS</span><input class="in" id="sy-dns2" size="15"></label>
           <p class="small mut" id="sy-dnsdhcp"></p>
@@ -407,19 +412,50 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
             <button class="ctl" id="sy-dhcp" data-i18n="sy_dhcp" data-i18n-t="sy_dhcp_t">Use DHCP</button>
           </div>
         </div>
-        <div class="card"><h2 data-i18n="sy_services">Services</h2>
-          <label class="row" style="justify-content:space-between"><span data-i18n="sy_igmp">IGMP snooping</span>
-            <span class="switch"><input type="checkbox" id="sy-igmp"><i></i></span></label>
-          <label class="row" style="justify-content:space-between"><span data-i18n="i_syslog">Syslog</span>
-            <span class="switch"><input type="checkbox" id="sy-syslog"><i></i></span></label>
-          <div class="row" style="display:flex;gap:8px;align-items:center;margin:-2px 0 10px">
-            <span class="small mut" data-i18n="sy_server">Server</span>
-            <input class="in" id="sy-sysip" style="flex:1;min-width:0;width:0" data-i18n-p="sy_sysip">
-            <span class="small mut" data-i18n="sy_port">Port</span>
-            <input class="in" id="sy-sysport" style="width:64px" type="number" min="1" max="65535"></div>
-          <label class="row" style="justify-content:space-between"><span data-i18n="sy_sesstmo">Session timeout (s)</span>
-            <input class="in" id="sy-sesstmo" style="width:80px" type="number" min="1" max="65535"></label>
-          <p class="small mut" data-i18n="sy_services_note">Service state reflects the startup config; runtime state is not readable.</p>
+        <div class="card" style="display:flex;flex-direction:column"><h2 data-i18n="sy_console">Console</h2>
+          <div style="display:flex;gap:8px">
+            <input class="in" id="sy-cmd" style="flex:1" data-i18n-p="sy_cmd" spellcheck="false">
+            <button class="ctl pri" id="sy-send" data-i18n="sy_send">Send</button>
+          </div>
+          <pre class="cfg" id="sy-cout" style="margin-top:10px;min-height:70px;max-height:340px;flex:1 1 auto;overflow:auto"></pre>
+          <details style="margin-top:10px">
+            <summary class="small mut" style="cursor:pointer" data-i18n="sy_cmdref">Command reference</summary>
+            <pre class="cfg" data-i18n="sy_cmdref_text" style="margin-top:8px;max-height:260px;overflow:auto">System and network
+  version                          firmware version and build date
+  hostname [name]                  show or set the switch name        hostname sw-1
+  ip [&lt;addr&gt;|dhcp]                 management address (dhcp: ask)     ip 192.168.32.203
+  netmask &lt;mask&gt;                   set the netmask                    netmask 255.255.255.0
+  gw &lt;addr&gt;                        set the default gateway            gw 192.168.32.254
+  dns server &lt;ip&gt; [&lt;ip&gt;]           DNS servers, 0.0.0.0 clears them   dns server 192.168.32.254
+  dns lookup &lt;name&gt;                resolve a name now                 dns lookup ntp.tencent.com
+  http port &lt;1-65535&gt;              web interface port (default 80)    http port 8000
+  passwd &lt;text&gt;                    admin password, 1-20 characters    passwd 1234
+  session &lt;1-65535&gt;                web session timeout in seconds     session 600
+Services
+  ntp [on|off]                     start or stop the time client      ntp on
+  ntp server &lt;name|ip&gt;             NTP server (ntp.tencent.com)       ntp server ntp.tencent.com
+  ntp timezone &lt;+hh:mm&gt;            offset from UTC (default +08:00)   ntp timezone +08:00
+  ntp interval &lt;1-1440&gt;            minutes between syncs              ntp interval 60
+  ntp dst off|eu|us                daylight saving rule               ntp dst off
+  time                             local time and the last sync
+  syslog on|off|ip &lt;ip&gt;|port &lt;n&gt;   send the log to a syslog server    syslog ip 192.168.32.10
+Switching
+  stat                             port state and counters
+  port &lt;n&gt; [show|on|off]           port state, speed, name, lldp      port 1 off
+  vlan (&lt;vid&gt;|show) [port][t]...   VLAN membership, t = tagged        vlan 10 1 2 3t
+  pvid &lt;port&gt; &lt;1-4094&gt;             port VLAN ID                       pvid 1 10
+  l2 [forget]                      show the MAC table, or flush it
+  stp on|off|status ...            spanning tree                      stp on
+  igmp on|off|show                 IGMP snooping                      igmp on
+  mac [&lt;aa:bb:cc:dd:ee:ff&gt;]        show or set the management MAC
+  bw in|out|status &lt;port&gt; ...      bandwidth limits                   bw in 1 off
+  mirror &lt;port&gt; [port]...          port mirroring                     mirror 1 2
+  history                          the commands typed since the boot
+  defaults                         factory configuration, then reboot
+
+Settings apply at once. To keep them across a reboot, write the line into the
+startup configuration.</pre>
+          </details>
         </div>
         <div class="card" id="sy-ntpcard"><h2 data-i18n="sy_time">Time</h2>
           <label class="row" style="justify-content:space-between"><span data-i18n="sy_ntp">NTP</span>
@@ -435,6 +471,7 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
           <label class="row" style="margin-top:10px"><span class="lb" data-i18n="sy_now">Local time</span><span class="mono" id="sy-now">-</span></label>
           <label class="row"><span class="lb" data-i18n="sy_sync">Last synchronisation</span><span id="sy-sync">-</span></label>
           <label class="row"><span class="lb" data-i18n="sy_ntpaddr">Server address</span><span class="mono" id="sy-ntpaddr">-</span></label>
+          <p class="small mut" id="sy-ntpwhy" style="margin-top:8px" hidden></p>
           <p class="small mut" style="margin-top:8px" data-i18n="sy_time_note">The switch has no battery backed clock.</p>
         </div>
         <div class="card"><h2 data-i18n="sy_password">Admin password</h2>
@@ -443,12 +480,19 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
           <button class="ctl pri" id="sy-pwapply" style="margin-top:8px" data-i18n="sy_pwapply">Change password</button>
           <p class="small mut" style="margin-top:8px" data-i18n="sy_pw_note">Takes effect immediately; save to flash to keep it after reboot.</p>
         </div>
-        <div class="card"><h2 data-i18n="sy_console">Console</h2>
-          <div style="display:flex;gap:8px">
-            <input class="in" id="sy-cmd" style="flex:1" data-i18n-p="sy_cmd" spellcheck="false">
-            <button class="ctl pri" id="sy-send" data-i18n="sy_send">Send</button>
-          </div>
-          <pre class="cfg" id="sy-cout" style="margin-top:10px;min-height:70px;max-height:180px;overflow:auto"></pre>
+        <div class="card"><h2 data-i18n="sy_services">Services</h2>
+          <label class="row" style="justify-content:space-between"><span data-i18n="sy_igmp">IGMP snooping</span>
+            <span class="switch"><input type="checkbox" id="sy-igmp"><i></i></span></label>
+          <label class="row" style="justify-content:space-between"><span data-i18n="i_syslog">Syslog</span>
+            <span class="switch"><input type="checkbox" id="sy-syslog"><i></i></span></label>
+          <div class="row" style="display:flex;gap:8px;align-items:center;margin:-2px 0 10px">
+            <span class="small mut" data-i18n="sy_server">Server</span>
+            <input class="in" id="sy-sysip" style="flex:1;min-width:0;width:0" data-i18n-p="sy_sysip">
+            <span class="small mut" data-i18n="sy_port">Port</span>
+            <input class="in" id="sy-sysport" style="width:64px" type="number" min="1" max="65535"></div>
+          <label class="row" style="justify-content:space-between"><span data-i18n="sy_sesstmo">Session timeout (s)</span>
+            <input class="in" id="sy-sesstmo" style="width:80px" type="number" min="1" max="65535"></label>
+          <p class="small mut" data-i18n="sy_services_note">Service state reflects the startup config; runtime state is not readable.</p>
         </div>
         <div class="card"><h2 data-i18n="sy_display">Display</h2>
           <label class="row"><span class="lb" data-i18n="sy_lang">Language</span>
