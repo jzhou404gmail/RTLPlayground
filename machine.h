@@ -42,6 +42,8 @@
 // #define MACHINE_LIANGUO_ZX_SWTGW215AS
 // #define MACHINE_ZX310S_4T2XH
 // #define MACHINE_ZX310S_4T2XT
+// IG204 4+2 on the PB-2131 PCB: 4 x 2.5GBASE-T + 2 x SFP+, RTL8372, stock
+// 4 MiB cFeon EN25QE32A. doc/devices/STEAMEMO_IG204_V1.md
 // #define MACHINE_STEAMEMO_IG204_V1
 // #define MACHINE_DEFAULT_8C_1SFP
 // #define MACHINE_HI_K0801WS
@@ -65,6 +67,9 @@
 // #define MACHINE_HASIVO_S600W_4GT_2XGT_SE
 // #define MACHINE_HASIVO_S1100WP_8GT_1SX_SE
 // #define MACHINE_F7008_2_5
+// NPA AP-7024-2.5G on the F7005-2.5GPOE-V1.0 PCB: 4 x 2.5GBASE-T + 2 x SFP+,
+// 512 KiB BrightMoon T25S40 flash. doc/devices/F7005-2.5GPOE-V1.0.md
+// #define MACHINE_F7005_2_5
 // XikeStor SKS3200M-5GPY1XF: 5 x 2.5GBASE-T + 1 x 10G SFP+ on
 // PCB-SWTG115AS-V2.1, i.e. the ZX-SWTGW215AS board. doc/devices/SKS3200M-5GPY1XF.md
 // #define MACHINE_SKS3200M_5GPY1XF
@@ -121,6 +126,15 @@ struct machine {
 	uint8_t led_mux_custom;
 	uint8_t led_mux[28];
 	uint32_t mac_flash_offset;
+	// GPIO of a front-panel "VLAN" slide switch, 0 when the board has none
+	// (GPIO0 is an LED pad and never a switch). The firmware reads it and
+	// isolates the non-SFP ports from each other while the switch is on, see
+	// vlan_switch_poll() in rtl837x_pins.c.
+	uint8_t vlan_switch_pin;
+	// Idle state of the SYS LED: 0 keeps it steady on (the default), 1 makes
+	// it blink slowly. The PB-2131 manual asks for "SYS slow blink = the
+	// device works normally", other boards' panels want a steady lamp.
+	uint8_t sys_led_blink_idle;
 };
 
 struct machine_runtime

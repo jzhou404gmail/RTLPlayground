@@ -771,8 +771,29 @@ __code const struct machine machine = {
 };
 
 #elif defined MACHINE_STEAMEMO_IG204_V1
+/*
+ * IG204 4+2 on the PB-2131 PCB (RTL8372): 4 x 2.5GBASE-T + 2 x SFP+,
+ * silkscreen "PB-2131" / label "IG204 V1", console header T7 (115200 8N1),
+ * stock 4 MiB cFeon EN25QE32A. doc/devices/STEAMEMO_IG204_V1.md
+ *
+ * The two cages cross over in the logical numbering like on the other 4 + 2
+ * boards: the left cage is physical port 5 / logical 8 / SerDes 1 and the
+ * right one physical port 6 / logical 3 / SerDes 0. Verified on the unit with
+ * `port <n> show`.
+ *
+ * SFP pins were checked on 2026-10-29 by inserting one module at a time and by
+ * poking the I2C controller over the console: GPIO30 goes low when a module is
+ * inserted into the left cage and GPIO50 when one goes into the right cage;
+ * the EEPROMs answer on SDA4/SCL3 (GPIO39/40, left) and SDA3/SCL3
+ * (GPIO41/40, right). Both cages link at 10G with 10G modules.
+ *
+ * Named like the other multi-brand targets: .machine_name is the board
+ * revision (shown as "Hardware") and .model_name the label on the unit
+ * ("Model"), because the same PB-2131 board is sold under several brands.
+ */
 __code const struct machine machine = {
-	.machine_name = "Steamemo IG204 V1",
+	.machine_name = "PB-2131",
+	.model_name = "IG204 V1",
 	.isRTL8373 = 0,
 	.min_port = 3,
 	.max_port = 8,
@@ -780,15 +801,13 @@ __code const struct machine machine = {
 	.log_to_phys_port = {0, 0, 0, 6, 1, 2, 3, 4, 5},
 	.phys_to_log_port = {4, 5, 6, 7, 8, 3, 0, 0, 0},
 	.is_sfp = {0, 0, 0, 2, 0, 0, 0, 0, 1},
-	// Left SFP port (5)
-	// LED pin 9
+	// Left SFP port (physical 5, logical 8). Lamp on LED pad 9.
 	.sfp_port[0].pin_detect = GPIO30_ACL_BIT3_EN,
 	.sfp_port[0].pin_los = GPIO37,
 	.sfp_port[0].pin_tx_disable = GPIO_NA,
 	.sfp_port[0].sds = 1,
 	.sfp_port[0].i2c = I2CBUS( GPIO39_I2C_SDA4, GPIO40_I2C_SCL3_MDC1 ),
-	// Right SFP port (6)
-	// LED pin 24
+	// Right SFP port (physical 6, logical 3). Lamp on LED pad 24.
 	.sfp_port[1].pin_detect = GPIO50_I2C_SCL2_UART1_TX,
 	.sfp_port[1].pin_los = GPIO51_I2C_SDA2_UART1_RX,
 	.sfp_port[1].pin_tx_disable = GPIO_NA,
@@ -796,13 +815,24 @@ __code const struct machine machine = {
 	.sfp_port[1].i2c = I2CBUS( GPIO41_I2C_SDA3_MDIO1, GPIO40_I2C_SCL3_MDC1 ),
 	.reset_pin = GPIO_NA,
 	.high_leds = { .mux =  LED_27 | LED_28_SYS | LED_29, .enable = LED_28_SYS | LED_29 },
+	/* Copper ports use SET0 with three pads each: slot 0 (amber, 2.5G),
+	 * slot 1 (green, 1G/100M/10M) and a third pad the panel does not use.
+	 * Both cages use SET1 and light at any speed. Verified on the unit:
+	 * 2.5G = amber, and forcing the same port to 1G switches it to green.
+	 */
 	.port_led_set = { 0, 0, 0, 1, 0, 0, 0, 0, 1},
 	.led_sets = {
 			{
-				// RJ45 Amber LED (left)
-				LEDS_2G5 | LEDS_LINK,
-				// RJ45 Green LED (Right)
-				LEDS_2G5 | LEDS_1G | LEDS_100M | LEDS_10M | LEDS_LINK | LEDS_ACT,
+				/* RJ45 Amber LED: link at 2.5G, blinking while data
+				 * flows. LEDS_ACT is required for the blink: without
+				 * it the lamp stays solid during traffic, which is
+				 * what the panel did. The other boards of this
+				 * family (SWTG024AS, Hi-K0801WS) set it too, and
+				 * the manual lists "闪烁:数据传输中" for the port
+				 * lamp. */
+				LEDS_2G5 | LEDS_LINK | LEDS_ACT,
+				// RJ45 Green LED: 1G/100M/10M and blink on activity
+				LEDS_1G | LEDS_100M | LEDS_10M | LEDS_LINK | LEDS_ACT,
 				0,
 				0,
 			},
@@ -815,9 +845,20 @@ __code const struct machine machine = {
 			},
 		},
 	.led_mux_custom = 1,
+	/* Pads 0-7 are not wired to a lamp. They are pointed at 0x02, a signal
+	 * this board never produces, instead of being left at 0x3f: a floating
+	 * pad lights its lamp on boards whose lamp is pulled down.
+	 */
 	.led_mux = {
-		0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x0f, 0x20, 0x0d, 0x0e, 0x10, 0x11, 0x12, 0x14, 0x15, 0x16, 0x18, 0x19, 0x1a, 0x1c, 0x1d, 0x1e, 0x0c, 0x21, 0x22, 0x23
+		0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x0f, 0x20, 0x0d, 0x0e, 0x10, 0x11, 0x12, 0x14, 0x15, 0x16, 0x18, 0x19, 0x1a, 0x1c, 0x1d, 0x1e, 0x0c, 0x21, 0x22, 0x23
 	},
+	/* The front-panel "VLAN ON/OFF" slide switch (left of the SYS LED) sits
+	 * on GPIO36 and reads 1 when it is on, 0 when it is off (measured on the
+	 * unit 2026-10-29). Note that PIN_MUX_1 bit 30 has to stay set for the
+	 * pin level to reach the input register; gpio_input_setup() sets it. */
+	.vlan_switch_pin = GPIO36_PWM_OUT,
+	/* The manual: "SYS 慢闪 = the device works normally". */
+	.sys_led_blink_idle = 1,
 };
 
 #elif defined MACHINE_HI_K0801WS
@@ -1725,6 +1766,137 @@ __code const struct machine machine = {
 				  },
 				},
 };
+#elif defined MACHINE_F7005_2_5
+/*
+ * NPA AP-7024-2.5G on the F7005-2.5GPOE-V1.0 PCB: 4 x 2.5GBASE-T +
+ * 2 x SFP+ (1G/2.5G/10G), unmanaged, 512 KiB BrightMoon T25S40 SPI NOR,
+ * DC 12 V 1 A, 132 x 84 x 29 mm. The retail label says 型号 AP-7024-2.5G
+ * and 端口 4*2.5G RJ45 2*10G SFP; the PCB silkscreen is
+ * F7005-2.5GPOE-V1.0. doc/devices/F7005-2.5GPOE-V1.0.md
+ *
+ * The SoC is under the heatsink. The stock firmware is the same unmanaged
+ * Realtek reference/diag firmware family as on the other non-managed boards:
+ * it boots at 9600 8N1 to a "RTL8371B:" prompt (the SDK's name for this
+ * silicon generation, not a separate part), has no web interface, and its
+ * `dump` command answers for chip 3 (SDS0 and SDS1) while chip 4 (the
+ * external RTL8224) stays silent. That is the 4-PHY + 2-SerDes profile, so
+ * this target sets .isRTL8373 = 0 like the other 4 + 2 boards. Confirm with
+ * `regget 0004` after the first boot: 0x83720000 is expected.
+ *
+ * Port numbering follows the 4 + 2 reference layout: front RJ45 1-4 are
+ * physical 1-4 (logical 4-7), the left cage is physical 5 (logical 8,
+ * SerDes 1) and the right cage physical 6 (logical 3, SerDes 0). This board
+ * does NOT use the reference SFP detect pins: with the cages empty and then
+ * one module inserted at a time, GPIO38 goes low when the left module is
+ * inserted and GPIO37 when the right one is, so .pin_detect is GPIO38 (left)
+ * and GPIO37 (right). GPIO34 also changes with the left module and is left
+ * for a TX_DISABLE/LOS experiment; LOS is not mapped yet. The module EEPROMs
+ * are still on the inherited SDA4+SCL3 (left) and SDA3+SCL3 (right) pins
+ * until an `sfp` read proves otherwise.
+ *
+ * The LED pad map below was measured on the board, one pad group at a time,
+ * with the link on RJ45 2 (logical 5) driving signal 0x14. The front panel's
+ * port LEDs are bi-colour: the green 2.5G side and the orange 1000/100M side
+ * of each port sit on different pads. Measured groups:
+ *
+ *   SFP2 (logical 3):   pads 0-1
+ *   RJ45 1 (logical 4): green pad 3,  orange pads 4-5
+ *   RJ45 2 (logical 5): green pad 6,  orange pad 8
+ *   RJ45 3 (logical 6): green pads 9-10, orange pads 12-14
+ *   RJ45 4 (logical 7): green pads 18-20, orange pads 21-23
+ *   SFP1 (logical 8):   pads 24-27
+ *
+ * Pads 2, 7, 11 and 15-17 drive nothing measurable and are pointed at 0x02
+ * (a signal that is never true) instead of 0x3f: a floating pad lights its
+ * lamp. The RTL8372 reset value of LED_GLB_IO_EN disables pads 0-7, so
+ * machine_custom_init() enables them; without that the whole panel is dark.
+ *
+ * The board has no reset button and no footprint for one, so the configuration
+ * built into the image is restored from the web UI or with `defaults`.
+ */
+__code const struct machine machine = {
+	.machine_name = "F7005-2.5GPOE-V1.0",
+	.model_name = "NPA AP-7024-2.5G",
+	.isRTL8373 = 0,
+	.min_port = 3,
+	.max_port = 8,
+	.n_sfp = 2,
+	.log_to_phys_port = {0, 0, 0, 6, 1, 2, 3, 4, 5},
+	.phys_to_log_port = {4, 5, 6, 7, 8, 3, 0, 0, 0},
+	.is_sfp = {0, 0, 0, 2, 0, 0, 0, 0, 1},
+
+	/* Left cage (logical 8, SDS1). Detect measured: GPIO38 goes low.
+	 * GPIO34 also goes low on insertion; it is not mapped yet because the
+	 * header has no GPIO34 alias. If the module is detected but never
+	 * links, come back and try GPIO34 as TX_DISABLE/RX_LOS.
+	 *
+	 * The module EEPROM is NOT on the reference SDA4/SCL3 pins: a direct
+	 * I2C read with the controller routed to SDA1/SCL1 returned the SFP
+	 * identifier 0x03 and Encoding 0x06 / Rate 0x67 (10G). So SFP1 uses
+	 * GPIO49=SDA1, GPIO48=SCL1. */
+	.sfp_port[0].pin_detect = GPIO38,
+	.sfp_port[0].pin_los = GPIO_NA,
+	.sfp_port[0].pin_tx_disable = GPIO_NA,
+	.sfp_port[0].sds = 1,
+	.sfp_port[0].i2c = I2CBUS( GPIO49_I2C_SDA1, GPIO48_I2C_SCL1 ),
+
+	/* Right cage (logical 3, SDS0). Detect measured: GPIO37 goes low.
+	 * Its EEPROM was measured on SDA0/SCL0 (GPIO47/46): a direct I2C read
+	 * returned 0x03, Encoding 0x06 / Rate 0x67 for the same 10G module. */
+	.sfp_port[1].pin_detect = GPIO37,
+	.sfp_port[1].pin_los = GPIO_NA,
+	.sfp_port[1].pin_tx_disable = GPIO_NA,
+	.sfp_port[1].sds = 0,
+	.sfp_port[1].i2c = I2CBUS( GPIO47_I2C_SDA0, GPIO46_I2C_SCL0 ),
+
+	.reset_pin = GPIO_NA,
+
+	/* The panel has a PWR lamp; whether the SoC drives it is not measured. */
+	.high_leds = { .mux = LED_27 | LED_28_SYS | LED_29, .enable = LED_28_SYS | LED_29 },
+
+	/* Copper ports use SET0, both cages SET1. */
+	.port_led_set = {0, 0, 0, 1, 0, 0, 0, 0, 1},
+
+	/* Front panel: 2.5G = green, 1000/100M = yellow. Slot 0 carries the
+	 * 2.5G lamp and LEDS_ACT so that it blinks while data flows; the same
+	 * bit was missing here as on the IG204 and left the lamp solid. */
+	.led_sets = {
+		{	/* SET0: copper */
+			LEDS_2G5 | LEDS_LINK | LEDS_ACT,
+			0,
+			LEDS_1G | LEDS_100M | LEDS_10M | LEDS_LINK | LEDS_ACT,
+			0
+		},
+		{	/* SET1: SFP, one lamp per cage, lit at any speed */
+			LEDS_10G | LEDS_5G | LEDS_2G5 | LEDS_1G | LEDS_LINK | LEDS_ACT,
+			0,
+			0, 0
+		},
+	},
+
+	.led_mux_custom = 1,
+	.led_mux = {
+		/* 0-2: SFP2 (right cage, logical 3) */
+		0x0c, 0x0c, 0x02,
+		/* 3-5: RJ45 1 (logical 4), green then orange */
+		0x10, 0x12, 0x12,
+		/* 6-8: RJ45 2 (logical 5), green then orange */
+		0x14, 0x02, 0x16,
+		/* 9-11: RJ45 3 green, 11 unused */
+		0x18, 0x18, 0x02,
+		/* 12-14: RJ45 3 orange */
+		0x1a, 0x1a, 0x1a,
+		/* 15-17: unused */
+		0x02, 0x02, 0x02,
+		/* 18-20: RJ45 4 green */
+		0x1c, 0x1c, 0x1c,
+		/* 21-23: RJ45 4 orange */
+		0x1e, 0x1e, 0x1e,
+		/* 24-27: SFP1 (left cage, logical 8) */
+		0x20, 0x20, 0x20, 0x20
+	},
+};
+
 #elif defined MACHINE_F7008_2_5
 __code const struct machine machine = {
 	.machine_name = "F7008-2.5 8+1 SFP Port Switch",
