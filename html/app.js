@@ -12,7 +12,13 @@ c_port:"Port",c_name:"Name",c_link:"Link",c_apply:"Apply",c_cancel:"Cancel",c_co
 c_close:"Close",c_refresh:"Refresh",c_off:"off",c_offc:"Off",c_down:"down",c_on:"On",c_auto:"Auto",c_delete:"Delete",
 c_type:"Type",c_state:"State",c_enabled:"Enabled",c_load:"Load",c_disable:"Disable",c_sfp:"SFP",
 c_full:"full",c_half:"half",c_devices:"devices",c_yes:"yes",c_no:"no",
-d_ports:"Ports",d_ports_h:"click a port for details",d_system:"System",d_traffic:"Traffic",
+d_ports:"Ports",d_ports_h:"click a port for details",d_vlan:"VLAN panel switch settings",d_vlan_h:"panel",
+d_vlan_on:"LAN ports are isolated and can only reach the SFP+ cages (no effect while \"Use VLAN panel switch\" below is off)",d_vlan_off:"All ports can talk to each other (no effect while \"Use VLAN panel switch\" below is off)",
+d_vlan_phys:"VLAN panel switch",d_vlan_en:"Use VLAN panel switch",
+d_vlan_en_on:"The VLAN panel switch is in effect: the LAN ports are isolated",d_vlan_en_off:"The VLAN panel switch is ignored; set the LAN ports' VLAN function and state on the VLAN page",
+vlan_warn:"\"Use VLAN panel switch\" is on: the panel switch owns the LAN ports' VLANs and isolation. The settings below are read-only - turn the function off on the dashboard to configure VLANs here.",
+mirror_warn:"\"Use VLAN panel switch\" is on: the panel switch owns the LAN ports. The settings below are read-only - turn the function off on the dashboard to configure mirroring here.",
+d_system:"System",d_traffic:"Traffic",
 d_traffic_h:"packets/s, live",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX bad",d_rxbad:"RX bad",
 i_host:"Hostname",i_ip:"IP address",i_mask:"Netmask",i_gw:"Gateway",i_mac:"MAC",i_fw:"Firmware",
 i_built:"Built",i_model:"Model",i_hw:"Hardware",i_temp:"Temperature",i_flash:"Flash",i_syslog:"Syslog",
@@ -105,7 +111,7 @@ sy_httpport:"HTTP port",sy_httpport_err:"The HTTP port must be 1-65535",
 sy_httpport_q:"Change the HTTP port?",
 sy_httpport_d:"The web interface listens on port {port} from now on. This page stays open until it is closed; reopen it at http://{ip}:{port}/",
 sy_cmdref:"Command reference",
-sy_cmdref_text:"System and network\n  version                          firmware version and build date\n  hostname [name]                  show or set the switch name        hostname sw-1\n  ip [<addr>|dhcp]                 management address (dhcp: ask)     ip 192.168.32.203\n  netmask <mask>                   set the netmask                    netmask 255.255.255.0\n  gw <addr>                        set the default gateway            gw 192.168.32.254\n  dns server <ip> [<ip>]           DNS servers, 0.0.0.0 clears them   dns server 192.168.32.254\n  dns lookup <name>                resolve a name now                 dns lookup ntp.tencent.com\n  http port <1-65535>              web interface port (default 80)    http port 8000\n  passwd <text>                    admin password, 1-20 characters    passwd 1234\n  session <1-65535>                web session timeout in seconds     session 600\nServices\n  ntp [on|off]                     start or stop the time client      ntp on\n  ntp server <name|ip>             NTP server (ntp.tencent.com)       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            offset from UTC (default +08:00)   ntp timezone +08:00\n  ntp interval <1-1440>            minutes between syncs              ntp interval 60\n  ntp dst off|eu|us                daylight saving rule               ntp dst off\n  time                             local time and the last sync\n  syslog on|off|ip <ip>|port <n>   send the log to a syslog server    syslog ip 192.168.32.10\nSwitching\n  stat                             port state and counters\n  port <n> [show|on|off]           port state, speed, name, lldp      port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN membership, t = tagged        vlan 10 1 2 3t\n  pvid <port> <1-4094>             port VLAN ID                       pvid 1 10\n  l2 [forget]                      show the MAC table, or flush it\n  stp on|off|status ...            spanning tree                      stp on\n  igmp on|off|show                 IGMP snooping                      igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        show or set the management MAC\n  bw in|out|status <port> ...      bandwidth limits                   bw in 1 off\n  mirror <port> [port]...          port mirroring                     mirror 1 2\n  history                          the commands typed since the boot\n  defaults                         factory configuration, then reboot\n\nSettings apply at once. To keep them across a reboot, write the line into the\nstartup configuration.",
+sy_cmdref_text:"System and network\n  version                          firmware version and build date\n  hostname [name]                  show or set the switch name        hostname sw-1\n  ip [<addr>|dhcp]                 management address (dhcp: ask)     ip 192.168.32.203\n  netmask <mask>                   set the netmask                    netmask 255.255.255.0\n  gw <addr>                        set the default gateway            gw 192.168.32.254\n  dns server <ip> [<ip>]           DNS servers, 0.0.0.0 clears them   dns server 192.168.32.254\n  dns lookup <name>                resolve a name now                 dns lookup ntp.tencent.com\n  http port <1-65535>              web interface port (default 80)    http port 8000\n  passwd <text>                    admin password, 1-20 characters    passwd 1234\n  session <1-65535>                web session timeout in seconds     session 600\nServices\n  ntp [on|off]                     start or stop the time client      ntp on\n  ntp server <name|ip>             NTP server (ntp.tencent.com)       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            offset from UTC (default +08:00)   ntp timezone +08:00\n  ntp interval <1-1440>            minutes between syncs              ntp interval 60\n  ntp dst off|eu|us                daylight saving rule               ntp dst off\n  time                             local time and the last sync\n  syslog on|off|ip <ip>|port <n>   send the log to a syslog server    syslog ip 192.168.32.10\nSwitching\n  stat                             port state and counters\n  port <n> [show|on|off]           port state, speed, name, lldp      port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN membership, t = tagged        vlan 10 1 2 3t\n  vlan switch [on|off]             front-panel VLAN switch function   vlan switch off\n  pvid <port> <1-4094>             port VLAN ID                       pvid 1 10\n  l2 [forget]                      show the MAC table, or flush it\n  stp on|off|status ...            spanning tree                      stp on\n  igmp on|off|show                 IGMP snooping                      igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        show or set the management MAC\n  bw in|out|status <port> ...      bandwidth limits                   bw in 1 off\n  mirror <port> [port]...          port mirroring                     mirror 1 2\n  history                          the commands typed since the boot\n  defaults                         factory configuration, then reboot\n\nSettings apply at once. To keep them across a reboot, write the line into the\nstartup configuration.",
 sy_sysport_err:"Syslog port must be 1-65535",
 sy_pw_len:"Password: 1-20 characters",sy_pw_space:"Password cannot contain spaces",sy_pw_match:"Passwords do not match",
 sy_pw_q:"Change admin password?",sy_pw_d:"Takes effect immediately for new logins. Save to flash to persist.",
@@ -150,7 +156,13 @@ c_port:"ポート",c_name:"名前",c_link:"リンク",c_apply:"適用",c_cancel:
 c_close:"閉じる",c_refresh:"更新",c_off:"オフ",c_offc:"オフ",c_down:"リンクダウン",c_on:"オン",c_auto:"自動",c_delete:"削除",
 c_type:"タイプ",c_state:"状態",c_enabled:"有効",c_load:"読み込み",c_disable:"無効化",c_sfp:"SFP",
 c_full:"全二重",c_half:"半二重",c_devices:"デバイス",c_yes:"はい",c_no:"いいえ",
-d_ports:"ポート",d_ports_h:"ポートをクリックすると詳細を表示",d_system:"システム",d_traffic:"トラフィック",
+d_ports:"ポート",d_ports_h:"ポートをクリックすると詳細を表示",d_vlan:"VLANパネルスイッチ設定",d_vlan_h:"パネル",
+d_vlan_on:"LANポートは相互に分離され、SFP+ポートのみと通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）",d_vlan_off:"すべてのポートが相互に通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）",
+d_vlan_phys:"VLANパネルスイッチ",d_vlan_en:"VLANパネルスイッチを有効にする",
+d_vlan_en_on:"VLANパネルスイッチが有効です：LANポートは相互に分離されます",d_vlan_en_off:"VLANパネルスイッチは無効です。VLAN設定ページでLANポートのVLAN機能を設定してください",
+vlan_warn:"「VLANパネルスイッチを有効にする」がオンです：LANポートのVLANと分離はパネルのスイッチが担当します。以下の設定は参照のみです。ここでVLANを設定するにはダッシュボードで機能をオフにしてください。",
+mirror_warn:"「VLANパネルスイッチを有効にする」がオンです：LANポートはパネルのスイッチが担当します。以下の設定は参照のみです。ミラーを設定するにはダッシュボードで機能をオフにしてください。",
+d_system:"システム",d_traffic:"トラフィック",
 d_traffic_h:"パケット/秒、リアルタイム",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 異常",d_rxbad:"RX 異常",
 i_host:"ホスト名",i_ip:"IP アドレス",i_mask:"ネットマスク",i_gw:"ゲートウェイ",i_mac:"MAC",i_fw:"ファームウェア",
 i_built:"ビルド日",i_model:"モデル",i_hw:"ハードウェア",i_temp:"温度",i_flash:"フラッシュ",i_syslog:"Syslog",
@@ -264,7 +276,13 @@ c_port:"端口",c_name:"名称",c_link:"链路",c_apply:"应用",c_cancel:"取�
 c_close:"关闭",c_refresh:"刷新",c_off:"关",c_offc:"关",c_down:"未连接",c_on:"开",c_auto:"自动",c_delete:"删除",
 c_type:"类型",c_state:"状态",c_enabled:"启用",c_load:"读取",c_disable:"禁用",c_sfp:"SFP",
 c_full:"全双工",c_half:"半双工",c_devices:"台设备",c_yes:"是",c_no:"否",
-d_ports:"端口",d_ports_h:"点击端口查看详情",d_system:"系统",d_traffic:"流量",
+d_ports:"端口",d_ports_h:"点击端口查看详情",d_vlan:"VLAN物理拨刀开关设置",d_vlan_h:"面板",
+d_vlan_on:"LAN口互相隔离，只能访问SFP+光口（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）",d_vlan_off:"所有端口可自由互通（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）",
+d_vlan_phys:"VLAN面板开关",d_vlan_en:"启用VLAN面板开关",
+d_vlan_en_on:"VLAN物理拨刀开关生效，LAN口互相隔离",d_vlan_en_off:"VLAN物理拨刀开关失效，请在VLAN设置页面设置LAN口的VLAN功能和状态",
+vlan_warn:"「启用VLAN面板开关」已开启：LAN 口的 VLAN 与隔离由面板拨刀接管。以下设置只读、仅供查看；如需在网页中配置 VLAN，请先在仪表盘关闭该开关。",
+mirror_warn:"「启用VLAN面板开关」已开启：端口镜像由面板拨刀接管。以下设置只读、仅供查看；如需配置端口镜像，请先在仪表盘关闭该开关。",
+d_system:"系统",d_traffic:"流量",
 d_traffic_h:"包/秒，实时",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 错误",d_rxbad:"RX 错误",
 i_host:"主机名",i_ip:"IP 地址",i_mask:"子网掩码",i_gw:"网关",i_mac:"MAC",i_fw:"固件",
 i_built:"构建日期",i_model:"型号",i_hw:"硬件",i_temp:"温度",i_flash:"Flash",i_syslog:"Syslog",
@@ -339,7 +357,7 @@ sy_httpport:"HTTP 端口",sy_httpport_err:"HTTP 端口必须为 1-65535",
 sy_httpport_q:"修改 HTTP 端口?",
 sy_httpport_d:"管理界面从现在起监听 {port} 端口。当前页面在关闭前仍可用，之后请用 http://{ip}:{port}/ 打开。",
 sy_cmdref:"常用命令速查",
-sy_cmdref_text:"系统与网络\n  version                          固件版本与编译日期\n  hostname [name]                  查看/设置交换机名                      hostname sw-1\n  ip [<addr>|dhcp]                 管理地址（dhcp 为自动获取）            ip 192.168.32.203\n  netmask <mask>                   设置子网掩码                          netmask 255.255.255.0\n  gw <addr>                        设置默认网关                          gw 192.168.32.254\n  dns server <ip> [<ip>]           设置 DNS，0.0.0.0 表示清除             dns server 192.168.32.254\n  dns lookup <name>                立即解析一个域名                      dns lookup ntp.tencent.com\n  http port <1-65535>              管理界面端口（默认 80）               http port 8000\n  passwd <text>                    修改管理密码（1-20 个字符）            passwd 1234\n  session <1-65535>                网页会话超时秒数                      session 600\n服务\n  ntp [on|off]                     开启/关闭时间同步                     ntp on\n  ntp server <name|ip>             设置 NTP 服务器                       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            时区偏移（默认 +08:00）               ntp timezone +08:00\n  ntp interval <1-1440>            同步间隔（分钟）                      ntp interval 60\n  ntp dst off|eu|us                夏令时规则                            ntp dst off\n  time                             查看本地时间与上次同步\n  syslog on|off|ip <ip>|port <n>   日志发送到 syslog 服务器              syslog ip 192.168.32.10\n交换功能\n  stat                             端口状态与计数器\n  port <n> [show|on|off]           端口开关、速率、名称、lldp            port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN 成员，t 表示 tagged              vlan 10 1 2 3t\n  pvid <port> <1-4094>             端口 PVID                             pvid 1 10\n  l2 [forget]                      查看 MAC 表，forget 清空\n  stp on|off|status ...            生成树                                stp on\n  igmp on|off|show                 IGMP 侦听                             igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        查看/设置管理 MAC\n  bw in|out|status <port> ...      端口限速                              bw in 1 off\n  mirror <port> [port]...          端口镜像                              mirror 1 2\n  history                          本次启动以来输入过的命令\n  defaults                         恢复出厂配置并重启\n\n命令立即生效；如需重启后保留，请把该行写入上面的「启动配置」。",
+sy_cmdref_text:"系统与网络\n  version                          固件版本与编译日期\n  hostname [name]                  查看/设置交换机名                      hostname sw-1\n  ip [<addr>|dhcp]                 管理地址（dhcp 为自动获取）            ip 192.168.32.203\n  netmask <mask>                   设置子网掩码                          netmask 255.255.255.0\n  gw <addr>                        设置默认网关                          gw 192.168.32.254\n  dns server <ip> [<ip>]           设置 DNS，0.0.0.0 表示清除             dns server 192.168.32.254\n  dns lookup <name>                立即解析一个域名                      dns lookup ntp.tencent.com\n  http port <1-65535>              管理界面端口（默认 80）               http port 8000\n  passwd <text>                    修改管理密码（1-20 个字符）            passwd 1234\n  session <1-65535>                网页会话超时秒数                      session 600\n服务\n  ntp [on|off]                     开启/关闭时间同步                     ntp on\n  ntp server <name|ip>             设置 NTP 服务器                       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            时区偏移（默认 +08:00）               ntp timezone +08:00\n  ntp interval <1-1440>            同步间隔（分钟）                      ntp interval 60\n  ntp dst off|eu|us                夏令时规则                            ntp dst off\n  time                             查看本地时间与上次同步\n  syslog on|off|ip <ip>|port <n>   日志发送到 syslog 服务器              syslog ip 192.168.32.10\n交换功能\n  stat                             端口状态与计数器\n  port <n> [show|on|off]           端口开关、速率、名称、lldp            port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN 成员，t 表示 tagged              vlan 10 1 2 3t\n  vlan switch [on|off]             面板 VLAN 拨刀功能开关                vlan switch off\n  pvid <port> <1-4094>             端口 PVID                             pvid 1 10\n  l2 [forget]                      查看 MAC 表，forget 清空\n  stp on|off|status ...            生成树                                stp on\n  igmp on|off|show                 IGMP 侦听                             igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        查看/设置管理 MAC\n  bw in|out|status <port> ...      端口限速                              bw in 1 off\n  mirror <port> [port]...          端口镜像                              mirror 1 2\n  history                          本次启动以来输入过的命令\n  defaults                         恢复出厂配置并重启\n\n命令立即生效；如需重启后保留，请把该行写入上面的「启动配置」。",
 sy_password:"管理员密码",sy_newpw:"新密码",sy_repeat:"重复输入",sy_pwapply:"修改密码",
 sy_pw_note:"立即生效；如需重启后保留请保存到 Flash。",sy_console:"控制台",
 sy_cmd:"CLI 命令...",sy_send:"发送",sy_startup:"启动配置",sy_replayed:"每次启动时重新执行",
@@ -392,7 +410,13 @@ c_port:"Puerto",c_name:"Nombre",c_link:"Enlace",c_apply:"Aplicar",c_cancel:"Canc
 c_close:"Cerrar",c_refresh:"Actualizar",c_off:"apagado",c_offc:"Apagado",c_down:"caído",c_on:"Encendido",c_auto:"Auto",c_delete:"Eliminar",
 c_type:"Tipo",c_state:"Estado",c_enabled:"Habilitado",c_load:"Cargar",c_disable:"Deshabilitar",c_sfp:"SFP",
 c_full:"dúplex completo",c_half:"semidúplex",c_devices:"dispositivos",c_yes:"sí",c_no:"no",
-d_ports:"Puertos",d_ports_h:"pulsa un puerto para ver detalles",d_system:"Sistema",d_traffic:"Tráfico",
+d_ports:"Puertos",d_ports_h:"pulsa un puerto para ver detalles",d_vlan:"Ajustes del interruptor VLAN del panel",d_vlan_h:"panel",
+d_vlan_on:"Los puertos LAN están aislados y solo alcanzan las jaulas SFP+ (sin efecto si el interruptor de abajo está desactivado)",d_vlan_off:"Todos los puertos pueden comunicarse (sin efecto si el interruptor de abajo está desactivado)",
+d_vlan_phys:"Interruptor VLAN del panel",d_vlan_en:"Usar el interruptor VLAN del panel",
+d_vlan_en_on:"El interruptor VLAN del panel está activo: los puertos LAN están aislados",d_vlan_en_off:"El interruptor VLAN del panel está desactivado; configure la VLAN de los puertos LAN en la página VLAN",
+vlan_warn:"«Usar el interruptor VLAN del panel» está activado: el interruptor del panel controla las VLAN y el aislamiento de los puertos LAN. Los ajustes de abajo son de solo lectura; desactive la función en el panel de control para configurar VLAN aquí.",
+mirror_warn:"«Usar el interruptor VLAN del panel» está activado: el interruptor del panel controla los puertos LAN. Los ajustes de abajo son de solo lectura; desactive la función en el panel de control para configurar el espejo aquí.",
+d_system:"Sistema",d_traffic:"Tráfico",
 d_traffic_h:"paquetes/s, en vivo",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX erróneos",d_rxbad:"RX erróneos",
 i_host:"Nombre de host",i_ip:"Dirección IP",i_mask:"Máscara de red",i_gw:"Puerta de enlace",i_mac:"MAC",i_fw:"Firmware",
 i_built:"Compilado",i_model:"Modelo",i_hw:"Hardware",i_flash:"Flash",i_syslog:"Syslog",
@@ -505,7 +529,13 @@ c_port:"Port",c_name:"Nom",c_link:"Lien",c_apply:"Appliquer",c_cancel:"Annuler",
 c_close:"Fermer",c_refresh:"Raffraichir",c_off:"arrêt",c_offc:"Arrêt",c_down:"arrêt",c_on:"Marche",c_auto:"Auto",c_delete:"Supprimer",
 c_type:"Type",c_state:"Etat",c_enabled:"Activé",c_load:"Charger",c_disable:"Désactivé",c_sfp:"SFP",
 c_full:"full",c_half:"half",c_devices:"Equipements",c_yes:"oui",c_no:"non",
-d_ports:"Ports",d_ports_h:"Cliquez ou survollez pour plus de détails",d_system:"Système",d_traffic:"Trafic",
+d_ports:"Ports",d_ports_h:"Cliquez ou survollez pour plus de détails",d_vlan:"Réglages du commutateur VLAN du panneau",d_vlan_h:"panneau",
+d_vlan_on:"Les ports LAN sont isolés et n'atteignent que les cages SFP+ (sans effet si le commutateur ci-dessous est désactivé)",d_vlan_off:"Tous les ports peuvent communiquer (sans effet si le commutateur ci-dessous est désactivé)",
+d_vlan_phys:"Commutateur VLAN du panneau",d_vlan_en:"Utiliser le commutateur VLAN du panneau",
+d_vlan_en_on:"Le commutateur VLAN du panneau est actif : les ports LAN sont isolés",d_vlan_en_off:"Le commutateur VLAN du panneau est ignoré ; configurez la VLAN des ports LAN dans la page VLAN",
+vlan_warn:"« Utiliser le commutateur VLAN du panneau » est actif : le commutateur du panneau gère les VLAN et l'isolation des ports LAN. Les réglages ci-dessous sont en lecture seule ; désactivez la fonction sur le tableau de bord pour configurer les VLAN ici.",
+mirror_warn:"« Utiliser le commutateur VLAN du panneau » est actif : le commutateur du panneau gère les ports LAN. Les réglages ci-dessous sont en lecture seule ; désactivez la fonction sur le tableau de bord pour configurer le miroir ici.",
+d_system:"Système",d_traffic:"Trafic",
 d_traffic_h:"paquets/s (en direct)",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX KO",d_rxbad:"RX KO",
 i_host:"Nom d'hote",i_ip:"Adresse IP",i_mask:"Masque réseau",i_gw:"Passerelle",i_mac:"Adresse MAC",i_fw:"Micro logiciel",
 i_built:"Compilé le",i_model:"Modèle",i_hw:"Matériel",i_temp:"Température",i_flash:"Taille Flash",i_syslog:"Journal système",
@@ -623,7 +653,13 @@ c_port:"Port",c_name:"Name",c_link:"Link",c_apply:"Übernehmen",c_cancel:"Abbrec
 c_close:"Schliessen",c_refresh:"Aktualisieren",c_off:"aus",c_offc:"Aus",c_down:"getrennt",c_on:"Ein",c_auto:"Auto",c_delete:"Löschen",
 c_type:"Typ",c_state:"Zustand",c_enabled:"Aktiviert",c_load:"Laden",c_disable:"Deaktivieren",c_sfp:"SFP",
 c_full:"voll",c_half:"halb",c_devices:"Geräte",c_yes:"ja",c_no:"nein",
-d_ports:"Ports",d_ports_h:"Port anklicken für Details",d_system:"System",d_traffic:"Datenverkehr",
+d_ports:"Ports",d_ports_h:"Port anklicken für Details",d_vlan:"VLAN-Panel-Schalter",d_vlan_h:"Frontblende",
+d_vlan_on:"LAN-Ports sind getrennt und erreichen nur die SFP+-Schächte (ohne Wirkung, solange der Schalter unten aus ist)",d_vlan_off:"Alle Ports können miteinander sprechen (ohne Wirkung, solange der Schalter unten aus ist)",
+d_vlan_phys:"VLAN-Panel-Schalter",d_vlan_en:"VLAN-Panel-Schalter verwenden",
+d_vlan_en_on:"Der VLAN-Panel-Schalter ist aktiv: die LAN-Ports sind getrennt",d_vlan_en_off:"Der VLAN-Panel-Schalter ist aus; VLANs der LAN-Ports auf der VLAN-Seite einstellen",
+vlan_warn:"\"VLAN-Panel-Schalter verwenden\" ist an: der Panel-Schalter übernimmt VLANs und Isolation der LAN-Ports. Die Einstellungen unten sind schreibgeschützt; schalten Sie die Funktion im Dashboard aus, um VLANs hier zu setzen.",
+mirror_warn:"\"VLAN-Panel-Schalter verwenden\" ist an: der Panel-Schalter übernimmt die LAN-Ports. Die Einstellungen unten sind schreibgeschützt; schalten Sie die Funktion im Dashboard aus, um die Spiegelung hier einzurichten.",
+d_system:"System",d_traffic:"Datenverkehr",
 d_traffic_h:"Pakete/s, live",d_txpps:"TX Pakete/s",d_rxpps:"RX Pakete/s",d_txbad:"TX fehlerhaft",d_rxbad:"RX fehlerhaft",
 i_host:"Hostname",i_ip:"IP-Adresse",i_mask:"Netzmaske",i_gw:"Gateway",i_mac:"MAC",i_fw:"Firmware",
 i_built:"Erstellt",i_model:"Modell",i_hw:"Hardware",i_temp:"Temperatur",i_flash:"Flash",i_syslog:"Syslog",
@@ -828,7 +864,7 @@ var CONF_CMDS=[
   /^ntp\s+(on|off)$/,/^ntp\s+server\s+[A-Za-z0-9.-]{1,47}$/,/^ntp\s+interval\s+\d{1,4}$/,
   /^ntp\s+timezone\s+[+-]?\d{1,2}(:\d{2})?$/,/^ntp\s+dst\s+(off|eu|us)$/,
   /^passwd\s+\S+$/,/^hostname\s+\S{1,23}$/,
-  /^vlan\s+\d{1,4}\s+d$/,/^vlan\s+\d{1,4}\s+mgmt$/,
+  /^vlan\s+\d{1,4}\s+d$/,/^vlan\s+\d{1,4}\s+mgmt$/,/^vlan\s+switch\s+(on|off)$/,
   /^vlan\s+\d{1,4}(\s+[a-zA-Z]\w*)?(\s+\d{1,2}t?)+$/,
   /^pvid\s+\d{1,2}\s+\d{1,4}$/,
   /^ingress(\s+\d{1,2}[tua])+$/,/^ingress\s+[tua]$/,
@@ -1127,8 +1163,69 @@ function renderInfo(){
   });
   tb.insertBefore(clock,tb.rows[at]||null);
   nameTab();
+  renderVlan();
+  updateVlanWarning();
   if(S.info.sw_ver)$("fver").textContent="RTLPlayground "+S.info.sw_ver;
 }
+/* Yellow notice on the VLAN and Isolation tabs: while the panel switch is in
+ * effect and isolating the RJ45 ports, VLAN forwarding cannot work between
+ * them, so say so instead of letting the VLAN page look broken. */
+function updateVlanWarning(){
+  var i=S.info||{};
+  /* Mutually exclusive with the panel switch function: as long as "Use VLAN
+   * panel switch" is on, the panel switch owns VLANs/isolation/mirroring, no
+   * matter where the physical switch stands. */
+  var on=(i.vlan_switch!=null&&i.vlan_switch!=="")&&(i.vlan_switch_en!=="off");
+  ["vlan-warn","iso-warn","mirror-warn"].forEach(function(id){
+    var el=$(id);
+    if(el)el.hidden=!on;
+  });
+  /* Grey the settings out and make them read-only while the notice is up.
+   * The class does the pointer blocking (it also covers rows rebuilt by a
+   * refresh); disabling the controls additionally keeps the keyboard out. */
+  ["tab-vlan","tab-isolate","tab-mirror"].forEach(function(id){
+    var sec=$(id);
+    if(!sec)return;
+    sec.classList.toggle("locked",on);
+    sec.querySelectorAll("input,select,button,textarea").forEach(function(el){
+      if(on){
+        if(el.dataset.lock===undefined)el.dataset.lock=el.disabled?"1":"0";
+        el.disabled=true;
+      }else if(el.dataset.lock!==undefined){
+        el.disabled=el.dataset.lock==="1";
+        delete el.dataset.lock;
+      }
+    });
+  });
+}
+
+/* Dashboard card for the front-panel "VLAN" slide switch. Only boards that
+ * have one report vlan_switch in /information.json; on the others the card
+ * stays hidden and the port strip keeps the full width. The top switch shows
+ * the position of the physical switch (read-only), the bottom one switches
+ * the feature on or off ("vlan switch on|off"). */
+function renderVlan(){
+  var card=$("dash-vlan"),g=$("dashgrid");
+  if(!card||!g)return;
+  var i=S.info||{};
+  if(i.vlan_switch==null||i.vlan_switch===""){
+    card.hidden=true;
+    g.classList.add("no-vlan");
+    return;
+  }
+  card.hidden=false;
+  g.classList.remove("no-vlan");
+  var physOn=(i.vlan_switch==="on"||i.vlan_switch==="1"||i.vlan_switch===1);
+  var enOn=(i.vlan_switch_en!=="off");
+  $("vlanphys").checked=physOn;
+  $("vlanen").checked=enOn;
+  $("vlanphys_hint").textContent=physOn?t("d_vlan_on"):t("d_vlan_off");
+  $("vlanen_hint").textContent=enOn?t("d_vlan_en_on"):t("d_vlan_en_off");
+}
+$("vlanen").addEventListener("change",function(){
+  var el=this,cmd="vlan switch "+(el.checked?"on":"off");
+  postCmd(cmd).then(pollInfo).catch(function(){el.checked=!el.checked});
+});
 function pollInfo(){
   return getJSON("/information.json").then(function(j){S.info=j;renderInfo()});
 }
@@ -1653,8 +1750,10 @@ $("vmgmt").addEventListener("click",function(){
   confirmModal(t("v_mgmt_q",{n:vid}),t("v_mgmt_d"),
     function(){postCmd("vlan "+vid+" mgmt").then(vlanRefresh).catch(function(){})});
 });
+var infoPoller=new Poller(pollInfo,5000);
 tabHooks.vlan={
-  enter:function(){needPorts(function(){buildVlanEdit();vlanRefresh().catch(function(){})})},
+  enter:function(){needPorts(function(){buildVlanEdit();vlanRefresh().catch(function(){})});pollInfo().catch(function(){});infoPoller.start()},
+  leave:function(){infoPoller.stop()},
 };
 
 var l2Rows=[],l2SortCol="pport",l2SortDir=1,l2Gen=0;
@@ -1794,7 +1893,10 @@ $("mapply").addEventListener("click",function(){
 $("moff").addEventListener("click",function(){
   postCmd("mirror off").then(mirrorLoad).catch(function(){});
 });
-tabHooks.mirror={enter:function(){needPorts(function(){buildMirror();mirrorLoad().catch(function(){})})}};
+tabHooks.mirror={
+  enter:function(){needPorts(function(){buildMirror();mirrorLoad().catch(function(){})});pollInfo().catch(function(){});infoPoller.start()},
+  leave:function(){infoPoller.stop()},
+};
 
 var isoAllow=[];
 function isoBox(r,c){return $("iso"+r+"_"+c)}
@@ -1864,7 +1966,10 @@ $("isoall").addEventListener("click",function(){
   for(var r=1;r<=S.n;r++)for(var c=1;c<=S.n+1;c++){var b=isoBox(r,c);if(b)b.checked=true;}
   isoTouch();
 });
-tabHooks.isolate={enter:function(){needPorts(function(){buildIso();isoLoad().catch(function(){})})}};
+tabHooks.isolate={
+  enter:function(){needPorts(function(){buildIso();isoLoad().catch(function(){})});pollInfo().catch(function(){});infoPoller.start()},
+  leave:function(){infoPoller.stop()},
+};
 
 var HASHF=["spa","smac","dmac","sip","dip","sport","dport"];
 function buildLag(){
@@ -2273,9 +2378,17 @@ function ntpClock(){
   return d.getUTCFullYear()+"年"+(d.getUTCMonth()+1)+"月"+d.getUTCDate()+"日 GMT"+ntpBase.gmt
     +" "+p(d.getUTCHours())+":"+p(d.getUTCMinutes())+":"+p(d.getUTCSeconds());
 }
+var dashInfoTick=0;
 function dashClock(){
   var el=$("dash-time");
   if(el)el.textContent=ntpClock();
+  /* The VLAN switch is a physical control, so re-read the info (and with it
+   * the switch state) every few seconds while the dashboard is open. Boards
+   * without such a switch keep the one-shot load. */
+  if(S.info&&S.info.vlan_switch!=null&&++dashInfoTick>=5){
+    dashInfoTick=0;
+    pollInfo().catch(function(){});
+  }
 }
 function ntpTick(){
   if(!ntpBase)return;
@@ -2349,7 +2462,7 @@ var CONF_OVERWRITE=[
   /^stp\s+(port\s+\d{1,2}|lag\s+[1-4])\s+(edge|cost|prio|guard|filter|p2p)\b/,
   /^igmp\b/,/^mtu\s+\d{1,2}\b/,/^storm\s+\d{1,2}\s+(bcast|mcast|ucast|umcast)\b/,
 ];
-var CONF_TOGGLE=[/^(syslog)\s+(on|off)$/,/^(ntp)\s+(on|off)$/,/^(stp)\s+(on|off)$/,/^(stp\s+(port\s+\d{1,2}|lag\s+[1-4]))\s+(on|off)$/];
+var CONF_TOGGLE=[/^(vlan\s+switch)\s+(on|off)$/,/^(syslog)\s+(on|off)$/,/^(ntp)\s+(on|off)$/,/^(stp)\s+(on|off)$/,/^(stp\s+(port\s+\d{1,2}|lag\s+[1-4]))\s+(on|off)$/];
 function mergeConf(base,texts){
   var conf=base.slice();
   function drop(rx){conf=conf.filter(function(c){return!rx.test(c)})}

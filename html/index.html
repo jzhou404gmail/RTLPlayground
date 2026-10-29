@@ -87,6 +87,34 @@ section.tab.act{display:block}
 .grid3 .card{margin-bottom:0}
 @media (max-width:1080px){.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:720px){.grid3{grid-template-columns:minmax(0,1fr)}}
+/* Dashboard: two equal columns so that the port strip and the VLAN switch
+   card share the top row and the cards of a row share their height. */
+.dashgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:stretch}
+.dashgrid .card{margin-bottom:0}
+.dashgrid.no-vlan #dash-ports{grid-column:1/-1}
+.dashvlan{display:flex;flex-direction:column}
+#dash-vlan[hidden]{display:none}
+.switch input:disabled+i{cursor:default;opacity:.75}
+/* Yellow notice on the VLAN and Isolation tabs while the panel VLAN switch
+   is isolating the RJ45 ports. */
+.warnbar{display:flex;gap:9px;align-items:flex-start;font-size:13px;
+  background:color-mix(in srgb,var(--warn) 12%,var(--panel));
+  border:1px solid var(--warn);border-left:4px solid var(--warn);
+  border-radius:8px;padding:9px 12px;margin-bottom:16px}
+.warnbar[hidden]{display:none}
+.warnbar .wi{color:var(--warn);font-size:15px;line-height:1.25}
+/* While that notice is up the settings underneath are read-only: greyed out and
+   not clickable, still readable. */
+.tab.locked .card{opacity:.55;filter:grayscale(.5)}
+.tab.locked .card input,.tab.locked .card select,.tab.locked .card button,
+.tab.locked .card textarea,.tab.locked .card [onclick]{pointer-events:none;cursor:not-allowed}
+#dash-vlan label.row span.lb{width:130px}
+#vlanphys_hint{margin:-2px 0 12px 0}
+#vlanen_hint{margin:-2px 0 0 0}
+@media (max-width:900px){
+  .dashgrid{grid-template-columns:minmax(0,1fr)}
+  .dashgrid.no-vlan #dash-ports{grid-column:auto}
+}
 table.t{width:100%;border-collapse:collapse;font-size:13px}
 table.t th{
   text-align:left;font-weight:600;color:var(--fg2);font-size:12px;
@@ -235,10 +263,19 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
 
   <main>
     <section class="tab act" id="tab-dash">
-      <div class="card"><h2><span data-i18n="d_ports">Ports</span> <span class="hint" data-i18n="d_ports_h">click a port for details</span></h2>
-        <div id="strip"></div>
-      </div>
-      <div class="grid2">
+      <div class="dashgrid" id="dashgrid">
+        <div class="card" id="dash-ports"><h2><span data-i18n="d_ports">Ports</span> <span class="hint" data-i18n="d_ports_h">click a port for details</span></h2>
+          <div id="strip"></div>
+        </div>
+        <div class="card dashvlan" id="dash-vlan" hidden>
+          <h2><span data-i18n="d_vlan">VLAN switch</span> <span class="hint" data-i18n="d_vlan_h">front panel</span></h2>
+          <label class="row"><span class="lb" data-i18n="d_vlan_phys">Physical switch</span>
+            <span class="switch"><input type="checkbox" id="vlanphys" disabled><i></i></span></label>
+          <p class="small mut" id="vlanphys_hint"></p>
+          <label class="row"><span class="lb" data-i18n="d_vlan_en">Use the physical switch</span>
+            <span class="switch"><input type="checkbox" id="vlanen"><i></i></span></label>
+          <p class="small mut" id="vlanen_hint"></p>
+        </div>
         <div class="card"><h2 data-i18n="d_system">System</h2><table class="t" id="sysinfo"></table></div>
         <div class="card"><h2><span data-i18n="d_traffic">Traffic</span> <span class="hint" data-i18n="d_traffic_h">packets/s, live</span></h2>
           <div class="scrollx"><table class="t" id="traffic">
@@ -295,6 +332,7 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
     </section>
 
     <section class="tab" id="tab-vlan">
+      <div class="warnbar" id="vlan-warn" hidden><span class="wi">⚠</span><span data-i18n="vlan_warn"></span></div>
       <div class="card"><h2><span data-i18n="v_title">VLANs</span> <span class="hint"><span data-i18n="v_mgmt">Management VLAN</span>: <span id="vmgmtcur">-</span></span></h2>
         <div class="scrollx"><table class="t" id="vtable">
           <thead><tr><th data-i18n="v_vid">VID</th><th data-i18n="c_name">Name</th><th data-i18n="v_members">Members</th><th data-i18n="v_tagged">Tagged</th><th data-i18n="v_untagged">Untagged</th><th data-i18n="v_pvid_on">PVID on</th><th></th></tr></thead>
@@ -333,6 +371,7 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
     </section>
 
     <section class="tab" id="tab-mirror">
+      <div class="warnbar" id="mirror-warn" hidden><span class="wi">⚠</span><span data-i18n="mirror_warn"></span></div>
       <div class="card"><h2 data-i18n="m_title">Port mirroring</h2>
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
           <span class="badge" id="mstate">off</span>
@@ -357,6 +396,7 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
     </section>
 
     <section class="tab" id="tab-isolate">
+      <div class="warnbar" id="iso-warn" hidden><span class="wi">⚠</span><span data-i18n="vlan_warn"></span></div>
       <div class="card"><h2 data-i18n="iso_title">Port isolation</h2>
         <p class="small mut" style="margin-bottom:10px" data-i18n="iso_intro">A frame entering a port may only leave through the ports ticked in its row.</p>
         <div class="scrollx"><table class="t" id="isotbl" style="width:auto"><thead></thead><tbody></tbody></table></div>
