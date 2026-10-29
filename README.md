@@ -13,7 +13,7 @@
 
 | | |
 |---|---|
-| 固件版本 | `v0.1.0`，并盖上所用提交号（在机器上执行 `version` 可见）；本文实测所用的构建为 `v0.1.0-6a8cd51`。干净的工作区构建出来不带 `-dirty` 后缀 |
+| 固件版本 | `v0.1.0`，并盖上所用提交号（在机器上执行 `version` 可见）；本文实测所用的构建为 `v0.1.0-e976582`。干净的工作区构建出来不带 `-dirty` 后缀 |
 | 基于上游 | `main` @ [`03311de`](https://github.com/logicog/RTLPlayground/commit/03311de) |
 | 许可证 | MIT，与上游一致 —— 见 [LICENSE](LICENSE) |
 | 完整机型清单 | [doc/supported_devices.md](doc/supported_devices.md) |

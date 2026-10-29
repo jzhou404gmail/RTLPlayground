@@ -21,7 +21,7 @@ the observation that settles it.
 
 | | |
 |---|---|
-| Firmware version | `v0.1.0`, with the commit stamped in — `version` on the switch reports it; the builds these measurements were taken with report `v0.1.0-6a8cd51`. A build from a clean checkout carries no `-dirty` suffix |
+| Firmware version | `v0.1.0`, with the commit stamped in — `version` on the switch reports it; the builds these measurements were taken with report `v0.1.0-e976582`. A build from a clean checkout carries no `-dirty` suffix |
 | Based on upstream | `main` at [`03311de`](https://github.com/logicog/RTLPlayground/commit/03311de) |
 | License | MIT, same as upstream — see [LICENSE](LICENSE) |
 | Full device list | [doc/supported_devices.md](doc/supported_devices.md) |
