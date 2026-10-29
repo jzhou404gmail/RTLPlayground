@@ -29,9 +29,9 @@ firmware can influence is implemented as the manual describes:
 | **VLAN ON**: RJ45 互相隔离, 仅与 SFP+ 通讯, 屏蔽广播风暴 | each RJ45 allowed only to SFP1+SFP2 (+ CPU, see below); mask `0x308` | `regget 50d0..50dc` |
 | **PWR** 常亮 = 已加电 | hard-wired to the supply | lamp stays on |
 | **SYS** 慢闪 = 正常工作 | `LED_MODE` bits 17:16 = 2 while idle (`sys_led_blink_idle`) | slow blink on the unit |
-| **LINK/ACT 绿灯** 点亮 = link, 闪烁 = 数据传输 | green = `1G|100M|10M|LINK|ACT` | 1G link green, blinks on traffic |
-| **闪烁 = 数据传输中** (the same lamp row as the green state) | both lamps carry `LEDS_ACT`: amber = `2G5|LINK|ACT` | 2.5G link blinks on traffic (A/B test below) |
-| **黄灯** = 速率为 2.5Gbps | amber = `2G5|LINK|ACT`, lit at 2.5G | RJ45 1-4 amber at 2.5G |
+| **LINK/ACT 绿灯** 点亮 = link, 闪烁 = 数据传输 | green = `1G\|100M\|10M\|LINK\|ACT` | 1G link green, blinks on traffic |
+| **闪烁 = 数据传输中** (the same lamp row as the green state) | both lamps carry `LEDS_ACT`: amber = `2G5\|LINK\|ACT` | 2.5G link blinks on traffic (A/B test below) |
+| **黄灯** = 速率为 2.5Gbps | amber = `2G5\|LINK\|ACT`, lit at 2.5G | RJ45 1-4 amber at 2.5G |
 
 One deliberate difference: in VLAN mode a RJ45 port may still reach the
 **CPU port** (the switch's own management interface, mask bit 9). The manual's
@@ -126,9 +126,9 @@ of the `gpio` command is the *change* since the previous call, and LED pad 21
 
 | `LED1_0_SET0` slot 0 | 16 `gpio` samples, pad 21 changed in |
 |---|---|
-| `2G5|LINK|ACT` (new) | 6 |
-| `2G5|LINK`, written live with `regset 6548 01740041` | 0 |
-| `2G5|LINK|ACT`, restored with `regset 6548 01740141` | 6 |
+| `2G5\|LINK\|ACT` (new) | 6 |
+| `2G5\|LINK`, written live with `regset 6548 01740041` | 0 |
+| `2G5\|LINK\|ACT`, restored with `regset 6548 01740141` | 6 |
 
 The register encodes two slots: byte 0 is the low byte of slot 0's mask, byte 2
 the low byte of slot 1's, so `0x01740141` is amber `0x0141` = `2G5|LINK|ACT` and
@@ -224,7 +224,7 @@ same style as the spanning-tree port configuration:
 | Row | Meaning |
 |---|---|
 | **VLAN panel switch** | read-only, follows the position of the panel switch; the note under it says what that position does and that it has no effect while the second switch is off |
-| **Use VLAN panel switch** | whether the panel switch drives the isolation at all (`vlan switch on|off`) |
+| **Use VLAN panel switch** | whether the panel switch drives the isolation at all (`vlan switch on\|off`) |
 
 With **Use VLAN panel switch** on (the default), the panel switch decides:
 ON isolates the RJ45 ports from each other, OFF lets all ports talk. With it
