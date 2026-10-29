@@ -34,11 +34,12 @@ The following devices have been tested and are fully working:
 | Binardat | 2G06-04210GSM    | No      | [PCB-SWTG024AS-A-2.0.1](devices/ONT-S207CW-62TS-SE.md)                 | 0.5M  | 4 + 2 |
 | ONT      | ONT-S207CW-62TS-SE | No   | [PCB-SWTG024AS-A-2.0.1](devices/ONT-S207CW-62TS-SE.md)                 | 0.5M  | 4 + 2 |
 | Netcore  | GS9             | No      | [PB-2132](devices/PB-2132.md)                                             | 4M    | 8 + 1 |
+| NPA      | AP-7024-2.5G    | No      | [F7005-2.5GPOE-V1.0](devices/F7005-2.5GPOE-V1.0.md)                       | 0.5M  | 4 + 2 |
 | Ruiying  | RY-4GT-2SX      | No      | [FG-4GT-2SX_V2.0](devices/FG-4GT-2SX_V2.0.md)                             | 4M    | 4 + 2 |
 | Ruiying  | RY-8GT-1SX      | No      | [FG-8GT-1SX](devices/FG-8GT-1SX.md)                                       | 1M    | 8 + 1 |
 | SiscoLink | SL-G0402F      | No      | [PCB-K0402WS-V3.0](devices/PCB-K0402WS-V3.0.md)                           |       | 4 + 2 |
 | Sodola   | SL-SWTG124AS-D  | Yes     | [SWTG024AS-v2.0-17452](devices/SWTG024AS.md)                              | 2M    | 4 + 2 |
-| Steamemo | IG204-V1        | No      | [PB-2131](devices/STEAMEMO_IG204_V1.md)                                   |       | 4 + 2 |
+| Steamemo | IG204-V1        | No      | [PB-2131](devices/STEAMEMO_IG204_V1.md)                                   | 4M    | 4 + 2 |
 | TrendNet | TEG-S562        | No      | [TEG-S563/EU H/W: V1.0R](devices/TEG-S562.md)                             | 2M    | 4 + 2 |
 | XikeStor | SKS3200M-4GPY2XF| Yes     | [SWTG024AS-v1.0](devices/SWTG024AS.md)                                    | 2M    | 4 + 2 |
 | XikeStor | SKS3200M-5GPY1XF| Yes     | [PCB-SWTG115AS-V2.1-17443](devices/SKS3200M-5GPY1XF.md)                  | 2M    | 5 + 1 |
