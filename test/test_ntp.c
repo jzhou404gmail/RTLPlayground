@@ -8,9 +8,8 @@
  * enough to walk the whole state machine — resolve, send, receive — and to
  * read back what the console prints.
  *
- * The firmware counts seconds in the RTL837X_REG_SEC_COUNTER register, read
- * back through sfr_data; secs_set() puts a second count there and the client
- * sees exactly that.
+ * The firmware counts seconds with read_timer(); secs_set() hands that count
+ * to the client through the stub below.
  */
 #include <stdio.h>
 #include <string.h>
@@ -112,6 +111,10 @@ static void secs_set(uint32_t t)
 }
 
 static void secs_add(uint32_t d) { secs_set(host_secs + d); }
+
+/* ntp.c takes the second count from read_timer(); the firmware implementation
+ * lives in rtlplayground.c, which is not linked here. */
+void read_timer(uint32_t *tmr) { *tmr = host_secs; }
 
 /* ---- packet buffer the client builds its request in and reads answers from ---- */
 static uint8_t pkt[512];

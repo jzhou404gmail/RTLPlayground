@@ -43,11 +43,15 @@ static __code const char ntp_default_server[] = "ntp.tencent.com";
 
 static uint32_t ntp_uptime(void) __reentrant
 {
-	reg_read_m(RTL837X_REG_SEC_COUNTER);
-	((__xdata uint8_t *)&ntp_now)[0] = sfr_data[3];
-	((__xdata uint8_t *)&ntp_now)[1] = sfr_data[2];
-	((__xdata uint8_t *)&ntp_now)[2] = sfr_data[1];
-	((__xdata uint8_t *)&ntp_now)[3] = sfr_data[0];
+	/*
+	 * Seconds since boot, from the counter handle_tick() keeps in RAM.
+	 * RTL837X_REG_SEC_COUNTER does not retain a written value on every
+	 * RTL8372: on such a unit it always reads back 0, which pinned the
+	 * clock to the last synchronisation and kept the client from ever
+	 * scheduling the next one. read_timer() is right on both chip
+	 * classes - see its comment in rtlplayground.c.
+	 */
+	read_timer(&ntp_now);
 	return ntp_now;
 }
 
