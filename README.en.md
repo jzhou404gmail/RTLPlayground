@@ -5,7 +5,8 @@
 This is a fork of [logicog/RTLPlayground](https://github.com/logicog/RTLPlayground). It carries the
 upstream firmware plus hardware support that upstream does not have yet:
 
-- **five machine targets** for boards that were unsupported, or listed under a wrong model name,
+- **six machine targets** for boards that were unsupported or listed under a wrong model name, plus the
+  upstream `MACHINE_STEAMEMO_IG204_V1` rewritten from measurements instead of a placeholder,
 - **the fixes those boards needed** — a reset button that never did anything on RTL8372 silicon, a web
   session that stopped being accepted seconds after login on the same silicon, and a factory MAC the
   board stopped using,
@@ -14,7 +15,7 @@ upstream firmware plus hardware support that upstream does not have yet:
 - **documentation and tools** for the next bring-up: device pages with board photos and measurements,
   a serial capture and a reset-button probe.
 
-Everything on this page was measured on real hardware (six switches, 2026-10-11 … 2026-10-13).
+Everything on this page was measured on real hardware (eight switches, 2026-10-11 … 2026-10-29).
 "Verified" always means *measured on the board*, and the device document quotes the command output or
 the observation that settles it.
 
@@ -32,11 +33,11 @@ the observation that settles it.
 2. [Device notes](#2-device-notes) — build command, install path and verified state per board
 3. [What else this fork changes](#3-what-else-this-fork-changes)
 4. [Recipes](#4-recipes) — build, install, first boot
-5. [Verification](#5-verification) — the six units, and how to check your own board
+5. [Verification](#5-verification) — the eight units, and how to check your own board
 
 ## 1. Which target do I build?
 
-### 1.1 The five targets this fork adds
+### 1.1 The six targets this fork adds, plus the IG204 rewritten from the unit
 
 | Board silkscreen | Sold as | Managed | Ports | SoC | Flash | Machine target | Build |
 |---|---|---|---|---|---|---|---|
@@ -45,19 +46,27 @@ the observation that settles it.
 | `PCB-SWTG115AS-V2.1-17443` | XikeStor **SKS3200M-5GPY1XF** (兮克) | yes | 5 × 2.5G + 1 × 10G SFP+ | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_5GPY1XF` | `make MACHINE=…` |
 | `SWTG024AS-v1.0` | XikeStor **SKS3200M-4GPY2XF** | yes | 4 × 2.5G + 2 × SFP | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_4GPY2XF` | `make MACHINE=…` |
 | `SWTG118AS-V2.1-17462` | XikeStor **SKS3200M-8GPY1XF** | yes | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_8GPY1XF` | `make MACHINE=…` |
+| `PB-2131` | IG204 4+2 (label `IG204 V1`, sold by Steamemo and others) | no | 4 × 2.5G + 2 × SFP+ | RTL8372 | stock 4 MiB cFeon `EN25QE32A`; the measured unit carries a 1 MiB `MX25L8005M` | `STEAMEMO_IG204_V1` | `make MACHINE=STEAMEMO_IG204_V1 FLASH_NO_DIO=1` |
+| `F7005-2.5GPOE-V1.0` | NPA **AP-7024-2.5G** | no | 4 × 2.5G + 2 × SFP+ | RTL8372 | stock 512 KiB BrightMoon `T25S40`; the final unit carries a 2 MiB `BY25Q16BS` | `F7005_2_5` | `make MACHINE=F7005_2_5 FLASH_NO_DIO=1` |
 
 The three XikeStor units are not new boards: the PCB inside them is a board upstream already supports
 (the ZX-SWTGW215AS, the SWTG024AS family and the ZX-SWTGW218AS). The new targets exist because those
 boards are **sold under a different model name**, and the firmware should say so in the web interface —
 plus, on the 4GPY2XF, because the button and the factory MAC needed enabling for that retail variant.
 
-### 1.2 Three upstream device-list entries this fork corrects
+The IG204 4+2 (`PB-2131`) and the NPA AP-7024-2.5G (`F7005-2.5GPOE-V1.0`) *are* new boards. The
+upstream `MACHINE_STEAMEMO_IG204_V1` was a placeholder that had never been measured - both SFP detect
+pins, the LED pads and the front-panel VLAN switch were wrong or missing - and `F7005_2_5` did not
+exist. Both were brought up item by item; see their sections in part 2.
+
+### 1.2 Four upstream device-list entries this fork corrects
 
 | Upstream says | The unit actually is | Effect |
 |---|---|---|
 | `XikeStor SKS3200-8E1X` on SWTG118AS-V2.1-17462 | **`SKS3200M-8GPY1XF`** — stated on the case label and in the unit's own web interface | you would have looked for the wrong model, and the firmware reported a name the unit does not carry |
 | Hisource Hi-K0801WS is on `PCB-KO801W-V2.0` | **`PCB-K0801W-V2.0`** — the silkscreen has a digit `0`, not a letter `O` | the target and the document were renamed accordingly; the old spelling no longer exists anywhere in the tree |
 | `Hisource Hi-K0402WS` on `PCB-K0402W-V1.0`: not listed | added, supported, 2 MiB flash | a whole board revision was missing |
+| The Steamemo IG204 4+2 board is named `Steamemo IG204 V1`, all in one line | hardware **`PB-2131`** and model **`IG204 V1`**, on two lines - the same PB-2131 board is sold under several brands | the upstream target carried no measured SFP pins, no measured LED map and no panel-switch support; this fork fills all three in |
 
 Also corrected: the brand spelling `Xikestore` → `XikeStor`, the 4GPY2XF flash size (`?` → 2 MiB), and
 the flash size and PCB label of the 8GPY1XF row.
@@ -75,9 +84,12 @@ the flash size and PCB label of the 8GPY1XF row.
    V2.0/V3.0, and more).
 
 > [!IMPORTANT]
-> Two of the five targets **reset in a loop right after `Detecting CPU`** if you build them without
-> `FLASH_NO_DIO=1`. That is not a bricked board and not a wrong target — it is the flash chip refusing
-> the Dual-I/O read mode. Rebuild with `FLASH_NO_DIO=1` and flash again.
+> Four of the targets above are built and measured with `FLASH_NO_DIO=1`: Hi-K0402WS, Hi-K0801WS, the
+> IG204 4+2 and the AP-7024-2.5G. **Hi-K0402WS and Hi-K0801WS definitely need it**: without the flag they
+> **reset in a loop right after `Detecting CPU`**. That is not a bricked board and not a wrong target —
+> it is the Boya `BY25Q16BS` chip refusing the Dual-I/O read mode. Rebuild with `FLASH_NO_DIO=1` and flash
+> again. The IG204 and AP-7024 flash parts (`MX25L8005M`, `T25S40`, `BY25Q16BS`) were only ever run with
+> single-bit fast read as well, so keep the flag for them.
 
 ## 2. Device notes
 
@@ -178,6 +190,55 @@ model as `SKS3200M-8GPY1XF`.
 Verified: the button's three states, the session handling, and restoring the built-in configuration from
 the web UI.
 
+### 2.6 IG204 4+2 — `PB-2131` (label `IG204 V1`) → `MACHINE_STEAMEMO_IG204_V1`
+
+RTL8372, 4 × 2.5GBASE-T + 2 × SFP+, stock 4 MiB cFeon `EN25QE32A-104HIP` (SOP-8, `U5`), and a **VLAN
+ON/OFF slide switch** on the front panel. **Status: supported - ports, lamps, both SFP cages and the
+switch were measured on the unit (2026-10-29).** Upstream's target of the same name was a placeholder
+(no measured SFP pins, no measured LED map, no panel switch at all); this fork rewrote it from the unit.
+The web interface shows **hardware `PB-2131` / model `IG204 V1`**, like the other multi-brand targets.
+
+| | |
+|---|---|
+| Build | `make MACHINE=STEAMEMO_IG204_V1 FLASH_NO_DIO=1` |
+| First install | SPI clip or programmer only: the stock firmware is the unmanaged Realtek reference image (serial **9600 8N1**, prompt `RTL8371B:`, no web interface). The measured unit had its 4 MiB part replaced with a 1 MiB `MX25L8005M` (the 512 KiB image plus the web updater's 1 MB staging area need the room) |
+| Already running RTLPlayground | upload `output/STEAMEMO_IG204_V1/rtlplayground-*.bin` (512 KiB) in the web UI's firmware page |
+| Reset button | none, not even a footprint → *Restore factory defaults* in the web UI or the `defaults` command |
+| Default IP | `192.168.10.247` (`config.txt`) |
+| Console | header `T7` (TX/GND/RX/3V3); 115200 8N1 once RTLPlayground runs |
+| Panel VLAN switch | `GPIO36`, reads 1 when on and 0 when off; on, the four copper ports are isolated from each other and only reach the SFP+ cages and the CPU port; off, everything talks. Polled once a second, so it takes effect in about a second |
+| Document | [doc/devices/STEAMEMO_IG204_V1.md](doc/devices/STEAMEMO_IG204_V1.md) |
+
+Measured: `regget 0004` = `0x83720000` (RTL8372, no external PHY); the four copper ports at 2.5G; copper
+lamps **2.5G amber / 1G·100M·10M green**, both colours **blinking with traffic**; **both SFP cages**
+(detect GPIO30/GPIO50, EEPROM over I²C, 10G links) with two 10G modules swapped from cage to cage; the SYS
+lamp slow-blinking as the manual describes; the panel switch sampled ten times in each position. Every
+claim in the shipped manual is tabulated against the implementation in the *Conformance with the manual*
+section of the device document.
+
+### 2.7 NPA AP-7024-2.5G — `F7005-2.5GPOE-V1.0` → `MACHINE_F7005_2_5`
+
+RTL8372, 4 × 2.5GBASE-T + 2 × SFP+ (1G/2.5G/10G), stock 512 KiB BrightMoon `T25S40`, 12 V 1 A barrel
+plug, no reset button (and no footprint for one). **Status: supported - the copper ports, the lamps and
+both SFP cages at 10G were measured on the unit (2026-10-19).** Upstream has no such target.
+
+| | |
+|---|---|
+| Build | `make MACHINE=F7005_2_5 FLASH_NO_DIO=1` |
+| First install | write the 512 KiB image at offset 0 of the `T25S40` with an SPI clip/programmer |
+| Web update | **not on a 512 KiB board**: the updater stages the image at `0x80000` and needs at least 1 MB, so the upload answers HTTP 400 `Flash too small for firmware upload!`. With a 2 MiB `BY25Q16BS` (same SOP-8 footprint) the web update works and both cages are detected automatically |
+| Reset button | none, `.reset_pin = GPIO_NA` → web UI button or `defaults` |
+| Default IP | `192.168.10.247` |
+| Console | header `JP1` (VCC/RX/GND/TX); 9600 8N1 on the stock firmware, 115200 8N1 on RTLPlayground |
+| Document | [doc/devices/F7005-2.5GPOE-V1.0.md](doc/devices/F7005-2.5GPOE-V1.0.md) |
+
+Measured: `regget 0004` = `0x83727000` (RTL8372); the four copper ports at 2.5G; copper lamps **2.5G green
+/ 1G·100M amber**, with the pad map measured one group at a time (RJ45 1 green 3 / amber 4-5, RJ45 2 green
+6 / amber 8, RJ45 3 green 9-10 / amber 12-14, RJ45 4 green 18-20 / amber 21-23); `LED_GLB_IO_EN` must be
+written `0x7fffffff` or the whole panel stays dark; the cages detect on **GPIO38 (left) / GPIO37 (right)**
+and their EEPROMs answer on **SDA1/SCL1 and SDA0/SCL0** (none of them the reference pins) - one 10G module
+was moved from cage to cage and read with `sfp` and linked at 10G in both.
+
 ## 3. What else this fork changes
 
 ### 3.1 Restore the factory defaults without a reset button — new feature
@@ -263,8 +324,11 @@ run by CI).
 
 `make -C test` (host tests, extended to cover the new model line) and `make machine_check` pass; CI
 builds both chip classes, with and without the health instrumentation. Documentation added or corrected:
-the three device pages above plus [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md) and
-[doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md), board photos for all five targets,
+the seven device pages of section 2 - among them the rewritten
+[STEAMEMO_IG204_V1.md](doc/devices/STEAMEMO_IG204_V1.md) and the new
+[F7005-2.5GPOE-V1.0.md](doc/devices/F7005-2.5GPOE-V1.0.md) - plus
+[doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md) and [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md),
+board and manual photos for seven models,
 [doc/supported_devices.md](doc/supported_devices.md), the RTL8372/RTL8373 seconds-register difference in
 [doc/hardware.md](doc/hardware.md), and the note that a firmware upgrade keeps the startup configuration
 (section 4.3 below).
@@ -301,6 +365,45 @@ now names the tab from the name this browser remembered for that address before 
 switch is its own origin), and the dashboard resolves the name as the live hostname, the remembered name,
 the model and finally the address, and writes it to the nav bar as well.
 
+### 3.14 The front-panel VLAN switch — new feature
+
+The slide switch marked **VLAN ON/OFF** (on the IG204 it sits left of the SYS lamp) is handled by the
+firmware: `vlan_switch_poll()` samples its GPIO once a second, and while the switch is on it writes the
+isolation mask `0x308` for the four copper ports - they are isolated from each other but all still reach
+the SFP+ cages and the CPU port, so the management address and the uplink stay reachable. Off writes
+`0x3f8` back (everything talks). The registers are only written when the position changes, so flipping
+the switch takes effect in about a second and needs no reboot.
+
+The rest of the feature:
+
+- `vlan switch [on|off]` on the console turns the **function** on or off. `on` is the default; with it off
+  the panel switch does nothing and VLANs and isolation belong to the web/console configuration again. It
+  is saved like any other configuration command (*Save to flash* to keep it).
+- The dashboard's **VLAN panel switch settings** card in the top right holds two switches in the style of
+  the spanning-tree port configuration: a read-only one showing where the panel switch actually is (with
+  a line of text saying what that position means), and one that enables or disables the function (the
+  English UI: *VLAN panel switch* and *Use VLAN panel switch*). The card is as wide as the port strip and
+  shares its row.
+- Mutual exclusion: while **Use VLAN panel switch** is on, the VLANs, Isolation and Port mirroring pages are
+  greyed out and read-only behind a yellow notice that says the panel switch owns the LAN ports - whatever
+  position the physical switch is in. Turning the function off makes all three editable again. The lock
+  keys off the function, not off the switch position, because the position can be flipped by hand at any
+  time and a page must not turn read-only in the middle of an edit.
+
+### 3.15 Port lamps blink with traffic — fix, IG204 4+2 and AP-7024-2.5G
+
+Both targets first described their 2.5G lamp as `LEDS_2G5 | LEDS_LINK` and left out `LEDS_ACT`, so **at
+2.5G - the speed both boards normally run at - the lamp was solid while data flowed**, and the other
+colour stayed dark because the speed did not match: the panel looked as if the lamp never moved. Both
+colours carry `LEDS_ACT` now, as on the already verified SWTG024AS and Hi-K0801WS targets, which is what
+the manual describes ("闪烁 = 数据传输中").
+
+How it was verified on the IG204: the second word of the `gpio` command is *what changed since the last
+call*; with `ping -f` running, RJ45 4's amber pad (21) keeps appearing in it, i.e. the lamp is blinking.
+Clearing the `ACT` bit live with `regset 6548 01740041` made the pad stop moving completely, and writing
+the value back made it blink again. The SYS lamp was changed to the manual's slow blink while idle
+(`sys_led_blink_idle`) in the same pass.
+
 ## 4. Recipes
 
 ### 4.1 Build
@@ -314,6 +417,10 @@ make MACHINE=PCB_K0801W_V1 FLASH_NO_DIO=1
 make MACHINE=SKS3200M_4GPY2XF
 make MACHINE=SKS3200M_5GPY1XF
 make MACHINE=SKS3200M_8GPY1XF
+
+# IG204 4+2 (PB-2131) and NPA AP-7024-2.5G (F7005-2.5GPOE-V1.0): measured with single-bit fast read
+make MACHINE=STEAMEMO_IG204_V1 FLASH_NO_DIO=1
+make MACHINE=F7005_2_5 FLASH_NO_DIO=1
 ```
 
 The image lands in `output/<target>/rtlplayground-<version>-<target>.bin` (512 KiB).
@@ -325,11 +432,13 @@ The image lands in `output/<target>/rtlplayground-<version>-<target>.bin` (512 K
 | RTLPlayground | *Firmware update* in the web interface, upload the 512 KiB `output/<target>/rtlplayground-*.bin` |
 | stock **managed** firmware (the three XikeStor units) | the one-shot installer `installer/output/rtlplayground_oem_upgrade.bin`, uploaded through the stock 固件升级 page — see the per-device notes in section 2 for the loader differences |
 | stock **unmanaged** firmware (Hi-K0402WS, Hi-K0801WS) | an SPI clamp and a programmer: back up 2 MiB, erase, write the build padded to 2 MiB, verify. Padding is only for the programmer — never upload a padded file |
+| stock **unmanaged** firmware (IG204 4+2) | an SPI clamp and a programmer: back up the stock 4 MiB `EN25QE32A`, write the 512 KiB image at offset 0. The stock part was never run with RTLPlayground - the measured unit carries a 1 MiB `MX25L8005M` |
+| stock **unmanaged** firmware (NPA AP-7024-2.5G) | a 512 KiB `T25S40` takes the unpadded 512 KiB image from an SPI programmer. For the web updater, fit a 2 MiB `BY25Q16BS` (same SOP-8 footprint), see the [device document](doc/devices/F7005-2.5GPOE-V1.0.md) |
 
 ### 4.3 After flashing
 
 - A freshly flashed XikeStor board comes up at `192.168.10.12` with the default password **`1234`**; a
-  Hi-K0402WS/Hi-K0801WS board comes up at `192.168.10.247`.
+  Hi-K0402WS/Hi-K0801WS/IG204 4+2/AP-7024-2.5G board comes up at `192.168.10.247`.
 - **An upgrade keeps the board's startup configuration.** The image is written up to the configuration
   area, which is left alone, so VLANs, port names, the password and the IP address survive a firmware
   update. The configuration compiled into the image only applies to a board that has none yet, or after
@@ -339,10 +448,23 @@ The image lands in `output/<target>/rtlplayground-<version>-<target>.bin` (512 K
   board then moves to the image's default address, so reconnect there.
 - The boot log and the System tab state the board revision and the retail model on separate lines, so
   you can always tell which target a board is running.
+- The **VLAN** slide switch on the front panel (left of the SYS lamp on the IG204) is handled by the
+  firmware: on, the four RJ45 ports are isolated from each other but all still reach the SFP+ cages and
+  the CPU port, so the management address and the uplink keep working; off, everything talks. It is
+  polled once a second, so it takes effect in about a second without a reboot, and the *Isolation* page
+  shows the corresponding mask. The dashboard's *VLAN panel switch settings* card shows the switch
+  read-only and adds an *Use VLAN panel switch* switch: turning that off makes the panel switch do
+  nothing and hands VLANs and isolation back to the web configuration (the console equivalent is
+  `vlan switch off`; *Save to flash* to keep it across a reboot).
+- **Do not connect several links of one switch to several ports of another switch.** STP is off by
+  default, so that forms a loop: with RJ45 1-3 and both SFP cages connected to the same switch the IG204
+  produced a broadcast storm of about 900k packets/s, the management address stopped answering, and only
+  pulling the extra cables recovered it. Use one link between two switches, or run `stp on` and save the
+  configuration first.
 
 ## 5. Verification
 
-### 5.1 The six units this work was measured on
+### 5.1 The eight units this work was measured on
 
 | Unit | Target | What was verified on it |
 |---|---|---|
@@ -353,7 +475,7 @@ The image lands in `output/<target>/rtlplayground-<version>-<target>.bin` (512 K
 | XikeStor SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | reset button tri-state, factory MAC, factory-default restore; **both cages** (jacks 5/6 = logical ports 8/3), the **pad map measured lamp by lamp**, the port-numbering crossover fixed (2026-10-13) |
 | XikeStor SKS3200M-5GPY1XF | `SKS3200M_5GPY1XF` | all six ports, SFP at 10G, LEDs, system LED, factory MAC, reset button tri-state |
 
-All six were reflashed with the same build and reported the same software version, with their IP address,
+All eight were reflashed with the same build and reported the same software version, with their IP address,
 hostname and factory MAC preserved.
 
 ### 5.2 Checking your own board

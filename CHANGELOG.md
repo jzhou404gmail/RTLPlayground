@@ -21,6 +21,23 @@
     browser saw at that address last, the model, and then the address, so no tab is left as "Switch".
   - The Time card is translated into Chinese, like the rest of the System tab: the NTP strings had only
     English entries, so a Chinese UI showed that one card in English.
+  - The dashboard is a 2 x 2 grid on boards that have a front-panel "VLAN" switch: the port strip and a
+    new VLAN switch card share the top row (equal width, equal height), the System and Traffic cards the
+    bottom row. The card carries two switches in the style of the spanning-tree port configuration: a
+    read-only one showing the panel switch and a note under it, and one turning the feature on or off.
+    The page re-reads `/information.json` every five seconds, so the read-only switch follows the panel;
+    boards without the switch keep the port strip full width and the card hidden. The VLANs and the
+    Isolation tab carry a yellow notice while the panel-switch function is enabled - whatever position
+    the physical switch is in: the function owns the LAN ports, so VLAN forwarding does not happen
+    between them until it is turned off.
+    Everything below the notice is greyed out and read-only in that state - the VLAN table and the
+    isolation matrix stay readable, but the controls are disabled so no setting can be changed behind
+    the panel switch's back. The **Port mirroring** page gets the same notice and lock, because a
+    mirror between two RJ45 ports is exactly the forwarding the isolation drops.
+- Console
+  - `vlan switch [on|off]`: whether a front-panel VLAN switch drives port isolation. `off` hands VLANs
+    and isolation back to the configuration (the firmware clears the isolation once); `on` is the
+    default and makes the panel switch decide. Saved like any other configuration command.
   - Command reference in the Console card: a fold-out list of the main console commands, their format and
     one example each, in English and Chinese, so the console does not need the README at hand.
   - The Network card sets the TCP port of the web interface (`HTTP port`, default 80): the field sits
@@ -39,6 +56,24 @@
     2 MiB Boya/BoHong BY25Q16BS). Boots and lists its ports correctly; the LED wiring and the SFP pins
     are the V2.0 values, not measured on this revision. Needs `FLASH_NO_DIO=1`.
     See doc/devices/PCB-K0801W-V1.0.md.
+  - `MACHINE_F7005_2_5` — NPA AP-7024-2.5G (F7005-2.5GPOE-V1.0, 4 x 2.5GBASE-T + 2 x SFP+, RTL8372,
+    512 KiB T25S40). Measured LED pad map (2.5G green, 1000/100M orange; the RTL8372 reset value leaves
+    LED pads 0-7 off), measured SFP detect pins (GPIO38 left, GPIO37 right) and EEPROM buses
+    (SDA1/SCL1 left, SDA0/SCL0 right). The 512 KiB part cannot use the web updater, which stages at
+    `0x80000` and needs >= 1 MB; the unit was also brought up by replaying the LED and SerDes commands
+    from the startup configuration. See doc/devices/F7005-2.5GPOE-V1.0.md.
+  - `MACHINE_STEAMEMO_IG204_V1` — IG204 4+2 on the PB-2131 PCB (4 x 2.5GBASE-T + 2 x SFP+, RTL8372,
+    stock 4 MiB cFeon EN25QE32A), now named like the other multi-brand targets: `.machine_name`
+    is the board revision (`PB-2131`, shown as *Hardware*) and `.model_name` the label on the unit
+    (`IG204 V1`, shown as *Model*). The SFP pins and both cages were verified on the unit
+    (GPIO30/GPIO50 detect, SDA4/SCL3 and SDA3/SCL3 EEPROMs, 10G on both), and so was the LED map:
+    the green lamp no longer also lights at 2.5G, pads 0-7 are driven to a never-true signal instead
+    of being left floating, and `machine_custom_init()` enables every LED pad. The front-panel
+    **VLAN slide switch** (GPIO36) is handled too: while it is on, the RJ45 ports are isolated from
+    each other but keep their path to the SFP cages and the CPU port. `sys_led_blink_idle` makes the
+    SYS LED blink slowly while the board is idle, as the shipped manual describes ("SYS 慢闪 = 正常
+    工作"). The manual's claims are tabulated against the implementation in the device document.
+    See doc/devices/STEAMEMO_IG204_V1.md.
   - `MACHINE_SKS3200M_5GPY1XF` — XikeStor SKS3200M-5GPY1XF (PCB-SWTG115AS-V2.1, 5 x 2.5GBASE-T + 1 x SFP+),
     the ZX-SWTGW215AS board under a different model name. See doc/devices/SKS3200M-5GPY1XF.md.
   - `MACHINE_SKS3200M_8GPY1XF` — XikeStor SKS3200M-8GPY1XF (SWTG118AS-V2.1-17462, 8 x 2.5GBASE-T + 1 x SFP+),
@@ -78,6 +113,11 @@
     `no DNS server for <name>`, `cannot resolve <name>`, `no usable answer from <address>`, `waiting for the
     first answer`, or `NTP is off`. An IPv4 address in the NTP server field was, and is, used as it is,
     without a look-up.
+  - On an RTL8372 whose `RTL837X_REG_SEC_COUNTER` reads back 0 the clock stayed at the value it had at
+    the last synchronisation and the client never scheduled the next one: the uptime was taken from
+    that register, which only holds a written value on an RTL8373. It now comes from the RAM counter
+    `read_timer()` keeps - the same one the session timeout uses - so `time`, the Time card and the
+    dashboard clock advance on those units too.
 - Config
   - A startup configuration line longer than the command buffer no longer stops the replay:
     the offending line is skipped and the following lines are still applied.
@@ -114,6 +154,13 @@
     ambers glowed without a link. The target now carries the pad map measured on the unit, its SFP cages
     get one lamp lit at any speed, and the pads of unused signals are driven to their inactive level
     instead of floating. See the "LEDs" section of doc/devices/SWTG024AS.md.
+  - The 2.5G lamp of the IG204 4+2 and of the NPA AP-7024-2.5G stayed solid while data flowed: their
+    LED mask was `LEDS_2G5 | LEDS_LINK` without `LEDS_ACT`, so at 2.5G - the speed both boards normally
+    run at - the lamp (amber on the IG204, green on the AP-7024) was lit but never blinked. Both targets
+    set the bit now, like the SWTG024AS and Hi-K0801WS targets do, and the manual lists
+    "闪烁:数据传输中" for the port lamp. Verified on the IG204: the pad level of RJ45 4's amber lamp
+    toggles during a ping flood, stops toggling when the bit is cleared live with `regset 6548`, and
+    toggles again once it is restored.
 
 ## Breaking changes
 
