@@ -60,6 +60,7 @@ __xdata uint16_t vlan_ptr;
 __xdata char port_names[9][PORT_NAME_SIZE];
 
 extern __xdata uint16_t management_vlan;
+extern __xdata uint8_t vlan_switch_enabled;
 extern __xdata struct uip_eth_addr uip_ethaddr;
 __xdata uint8_t gpio_last_value[8] = { 0 };
 
@@ -603,6 +604,27 @@ void parse_vlan(void)
 
 	if (cmd_words_len < 2)
 		goto err;
+
+	/* "vlan switch [on|off]": whether a front-panel VLAN switch, if the board
+	 * has one, drives port isolation. Off leaves isolation to the web UI. */
+	if (cmd_compare(1, "switch")) {
+		if (cmd_words_len < 3) {
+			print_string("\nPanel VLAN switch function: ");
+			print_string(vlan_switch_enabled ? "on" : "off");
+			write_char('\n');
+			return;
+		}
+		if (cmd_compare(2, "on")) {
+			vlan_switch_enabled = 1;
+			print_string("\nPanel VLAN switch function on: it isolates the RJ45 ports\n");
+		} else if (cmd_compare(2, "off")) {
+			vlan_switch_enabled = 0;
+			print_string("\nPanel VLAN switch function off: isolation comes from the configuration\n");
+		} else {
+			goto err;
+		}
+		return;
+	}
 
 	// Parse the VLAN number
 	if (atoi_short(cmd_words_b[1]) != 0) {

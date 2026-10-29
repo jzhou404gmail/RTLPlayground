@@ -84,4 +84,11 @@ void gpio_input_setup(uint8_t pin) __banked;
  */
 void gpio_output_setup(uint8_t pin, __xdata uint8_t initial_val) __banked;
 
+/*
+ * Front-panel "VLAN" switch support: poll the switch (isolating the RJ45
+ * ports while it is on) and append its state to /information.json.
+ */
+void vlan_switch_poll(void) __banked;
+void vlan_switch_json(void) __banked;
+
 #endif

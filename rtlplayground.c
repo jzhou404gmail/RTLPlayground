@@ -133,6 +133,7 @@ __xdata bool frame_tagged;
 __xdata uint8_t tx_seq;
 
 __xdata bool stp_enabled;
+__xdata uint8_t vlan_switch_enabled;
 __xdata uint8_t igmpEnabled;
 __xdata bool lldp_enabled;
 __xdata char hostname[24];	/* device hostname, default set at boot, see rtl837x_common.h */
@@ -1297,6 +1298,7 @@ static void handle_tick(void)
 	if (TICKS_DUE(sfp_tick_last, SFP_TICK_STEP)) {
 		sfp_tick_last += SFP_TICK_STEP;
 		handle_sfp();
+		vlan_switch_poll();
 	}
 	health_phase(HEALTH_PH_SFP);
 	handle_tx();
@@ -1820,6 +1822,9 @@ void main(void)
 	print_reg(RTL837X_REG_SEC_COUNTER);
 #endif
 	stp_enabled = 0;
+	/* The front-panel VLAN switch drives port isolation unless a
+	 * "vlan switch off" line in the startup configuration says otherwise. */
+	vlan_switch_enabled = 1;
 	stp_defaults();		/* 802.1D/w default config before any "stp ..." replay */
 	nic_setup();
 	REG_SET(RTL837X_NIC_INT_MSK, NIC_INT_RXIE);
@@ -1858,7 +1863,9 @@ void main(void)
 	print_cmd_prompt();
 	idle_ready = 1;
 
-	set_sys_led_state(SYS_LED_ON);
+	/* Some panels show "working" as a slow blink of the SYS LED (see the
+	 * board manual), most are fine with a steady lamp. */
+	set_sys_led_state(machine.sys_led_blink_idle ? SYS_LED_SLOW : SYS_LED_ON);
 
 	cmd_editor_init();
 

@@ -2,10 +2,13 @@
 #include "rtl837x_common.h"
 #include "rtl837x_sfr.h"
 #include "rtl837x_regs.h"
+#include "rtl837x_port.h"
 #include "machine.h"
 
 extern __code const struct machine machine;
 extern __xdata uint8_t sfr_data[4];
+extern __xdata uint8_t outbuf[TCP_OUTBUF_SIZE];
+extern __xdata uint16_t slen;
 
 #pragma codeseg BANK2
 #pragma constseg BANK2
@@ -93,6 +96,83 @@ void gpio_output_setup(uint8_t pin, __xdata uint8_t initial_val) __banked{
 	}
 
 	reg_bit_set(gpio_direction_reg(pin), (pin % 32));
+}
+
+
+/*
+ * Front-panel "VLAN" slide switch, on boards that have one (.vlan_switch_pin).
+ * While it is on, the non-SFP ports are isolated from each other: each keeps a
+ * path to the SFP cages and to the CPU port, so the uplink and the management
+ * interface keep working. Called from the main loop; the isolation registers
+ * are only rewritten when the switch changes.
+ *
+ * Lives here rather than in rtl837x_port.c because BANK1 is full on this
+ * machine; port_isolate() is reached through its bank trampoline.
+ */
+__xdata uint8_t vlan_switch_last = 0xff;	/* 0/1 = applied, 0xfe = function off */
+extern __xdata uint8_t vlan_switch_enabled;
+
+void vlan_switch_poll(void) __banked
+{
+	uint8_t state, port;
+	__xdata uint16_t all = 0;
+	__xdata uint16_t mask;
+
+	if (!machine.vlan_switch_pin)
+		return;
+
+	if (vlan_switch_enabled) {
+		state = gpio_pin_test(machine.vlan_switch_pin) ? 1 : 0;
+		if (state == vlan_switch_last)
+			return;
+	} else {
+		/* Switching the function off hands the isolation back to the
+		 * web configuration: restore "allow all" once, then leave the
+		 * isolation registers alone. */
+		if (vlan_switch_last == 0xfe)
+			return;
+		state = 0xfe;
+	}
+
+	/* Every port of this machine plus the CPU port */
+	for (port = machine.min_port; port <= machine.max_port; port++)
+		all |= ((uint16_t)1) << port;
+	all |= ((uint16_t)1) << 9;	/* CPU port */
+
+	/* While the switch is on, an RJ45 port may reach everything except the
+	 * other RJ45 ports: the SFP cages and the CPU port stay reachable. */
+	mask = all;
+	if (state == 1) {
+		for (port = machine.min_port; port <= machine.max_port; port++)
+			if (!machine.is_sfp[port])
+				mask &= ~(((uint16_t)1) << port);
+	}
+
+	for (port = machine.min_port; port <= machine.max_port; port++) {
+		if (machine.is_sfp[port])
+			continue;
+		port_isolate(port, mask);
+	}
+	vlan_switch_last = state;
+
+	print_string("\nVLAN switch: ");
+	if (state == 1)
+		print_string("ON, the RJ45 ports are isolated from each other\n");
+	else if (state == 0)
+		print_string("OFF, all ports may talk to each other\n");
+	else
+		print_string("function off, isolation left to the web configuration\n");
+}
+
+
+/* Append the "vlan_switch" / "vlan_switch_en" fields to /information.json.
+ * Lives here, like vlan_switch_poll(), because page_impl.c is BANK1 and full. */
+void vlan_switch_json(void) __banked
+{
+	slen += strtox(outbuf + slen, "\",\"vlan_switch\":\"");
+	slen += strtox(outbuf + slen, gpio_pin_test(machine.vlan_switch_pin) ? "on" : "off");
+	slen += strtox(outbuf + slen, "\",\"vlan_switch_en\":\"");
+	slen += strtox(outbuf + slen, vlan_switch_enabled ? "on" : "off");
 }
 
 

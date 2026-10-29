@@ -312,6 +312,12 @@ void send_basic_info(void)
 	slen += strtox(outbuf + slen, "\",\"flash_size\":\"");
 	string_to_html(get_flash_size_str());
 
+	/* Front-panel "VLAN" switch, only on boards that have one. The dashboard
+	 * shows it as a card; without the keys the card stays hidden. Built in
+	 * rtl837x_pins.c because BANK1 has no room left for it here. */
+	if (machine.vlan_switch_pin)
+		vlan_switch_json();
+
 	if (machine.n_sfp) {
 		slen += strtox(outbuf + slen, "\",\"sfp_slot_0\":\"");
 		send_sfp_info(0);
