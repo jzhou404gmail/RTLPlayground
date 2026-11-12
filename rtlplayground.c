@@ -22,6 +22,7 @@
 #include "cmd_parser.h"
 #include "cmd_editor.h"
 #include "uip/uipopt.h"
+#include "timer.h"
 #include "uip/uip.h"
 #include "uip/uip_arp.h"
 #include "machine.h"
@@ -105,7 +106,10 @@ volatile __xdata uint8_t sec_counter;
 // Seconds since boot, kept in RAM: the hardware seconds register it is mirrored
 // to does not hold a written value on an RTL8372, see read_timer()
 volatile __xdata uint32_t uptime_secs;
-volatile __xdata uint16_t sleep_ticks;
+/* Each wait owns its timer: a delay() from a command run inside sleep() must
+ * not cut the sleep short. */
+static __xdata struct timer delay_timer;
+static __xdata struct timer sleep_timer;
 __xdata uint8_t stp_tick_last;
 __xdata uint8_t arp_age_secs;
 extern __xdata struct dhcp_state dhcp_state;
@@ -224,8 +228,6 @@ void isr_timer2(void) __interrupt(5)
 {
 	ticks++;
 	tick_pending = 1;
-	if (sleep_ticks > 0)
-		sleep_ticks--;
 	sec_counter++;
 
 	// Clear TF2 & EXF2 by software
@@ -981,8 +983,8 @@ void read_timer(__xdata uint32_t * tmr)
 // Delay for given number of ticks without doing housekeeping
 void delay(uint16_t t)
 {
-	sleep_ticks = t;
-	while (sleep_ticks > 0)
+	timer_set(&delay_timer, t);
+	while (!timer_expired(&delay_timer))
 		PCON |= 1;
 }
 
@@ -1368,8 +1370,8 @@ void idle(void)
 // Sleep the given number of ticks and perform idle tasks if initialized
 void sleep(uint16_t t)
 {
-	sleep_ticks = t;
-	while (sleep_ticks > 0) {
+	timer_set(&sleep_timer, t);
+	while (!timer_expired(&sleep_timer)) {
 		if (idle_ready)
 			idle();
 		else

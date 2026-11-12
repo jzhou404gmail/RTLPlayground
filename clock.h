@@ -68,14 +68,10 @@ void clock_init(void);
 /**
  * Get the current clock time.
  *
- * This function returns the current system clock time.
- *
- * \return The current clock time, measured in system ticks.
+ * Implemented in timer.c: the tick interrupt can split a 32-bit load, so
+ * the caller must not read the counter directly.
  */
-inline clock_time_t clock_time(void)
-{
-  return ticks;
-}
+clock_time_t clock_time(void);
 
 /**
  * A second, measured in system clock time.

@@ -84,6 +84,9 @@ DEFAULT_CONFIG := config.txt
 ifneq ($(filter $(XIKESTOR_TARGETS),$(MACHINE)),)
 DEFAULT_CONFIG := config-xikestor.txt
 endif
+# The configuration compiled into the image. Override with CONFIG=<file>;
+# changing its content forces a rebuild because it is a prerequisite.
+CONFIG ?= $(DEFAULT_CONFIG)
 
 BUILDDIR = output/$(MACHINE)
 VERSION_HEADER := version.h
@@ -97,6 +100,15 @@ endif
 VERSION_EXTENSION = v$(VERSION)-$(GIT_VERSION)
 FILENAME_EXTENSION = $(VERSION_EXTENSION)-$(MACHINE)
 
+# Path and name of the final image. BUILDDIR still holds the intermediate
+# objects and tools. OUTPUT_DIR changes only the destination; OUTPUT_PREFIX is
+# prepended to the automatic name; OUTPUT_NAME replaces that name; OUTPUT sets
+# a complete path and overrides all three.
+OUTPUT_DIR ?= $(BUILDDIR)
+OUTPUT_PREFIX ?= rtlplayground-
+OUTPUT_NAME ?= $(OUTPUT_PREFIX)$(FILENAME_EXTENSION).bin
+OUTPUT ?= $(OUTPUT_DIR)/$(OUTPUT_NAME)
+
 # Build date: wall clock at build time, so the System tab shows when the image
 # that is running was actually produced. This is what an operator expects after
 # a fix is flashed. For a reproducible build (CI, release signing), pass
@@ -109,7 +121,11 @@ else
 BUILD_DATE := $(shell date +"%Y-%m-%d %H:%M:%S")
 endif
 
-all: create_build_dir $(VERSION_HEADER) $(SUBDIRS) $(BUILDDIR)/rtlplayground-$(FILENAME_EXTENSION).bin
+all: create_build_dir $(VERSION_HEADER) $(SUBDIRS) $(OUTPUT)
+
+# Report how much room is left in each code bank of the last build.
+bank_size:
+	@python3 tools/bank_usage.py $(BUILDDIR)/rtlplayground.ihx
 
 create_build_dir:
 	mkdir -p "$(BUILDDIR)"
@@ -132,6 +148,7 @@ SRCS = \
 	ntp.c \
 	ntp_cli.c \
 	syslog.c \
+	timer.c \
 	auth.c \
 	sessions.c \
 	udp_apps.c
@@ -155,7 +172,6 @@ SRCS += \
 	httpd/httpd.c \
 	httpd/page_impl.c
 SRCS += \
-	uip/timer.c \
 	uip/uip.c \
 	uip/uiplib.c \
 	uip/uip_arp.c \
@@ -228,14 +244,15 @@ $(BUILDDIR)/rtlplayground.ihx: $(OBJS) $(BUILDDIR)/crtbank.rel $(BUILDDIR)/crc16
 $(BUILDDIR)/rtlplayground.img: $(BUILDDIR)/rtlplayground.ihx
 	objcopy --input-target=ihex -O binary $< $@
 
-$(BUILDDIR)/rtlplayground-$(FILENAME_EXTENSION).bin: $(BUILDDIR)/rtlplayground.img $(DEFAULT_CONFIG) | tools
-	if [ -e $@ ]; then rm $@; fi
-	tools/output/imagebuilder -i $< $@
-	tools/output/fileadder -a $(DEFAULT_CONFIG_LOCATION) -s $(IMAGESIZE) -d $(DEFAULT_CONFIG) $@
-	tools/output/fileadder -a $(CONFIG_LOCATION) -s $(IMAGESIZE) -d $(DEFAULT_CONFIG) $@
-	tools/output/fileadder -a $(HTML_LOCATION) -s $(IMAGESIZE) -z -d $(HTML_MIN) -b BANK1 $@
-	tools/output/crc_calculator -u $@
-	ln -sf $(MACHINE)/rtlplayground-$(FILENAME_EXTENSION).bin output/rtlplayground.bin
+$(OUTPUT): $(BUILDDIR)/rtlplayground.img $(CONFIG) | tools
+	@mkdir -p "$(dir $@)"
+	if [ -e "$@" ]; then rm "$@"; fi
+	tools/output/imagebuilder -i $< "$@"
+	tools/output/fileadder -a $(DEFAULT_CONFIG_LOCATION) -s $(IMAGESIZE) -d "$(CONFIG)" "$@"
+	tools/output/fileadder -a $(CONFIG_LOCATION) -s $(IMAGESIZE) -d "$(CONFIG)" "$@"
+	tools/output/fileadder -a $(HTML_LOCATION) -s $(IMAGESIZE) -z -d $(HTML_MIN) -b BANK1 "$@"
+	tools/output/crc_calculator -u "$@"
+	ln -sf "$(abspath $(OUTPUT))" output/rtlplayground.bin
 
 .PHONY: clean distclean all $(SUBDIRS) $(SUBDIRSCLEAN) create_build_dir
 
