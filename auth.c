@@ -10,6 +10,7 @@
 #include "rtl837x_flash.h"
 #include "page_impl.h"
 #include "auth.h"
+#include "sessions.h"
 
 #pragma codeseg BANK3
 #pragma constseg BANK3
@@ -20,7 +21,6 @@ extern __xdata uint8_t flash_buf[FLASH_BUF_SIZE];
 extern __xdata struct flash_region_t flash_region;
 extern __xdata uint8_t outbuf[];
 extern __xdata uint16_t slen;
-extern __xdata char session_id[];
 extern __xdata uint8_t authenticated;
 extern __xdata uint8_t http_tls;
 
@@ -220,7 +220,8 @@ void auth_send_info(void) __banked
 
 void auth_logout_reply(void) __banked
 {
-	session_id[0] = 0;
+	/* Every slot: a logout must not leave another browser's cookie valid. */
+	session_init();
 	authenticated = 0;
 	slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n"
 			     "Cache-Control: no-store\r\nLocation: login.html\r\n"

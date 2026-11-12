@@ -8,18 +8,13 @@
 #include "uip.h"
 #include "html_data.h"
 #include "auth.h"
+#include "sessions.h"
 
 // #define DEBUG
 #include "debug.h"
 
-#define SESSION_ID_LENGTH 32
 #define SESSION_TIMEOUT_DEFAULT 200
 #define HTTP_PORT_DEFAULT 80
-
-/* Absolute lifetime of a session, regardless of activity. An idle timeout
- * alone lets a cookie that is used often stay valid forever. Uptime is in
- * seconds, 8 h is far below the wrap of the 32-bit counter. */
-#define SESSION_LIFETIME_MAX (8UL * 3600UL)
 
 /* Seconds of inactivity after which a session cookie stops validating.
  * Configurable with the "session" command, see cmd_parser.c. */
@@ -106,11 +101,8 @@ __xdata char passwd[21];
 // Set when a verified firmware upload awaits its response ACK, after
 // which the chip resets to apply the staged image
 __xdata uint8_t fw_reset_pending;
-__xdata char session_id[SESSION_ID_LENGTH + 1];
 __xdata uint8_t authenticated;
 __xdata uint32_t now;
-__xdata uint32_t last_session_use;
-__xdata uint32_t session_started;
 
 #define TSTATE_NONE		0
 #define TSTATE_TX		1
@@ -487,19 +479,8 @@ __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 
 	read_timer(&now);
 
-	if (session && session_id[0]) {
-		if (now - last_session_use > session_timeout
-		    || now - session_started > SESSION_LIFETIME_MAX) {
-			dbg_string("Session expired\n");
-		} else {
-			if (is_word_x(session, session_id)) {
-				authenticated = 1;
-				last_session_use = now;
-			} else {
-				dbg_string("Invalid session cookie!\n");
-			}
-		}
-	}
+	if (session)
+		session_check();
 	/* Fail closed. An empty password is not a credential: until one is
 	 * provisioned over the serial console, login.html is the only thing
 	 * that can be reached. Nothing may turn this back into a bypass. */
@@ -508,29 +489,12 @@ __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 	return p;
 }
 
-/*
- * Generate random HEX-chars at the buffer location.
- */
-void gen_random_hex_chars(__xdata uint8_t * b, __xdata uint8_t bytes)
-{
-	uint8_t i = 0;
-	while (bytes) {
-		if (!i)
-			get_random_32();
-		b[--bytes] = itohex(sfr_data[i]);
-		if (!bytes) { break; }
-		b[--bytes] = itohex(sfr_data[i] >> 4 | sfr_data[i] << 4);
-		i = (i + 1) & 0x3;
-	}
-}
-
-
 /* Drop the session: called when the password changes and, later, on
  * logout. There is one slot for the whole web interface, so this also
  * invalidates a cookie someone else may still hold. */
 void httpd_forget_sessions(void) __banked
 {
-	session_id[0] = NUL;
+	session_init();
 	authenticated = 0;
 }
 
@@ -872,15 +836,10 @@ static void run_login_body(__xdata uint8_t *body)
 		dbg_string("Password accepted!\n");
 		login_fails = 0;
 		login_lock_until = 0;
-		read_timer(&last_session_use);
-		session_started = last_session_use;
-		gen_random_hex_chars(session_id, SESSION_ID_LENGTH);
-		session_id[SESSION_ID_LENGTH] = NUL;
 		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n" \
 				      "Cache-Control: no-store\r\nLocation: index.html\r\n" \
 				      "Set-Cookie: session=");
-		for (uint8_t i = 0; i < SESSION_ID_LENGTH; i++)
-			outbuf[slen++] = session_id[i];
+		session_new();
 		if (http_tls)
 			slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict; Secure\r\n\r\n");
 		else

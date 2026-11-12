@@ -133,6 +133,7 @@ SRCS = \
 	ntp_cli.c \
 	syslog.c \
 	auth.c \
+	sessions.c \
 	udp_apps.c
 
 # RTL837x
