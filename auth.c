@@ -220,8 +220,8 @@ void auth_send_info(void) __banked
 
 void auth_logout_reply(void) __banked
 {
-	/* Every slot: a logout must not leave another browser's cookie valid. */
-	session_init();
+	/* Only this browser's slot: the other sessions stay logged in. */
+	session_drop();
 	authenticated = 0;
 	slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n"
 			     "Cache-Control: no-store\r\nLocation: login.html\r\n"

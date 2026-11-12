@@ -86,6 +86,14 @@ void session_init(void) __banked
 	ss_hit = 0;
 }
 
+/* Drop only the session this request came with: logging out on one browser
+ * must not end the others. */
+void session_drop(void) __banked
+{
+	if (authenticated && session_id[ss_hit][0])
+		session_id[ss_hit][0] = NUL;
+}
+
 void session_check(void) __banked
 {
 	authenticated = 0;

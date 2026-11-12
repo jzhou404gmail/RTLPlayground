@@ -16,6 +16,7 @@
 #define SESSION_LIFETIME_MAX (8UL * 3600UL)
 
 void session_init(void) __banked;
+void session_drop(void) __banked;
 void session_check(void) __banked;
 void session_new(void) __banked;
 
