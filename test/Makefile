@@ -29,7 +29,8 @@ TESTS = $(BUILDDIR)/test_cmd_editor \
         $(BUILDDIR)/test_page_json \
         $(BUILDDIR)/test_httpd_tx \
         $(BUILDDIR)/test_ntp \
-        $(BUILDDIR)/test_tick_gate
+        $(BUILDDIR)/test_tick_gate \
+        $(BUILDDIR)/test_sessions
 
 # The table tests link the register mock and one environment file; stub/
 # stands in for the two headers a firmware build generates.
@@ -50,6 +51,10 @@ $(BUILDDIR)/test_port_tables: test_port_tables.c $(TABLE_ENV) hw_mock.h | $(BUIL
 	$(CC) $(CFLAGS) $(filter %.c,$^) -o $@ $(LDFLAGS)
 
 $(BUILDDIR)/test_tick_gate: test_tick_gate.c support.c $(SRCROOT)/cmd_editor.c | $(BUILDDIR)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+
+# sessions.c is compiled UNMODIFIED from the firmware tree.
+$(BUILDDIR)/test_sessions: test_sessions.c $(SRCROOT)/sessions.c | $(BUILDDIR)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 $(BUILDDIR)/test_page_json: test_page_json.c $(TABLE_ENV) hw_mock.h | $(BUILDDIR)
