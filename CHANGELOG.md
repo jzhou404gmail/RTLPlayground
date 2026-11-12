@@ -2,8 +2,16 @@
 
 ## [0.x] - 2026-xx-XX
 
+## Added
+
+- Four web logins at once (`sessions.c`, in BANK3): each browser has its own cookie, idle timeout and 8 h absolute lifetime; the fifth login replaces the least recently used. A logout ends only the calling browser, a password change ends them all.
+- `test/test_sessions.c` covers the session table on the host: distinct 128-bit ids, idle and absolute expiry, LRU eviction, logout scope.
+- Build: `CONFIG=<file>` selects the embedded startup configuration, `OUTPUT_DIR`/`OUTPUT_PREFIX`/`OUTPUT_NAME`/`OUTPUT` place the image, `make bank_size` prints how full each code bank of the last build is. BANK1 is at 99.4%, so check it before adding code.
+
 ## Changed
 
+- The timer library moved out of `uip/` to `timer.c/h`, in the home bank so every bank can call it; deadlines are 16 bit and `delay()`/`sleep()` each own their timer. The HTTP request deadline is a timer too, and `clock_time()` rereads the tick counter until its low byte stops moving.
+- HTTP request handling buffers a POST header across TCP segments, re-examines the byte that breaks a partial multipart boundary, writes the JSON array closers once per array, and answers `/reset` with an empty 200 and resets only after the answer is acknowledged (also when the client's FIN carries the ACK). The upload reset intent lives in the connection state, so a reused TCP slot cannot reset the switch.
 - The build date in the System tab is the wall clock at build time again, so an image shows when it
   was actually made. Pass `SOURCE_DATE_EPOCH=<unix time>` for a reproducible build.
 - Login throttling: five failed attempts delay the next try by 1 s, doubling up to 32 s. The Web UI
@@ -142,6 +150,8 @@
 
 ## Fixed
 
+- `send_l2()` counted 76 bytes for a worst-case entry but the entry can reach 96, and the closing bracket was written without checking the buffer; the host test caught the overrun.
+- Firefox no longer fills a saved login into the new-password fields of the System tab.
 - NTP
   - An NTP server given by host name never synced on a board that has no DNS server: the client sent
     nothing, `ntp`/`time` only said *Time not synchronised* and the Time card showed `Server address -`,
