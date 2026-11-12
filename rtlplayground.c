@@ -83,8 +83,19 @@ void crc16_bank1(__xdata uint8_t *v) __naked;
 
 __xdata uint8_t idle_ready;
 
-__code const uint8_t ownIP[] = { 192, 168, 2, 2 };
-__code const uint8_t gatewayIP[] = { 192, 168, 2, 22};
+/*
+ * Address the board keeps while no DHCP lease has arrived (and if no DHCP
+ * server answers at all). The three XikeStor models print 192.168.10.12 on
+ * their nameplate; every other target keeps RTLPlayground's traditional
+ * 192.168.10.247. "ip dhcp" replaces this as soon as a lease arrives, so it
+ * is only the pre-lease / no-server fallback - not a static configuration.
+ */
+#if defined(MACHINE_SKS3200M_8GPY1XF) || defined(MACHINE_SKS3200M_4GPY2XF) || defined(MACHINE_SKS3200M_5GPY1XF)
+__code const uint8_t ownIP[] = { 192, 168, 10, 12 };
+#else
+__code const uint8_t ownIP[] = { 192, 168, 10, 247 };
+#endif
+__code const uint8_t gatewayIP[] = { 192, 168, 10, 1 };
 __code const uint8_t netmask[] = { 255, 255, 255, 0};
 
 __xdata struct uip_eth_addr uip_ethaddr;

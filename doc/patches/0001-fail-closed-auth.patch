@@ -1,0 +1,131 @@
+--- a/httpd/httpd.c
++++ b/httpd/httpd.c
+@@ -11,10 +11,15 @@
+ // #define DEBUG
+ #include "debug.h"
+ 
+-#define SESSION_ID_LENGTH 12
++#define SESSION_ID_LENGTH 32
+ #define SESSION_TIMEOUT_DEFAULT 200
+ #define HTTP_PORT_DEFAULT 80
+ 
++/* Absolute lifetime of a session, regardless of activity. An idle timeout
++ * alone lets a cookie that is used often stay valid forever. Uptime is in
++ * seconds, 8 h is far below the wrap of the 32-bit counter. */
++#define SESSION_LIFETIME_MAX (8UL * 3600UL)
++
+ /* Seconds of inactivity after which a session cookie stops validating.
+  * Configurable with the "session" command, see cmd_parser.c. */
+ __xdata uint16_t session_timeout = SESSION_TIMEOUT_DEFAULT;
+@@ -87,6 +92,7 @@
+ __xdata uint8_t authenticated;
+ __xdata uint32_t now;
+ __xdata uint32_t last_session_use;
++__xdata uint32_t session_started;
+ 
+ #define TSTATE_NONE		0
+ #define TSTATE_TX		1
+@@ -364,7 +370,8 @@
+ 	read_timer(&now);
+ 
+ 	if (session && session_id[0]) {
+-		if (now - last_session_use > session_timeout) {
++		if (now - last_session_use > session_timeout
++		    || now - session_started > SESSION_LIFETIME_MAX) {
+ 			dbg_string("Session expired\n");
+ 		} else {
+ 			if (is_word_x(session, session_id)) {
+@@ -375,11 +382,11 @@
+ 			}
+ 		}
+ 	}
+-	/* No admin password configured: skip the login page and treat every
+-	 * request as authenticated, including the upload/config endpoints.
+-	 * Setting a password with "passwd <text>" brings the login back. */
++	/* Fail closed. An empty password is not a credential: until one is
++	 * provisioned over the serial console, login.html is the only thing
++	 * that can be reached. Nothing may turn this back into a bypass. */
+ 	if (passwd[0] == NUL)
+-		authenticated = 1;
++		authenticated = 0;
+ 	return p;
+ }
+ 
+@@ -400,6 +407,16 @@
+ }
+ 
+ 
++/* Drop the session: called when the password changes and, later, on
++ * logout. There is one slot for the whole web interface, so this also
++ * invalidates a cookie someone else may still hold. */
++void httpd_forget_sessions(void) __banked
++{
++	session_id[0] = NUL;
++	authenticated = 0;
++}
++
++
+ /* 0: body incomplete, 1: configuration stored, 2: malformed */
+ static uint8_t config_take(void)
+ {
+@@ -704,16 +721,18 @@
+ 
+ static void run_login_body(__xdata uint8_t *body)
+ {
+-	if (passwd[0] == NUL || (strstart(body, "pwd=") && is_url_word_x(body + 4, passwd))) {
++	if (passwd[0] != NUL && strstart(body, "pwd=")
++	    && is_url_word_x(body + 4, passwd)) {
+ 		dbg_string("Password accepted!\n");
+ 		read_timer(&last_session_use);
++		session_started = last_session_use;
+ 		gen_random_hex_chars(session_id, SESSION_ID_LENGTH);
+ 		session_id[SESSION_ID_LENGTH] = NUL;
+ 		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\nLocation: index.html\r\n" \
+ 				      "Set-Cookie: session=");
+ 		for (uint8_t i = 0; i < SESSION_ID_LENGTH; i++)
+ 			outbuf[slen++] = session_id[i];
+-		slen += strtox(outbuf + slen, "; SameSite=Strict\r\n\r\n");
++		slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict\r\n\r\n");
+ 	} else {
+ 		dbg_string("Password invalid!\n");
+ 		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\nLocation: login.html\r\n\r\n");
+--- a/httpd/httpd.h
++++ b/httpd/httpd.h
+@@ -22,6 +22,9 @@
+ 
+ void httpd_init(void) __banked;
+ 
++/* Invalidate the current web session (password change, logout). */
++void httpd_forget_sessions(void) __banked;
++
+ /* TCP port the web interface listens on, and the only way to change it:
+  * uIP has to be told about the new port, so the global is not written to
+  * from anywhere else. 0 is refused, a port that is already in use is a
+--- a/cmd_parser.c
++++ b/cmd_parser.c
+@@ -31,6 +31,9 @@
+ #include "rtl837x_leds.h"
+ #include "phy.h"
+ 
++/* httpd.c lives in BANK1; declared here to keep the dependency one-way. */
++void httpd_forget_sessions(void) __banked;
++
+ #pragma codeseg BANK2
+ #pragma constseg BANK2
+ 
+@@ -1467,6 +1470,7 @@
+ 	// no login at all. This is also what the factory default uses.
+ 	if (cmd_words_len == 1) {
+ 		passwd[0] = NUL;
++		httpd_forget_sessions();
+ 		print_string("Password disabled\n");
+ 		return;
+ 	}
+@@ -1480,6 +1484,7 @@
+ 			passwd[j++] = c;
+ 		} while (c != NUL && j < 20);
+ 		passwd[j] = NUL;
++		httpd_forget_sessions();
+ 		return;
+ 	}
+ 	cmd_error("Missing password\n");

@@ -78,7 +78,7 @@ RTL8372，4 × 2.5GBASE-T + 2 × SFP+（1G/2.5G/10G），单颗 2 MiB Boya/BoHon
 | 首次刷机 | 只能用 SPI 夹子。原厂是非网管的 Realtek 参考固件，**9600 8N1** 的工厂测试串口，没有 Web 界面，所以第一次装必须上编程器 |
 | 编程器镜像 | 把 512 KiB 的构建填充到 2 MiB（`truncate -s 2097152 …`）；**填充过的镜像绝对不能**用于 Web 升级 |
 | 复位键 | **没有**，连未焊的焊盘都没有 → 用 Web 界面按钮或 `defaults` 命令恢复内嵌配置 |
-| 默认 IP | `192.168.10.247`（来自 `config.txt`） |
+| 默认 IP | DHCP 自动获取（镜像内嵌 `config.txt` 的 `ip dhcp`） |
 | 串口 | 跑起 RTLPlayground 后为 115200 8N1 |
 | 机型文档 | [doc/devices/PCB-K0402W-V1.0.md](doc/devices/PCB-K0402W-V1.0.md) |
 
@@ -93,7 +93,7 @@ RTL8373，8 × 2.5GBASE-T + 1 × SFP+，2 MiB Boya/BoHong `BY25Q16BS`（`RDID 68
 | 编译 | `make MACHINE=PCB_K0801W_V1 FLASH_NO_DIO=1` |
 | 首次刷机 | 同样只能用 SPI 夹子（原厂固件与上面同款非网管固件）；务必备份 2 MiB |
 | 复位键 | **没有**，也没有预留焊盘 |
-| 默认 IP | `192.168.10.247` |
+| 默认 IP | DHCP（自动获取） |
 | 机型文档 | [doc/devices/PCB-K0801W-V1.0.md](doc/devices/PCB-K0801W-V1.0.md) |
 
 已验证：这块 V1.0 丝印能正常启动、判定为 RTL8373 类（无 `INCORRECT MACHINE!`）、Web 界面 9 个端口位置正确、闪存模式正确（必须 `FLASH_NO_DIO=1`）。LED 组、LED 焊盘映射、系统灯和 SFP 引脚沿用 V2.0 的值，没有在这块板子上单独量过；文档里列出了逐项确认所需的控制台命令，照片里能看到版本号、日期码和闪存芯片。
@@ -107,7 +107,7 @@ RTL8372，5 × 2.5GBASE-T + 1 × 万兆 SFP+（第 5 个电口由外置 RTL8221B
 | 编译 | `make MACHINE=SKS3200M_5GPY1XF`（或 `MACHINE=LIANGUO_ZX_SWTGW215AS`，接线相同） |
 | 刷机 | 先完整备份 2 MiB（原厂镜像无法从 dump 复现）。还在原厂固件：用一键安装镜像；已经跑 RTLPlayground：Web 界面"固件升级"直接上传 |
 | 复位键 | `GPIO54` —— **实测三态**：< 3 s 无动作，约 5 s 重启（保留启动配置），约 13 s 恢复出厂设置 |
-| 默认 IP | `192.168.10.12`（兮克 target 内嵌 `config-xikestor.txt`） |
+| 默认 IP | DHCP 自动获取（兮克 target 内嵌 `config-xikestor.txt`，现在同样是 `ip dhcp`） |
 | 机型文档 | [doc/devices/SKS3200M-5GPY1XF.md](doc/devices/SKS3200M-5GPY1XF.md) |
 
 实测内容：端口顺序（界面 1-5 = 网口 1-5，界面 6 = 光口）、1G 与 2.5G 链路、光口模块检测/RX_LOS/EEPROM 读取与 10G 链路、电口 LED（2.5G 亮右绿、1G/100M 亮左橙）、系统灯、`0x1FC000` 处的出厂 MAC，以及上面的复位键三态。
@@ -124,7 +124,7 @@ RTL8372，4 × 2.5GBASE-T + 2 × SFP，2 MiB Winbond `W25Q16JV`。**状态：正
 | 出厂 MAC | 已找回：`mac_flash_offset = 0x1FC000` 让机器重新报告 `1C:2A:A3:23:E4:5E`，不再是随机生成的 MAC |
 | 两个光口 | `J4`（左，插孔 5）= 逻辑口 **8**（SerDes 1，检测 GPIO30 / LOS GPIO37，I2C SDA4+SCL3）；`J2`（右，插孔 6）= 逻辑口 **3**（SerDes 0，检测 GPIO50 / LOS GPIO51，I2C SDA3+SCL3）。两个光口在逻辑编号上是**交叉**的 |
 | LED | 本机实测的焊盘映射：绿/橙分别在焊盘 12/14（口 1）、15/17（口 2）、18/20（口 3）、21/23（口 4），两个光口灯在焊盘 24（J4）和 9（J2）；光口灯任何速率都会亮 |
-| 默认 IP | `192.168.10.12` |
+| 默认 IP | DHCP（自动获取） |
 | 机型文档 | [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md) |
 
 > [!NOTE]
@@ -141,7 +141,7 @@ RTL8373，8 × 2.5GBASE-T + 1 × SFP+，2 MiB Winbond `W25Q16JV`。**状态：�
 | 编译 | `make MACHINE=SKS3200M_8GPY1XF`（V2.0 板子用 `MACHINE=SWTGW218AS`） |
 | 原厂 → RTLPlayground | 原厂是 CGI 固件（固件版本 V1.9，`admin/admin`，`192.168.10.12`），其"固件升级"页（`fwug.cgi`）可直接接收一键安装镜像 |
 | 复位键 | `GPIO54` —— **实测**：约 5 s 重启，约 13 s 恢复出厂设置，< 3 s 无动作 |
-| 默认 IP | `192.168.10.12` |
+| 默认 IP | DHCP（自动获取） |
 | 机型文档 | [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md) |
 
 实测内容：按键三态、会话处理、Web 界面恢复出厂设置。
@@ -156,7 +156,7 @@ RTL8372，4 × 2.5GBASE-T + 2 × SFP+，原厂 4 MiB cFeon `EN25QE32A-104HIP`（
 | 首次刷机 | 只能用 SPI 夹子/编程器：原厂是非网管的 Realtek 参考固件（串口 **9600 8N1**，提示符 `RTL8371B:`，没有 Web 界面）。实测机把原厂 4 MiB 闪存换成了 1 MiB `MX25L8005M`（512 KiB 镜像 + Web 升级需要 `flash_size >= 1 MB`） |
 | 已经跑 RTLPlayground | Web 界面"固件升级"上传 512 KiB 的 `output/STEAMEMO_IG204_V1/rtlplayground-*.bin` 即可 |
 | 复位键 | **没有**（连焊盘都没有）→ Web 界面 *Restore factory defaults* 或控制台 `defaults` |
-| 默认 IP | `192.168.10.247`（`config.txt`） |
+| 默认 IP | DHCP 自动获取（`config.txt` 的 `ip dhcp`） |
 | 串口 | 控制台排针 `T7`（TX/GND/RX/3V3），跑起 RTLPlayground 后 115200 8N1 |
 | 面板 VLAN 拨刀 | `GPIO36`，ON 读 1 / OFF 读 0；ON 时四个电口互相隔离、只留 SFP+ 和 CPU 口可达，OFF 全通。每秒轮询，约 1 秒生效 |
 | 机型文档 | [doc/devices/STEAMEMO_IG204_V1.md](doc/devices/STEAMEMO_IG204_V1.md) |
@@ -173,7 +173,7 @@ RTL8372，4 × 2.5GBASE-T + 2 × SFP+（1G/2.5G/10G），原厂 512 KiB BrightMo
 | 首次刷机 | 512 KiB 的 `T25S40` 用 SPI 夹子/编程器写（镜像正好 512 KiB，写在偏移 0） |
 | Web 升级 | **512 KiB 的板子不行**：固件把升级镜像暂存在 `0x80000`，要求闪存 ≥ 1 MB，否则上传返回 HTTP 400 `Flash too small for firmware upload!`。把闪存换成 2 MiB `BY25Q16BS`（同 SOP-8 封装）之后 Web 升级正常，两个光笼也会自动识别 |
 | 复位键 | **没有**，`.reset_pin = GPIO_NA` → Web 界面按钮或 `defaults` |
-| 默认 IP | `192.168.10.247` |
+| 默认 IP | DHCP（自动获取） |
 | 串口 | 排针 `JP1`（VCC/RX/GND/TX）；原厂 9600 8N1，RTLPlayground 115200 8N1 |
 | 机型文档 | [doc/devices/F7005-2.5GPOE-V1.0.md](doc/devices/F7005-2.5GPOE-V1.0.md) |
 
@@ -183,7 +183,7 @@ RTL8372，4 × 2.5GBASE-T + 2 × SFP+（1G/2.5G/10G），原厂 512 KiB BrightMo
 
 ### 3.1 没有复位键也能恢复出厂设置 —— 新功能
 
-System 标签页（*维护*）新增 **Restore factory defaults** 按钮，控制台新增等价的 `defaults` 命令。二者都会用镜像内嵌的配置覆盖启动配置并重启，之后机器会回到镜像的默认地址（兮克构建为 `192.168.10.12`，其它构建为 `config.txt` 里的地址）。
+System 标签页（*维护*）新增 **Restore factory defaults** 按钮，控制台新增等价的 `defaults` 命令。二者都会用镜像内嵌的配置覆盖启动配置并重启，之后机器会按镜像内嵌的 `config.txt` 启动 —— 现在默认是 **DHCP 自动获取**，默认密码为空（网页直接进入，不需要登录）。
 
 它**刻意不是**一条配置命令：永远不会被写进启动配置。界面文案已补齐 6 种语言（英、日、中、西、法、德）。
 
@@ -215,7 +215,7 @@ HTTP 会话的截止时间同样来自那个秒寄存器，导致 RTL8372 上登
 
 ### 3.6 每个 target 自己的出厂默认配置 —— 新功能
 
-三个兮克 target 内嵌的是 `config-xikestor.txt`（IP `192.168.10.12`）而不是 `config.txt`，由 Makefile 按 target 选择（`DEFAULT_CONFIG`）。所以刚刷好的兮克机器是 `192.168.10.12`，而不是 `192.168.10.247`。
+三个兮克 target 仍然内嵌 `config-xikestor.txt` 而不是 `config.txt`，由 Makefile 按 target 选择（`DEFAULT_CONFIG`）。这个文件现在和 `config.txt` 一样只有一行 `ip dhcp`：所有机型刷好后都通过 DHCP 获取地址。保留两个文件是为了以后厂商默认值再分化时不必改代码。
 
 ### 3.7 `FLASH_NO_DIO=1` —— 新构建选项
 
@@ -295,7 +295,9 @@ make MACHINE=F7005_2_5 FLASH_NO_DIO=1
 
 ### 4.3 刷完之后
 
-- 刚刷好的兮克机器在 `192.168.10.12`，其它机型（Hi-K0402WS / Hi-K0801WS / IG204 4+2 / AP-7024-2.5G）在 `192.168.10.247`；默认密码是 **`1234`**。
+- 刚刷好的机器（所有机型）默认通过 **DHCP 自动获取** 管理地址；默认 **没有密码**，打开网页直接进入。用 `passwd <text>` 可以随时加密码，`passwd`（不带参数）可以重新清空。
+- 如果网段里没有 DHCP 服务器，机器会停在固件内置的保底地址：**SKS3200M-8GPY1XF / 4GPY2XF / 5GPY1XF 为 `192.168.10.12`/24**，**其它机型（Hi-K0402WS、Hi-K0801WS、IG204、AP-7024 等）为 `192.168.10.247`/24**。保底网关都是 `192.168.10.1`，网页端口是 `80`（除非启动配置里另有 `http port`）。一旦 DHCP 拿到租约，地址会立刻切换，所以它只是"没有服务器时的临时地址"。
+- 这个保底地址是按机型在 [rtlplayground.c](rtlplayground.c#L86) 里编译进去的；两台同型号的新机器同时接在同一个没有 DHCP 的网段上会撞地址，这种场景请用 DHCP 或逐台配置静态地址。
 - **升级会保留启动配置。** 镜像只写到配置区之前就停下，所以 VLAN、端口名、密码、IP 地址都能跨版本保留。镜像内嵌的配置只在"机器还没有配置"（全新刷机）或"恢复出厂设置"之后生效。
 - 恢复内嵌配置有三种方式：System 标签页的 *Restore factory defaults*、控制台 `defaults` 命令、以及有按键的机型长按复位键 > 10 s。恢复后机器会换到镜像的默认地址，需要重新连过去。
 - 启动日志和 System 标签页会把**板卡版本**和**零售型号**分两行显示，随时能确认这台机器跑的是哪个 target。

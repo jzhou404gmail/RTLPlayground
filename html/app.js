@@ -5,7 +5,7 @@ nav_dash:"Dashboard",nav_ports:"Ports",nav_stp:"Spanning tree",nav_stats:"Statis
 nav_vlan:"VLANs",nav_l2:"MAC table",nav_mirror:"Mirroring",nav_isolate:"Isolation",nav_lag:"LAG",nav_eee:"EEE",
 nav_bw:"Bandwidth",nav_system:"System",nav_fw:"Firmware",nav_lldp:"LLDP",
 hdr_dirty:"unsaved changes",hdr_dirty_t:"Running config differs from startup config",
-hdr_save:"Save to flash",hdr_save_t:"Persist running configuration to flash",
+hdr_save:"Save to flash",hdr_save_t:"Persist running configuration to flash",hdr_logout:"Log out",hdr_logout_t:"End the web session",
 th_auto:"System",th_auto_sel:"System (Selenized)",sy_display:"Display",sy_theme:"Theme",sy_display_note:"Stored in this browser only.",th_light:"Light",th_dark:"Dark",
 th_sel_light:"Selenized Light",th_sel_dark:"Selenized Dark",
 c_port:"Port",c_name:"Name",c_link:"Link",c_apply:"Apply",c_cancel:"Cancel",c_confirm:"Confirm",
@@ -111,9 +111,9 @@ sy_httpport:"HTTP port",sy_httpport_err:"The HTTP port must be 1-65535",
 sy_httpport_q:"Change the HTTP port?",
 sy_httpport_d:"The web interface listens on port {port} from now on. This page stays open until it is closed; reopen it at http://{ip}:{port}/",
 sy_cmdref:"Command reference",
-sy_cmdref_text:"System and network\n  version                          firmware version and build date\n  hostname [name]                  show or set the switch name        hostname sw-1\n  ip [<addr>|dhcp]                 management address (dhcp: ask)     ip 192.168.32.203\n  netmask <mask>                   set the netmask                    netmask 255.255.255.0\n  gw <addr>                        set the default gateway            gw 192.168.32.254\n  dns server <ip> [<ip>]           DNS servers, 0.0.0.0 clears them   dns server 192.168.32.254\n  dns lookup <name>                resolve a name now                 dns lookup ntp.tencent.com\n  http port <1-65535>              web interface port (default 80)    http port 8000\n  passwd <text>                    admin password, 1-20 characters    passwd 1234\n  session <1-65535>                web session timeout in seconds     session 600\nServices\n  ntp [on|off]                     start or stop the time client      ntp on\n  ntp server <name|ip>             NTP server (ntp.tencent.com)       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            offset from UTC (default +08:00)   ntp timezone +08:00\n  ntp interval <1-1440>            minutes between syncs              ntp interval 60\n  ntp dst off|eu|us                daylight saving rule               ntp dst off\n  time                             local time and the last sync\n  syslog on|off|ip <ip>|port <n>   send the log to a syslog server    syslog ip 192.168.32.10\nSwitching\n  stat                             port state and counters\n  port <n> [show|on|off]           port state, speed, name, lldp      port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN membership, t = tagged        vlan 10 1 2 3t\n  vlan switch [on|off]             front-panel VLAN switch function   vlan switch off\n  pvid <port> <1-4094>             port VLAN ID                       pvid 1 10\n  l2 [forget]                      show the MAC table, or flush it\n  stp on|off|status ...            spanning tree                      stp on\n  igmp on|off|show                 IGMP snooping                      igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        show or set the management MAC\n  bw in|out|status <port> ...      bandwidth limits                   bw in 1 off\n  mirror <port> [port]...          port mirroring                     mirror 1 2\n  history                          the commands typed since the boot\n  defaults                         factory configuration, then reboot\n\nSettings apply at once. To keep them across a reboot, write the line into the\nstartup configuration.",
+sy_cmdref_text:"System and network\n  version                          firmware version and build date\n  hostname [name]                  show or set the switch name        hostname sw-1\n  ip [<addr>|dhcp]                 management address (dhcp: ask)     ip 192.168.32.203\n  netmask <mask>                   set the netmask                    netmask 255.255.255.0\n  gw <addr>                        set the default gateway            gw 192.168.32.254\n  dns server <ip> [<ip>]           DNS servers, 0.0.0.0 clears them   dns server 192.168.32.254\n  dns lookup <name>                resolve a name now                 dns lookup ntp.tencent.com\n  http port <1-65535>              web interface port (default 80)    http port 8000\n  passwd                           disable web management; set it in the Web UI\n  session <1-65535>                web session timeout in seconds     session 600\nServices\n  ntp [on|off]                     start or stop the time client      ntp on\n  ntp server <name|ip>             NTP server (ntp.tencent.com)       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            offset from UTC (default +08:00)   ntp timezone +08:00\n  ntp interval <1-1440>            minutes between syncs              ntp interval 60\n  ntp dst off|eu|us                daylight saving rule               ntp dst off\n  time                             local time and the last sync\n  syslog on|off|ip <ip>|port <n>   send the log to a syslog server    syslog ip 192.168.32.10\nSwitching\n  stat                             port state and counters\n  port <n> [show|on|off]           port state, speed, name, lldp      port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN membership, t = tagged        vlan 10 1 2 3t\n  vlan switch [on|off]             front-panel VLAN switch function   vlan switch off\n  pvid <port> <1-4094>             port VLAN ID                       pvid 1 10\n  l2 [forget]                      show the MAC table, or flush it\n  stp on|off|status ...            spanning tree                      stp on\n  igmp on|off|show                 IGMP snooping                      igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        show or set the management MAC\n  bw in|out|status <port> ...      bandwidth limits                   bw in 1 off\n  mirror <port> [port]...          port mirroring                     mirror 1 2\n  history                          the commands typed since the boot\n  defaults                         factory configuration, then reboot\n\nSettings apply at once. To keep them across a reboot, write the line into the\nstartup configuration.",
 sy_sysport_err:"Syslog port must be 1-65535",
-sy_pw_len:"Password: 1-20 characters",sy_pw_space:"Password cannot contain spaces",sy_pw_match:"Passwords do not match",
+sy_pw_len:"Password: 6-20 characters",sy_pw_space:"Password cannot contain spaces",sy_pw_match:"Passwords do not match",
 sy_pw_q:"Change admin password?",sy_pw_d:"Takes effect immediately for new logins. Save to flash to persist.",
 sy_reboot_q:"Reboot the switch?",sy_reboot_d:"There are UNSAVED changes and they will be lost. Save to flash first if you want to keep them.",
 sy_defaults:"Restore factory defaults",sy_defaults_q:"Restore the factory defaults?",sy_defaults_d:"The configuration built into the image replaces the startup configuration and the switch reboots. Its IP address becomes the image's default (192.168.10.12 on the XikeStor builds, otherwise the address in config.txt), so reconnect there.",sy_defaults_doing:"Restoring the factory defaults, the switch reboots",
@@ -149,7 +149,7 @@ nav_dash:"ダッシュボード",nav_ports:"ポート",nav_stp:"スパニング�
 nav_vlan:"VLAN",nav_l2:"MAC テーブル",nav_mirror:"ミラーリング",nav_lag:"LAG",nav_eee:"EEE",
 nav_bw:"帯域制限",nav_system:"システム",nav_fw:"ファームウェア",
 hdr_dirty:"未保存の変更",hdr_dirty_t:"実行中の設定が起動設定と異なります",
-hdr_save:"フラッシュに保存",hdr_save_t:"実行中の設定をフラッシュに書き込む",
+hdr_save:"フラッシュに保存",hdr_save_t:"実行中の設定をフラッシュに書き込む",hdr_logout:"ログアウト",hdr_logout_t:"Web セッションを終了",
 th_auto:"システム",th_auto_sel:"システム (Selenized)",sy_display:"表示",sy_theme:"テーマ",sy_display_note:"このブラウザーにのみ保存されます。",th_light:"ライト",th_dark:"ダーク",
 th_sel_light:"Selenized ライト",th_sel_dark:"Selenized ダーク",
 c_port:"ポート",c_name:"名前",c_link:"リンク",c_apply:"適用",c_cancel:"キャンセル",c_confirm:"確認",
@@ -234,7 +234,7 @@ sy_net_q:"ネットワーク設定を適用しますか?",sy_net_d:"管理 IP �
 sy_ip_changed:"IP を変更しました。http://{ip}/ に再接続してください",sy_dhcp_q:"DHCP に切り替えますか?",
 sy_dhcp_d:"スイッチは DHCP でアドレスを要求します。再接続するには新しい IP を確認する必要があります。",
 sy_sysip_err:"syslog サーバー IP が無効です",sy_sysport_err:"syslog ポートは 1〜65535 の範囲で指定してください",
-sy_pw_len:"パスワード: 1〜20 文字",sy_pw_space:"パスワードに空白は使えません",sy_pw_match:"パスワードが一致しません",
+sy_pw_len:"パスワード: 6〜20 文字",sy_pw_space:"パスワードに空白は使えません",sy_pw_match:"パスワードが一致しません",
 sy_pw_q:"管理者パスワードを変更しますか?",sy_pw_d:"新しいログインから即時に有効になります。保持するにはフラッシュに保存してください。",
 sy_reboot_q:"スイッチを再起動しますか?",sy_reboot_d:"未保存の変更があり、失われます。保持したい場合は先にフラッシュに保存してください。",
 sy_defaults:"工場出荷状態に戻す",sy_defaults_q:"工場出荷状態の設定に戻しますか?",sy_defaults_d:"イメージに組み込まれた設定が起動設定を置き換え、スイッチが再起動します。IP アドレスはイメージの既定値 (XikeStor ビルドでは 192.168.10.12、それ以外は config.txt の値) になるので、そのアドレスで再接続してください。",sy_defaults_doing:"工場出荷状態に戻しています。スイッチが再起動します",
@@ -269,7 +269,7 @@ nav_dash:"仪表盘",nav_ports:"端口",nav_stp:"生成树",nav_stats:"统计",
 nav_vlan:"VLAN",nav_l2:"MAC 表",nav_mirror:"端口镜像",nav_lag:"LAG",nav_eee:"EEE",
 nav_bw:"带宽限制",nav_system:"系统",nav_fw:"固件",
 hdr_dirty:"未保存的更改",hdr_dirty_t:"运行配置与启动配置不同",
-hdr_save:"保存到 Flash",hdr_save_t:"将运行配置写入 Flash",
+hdr_save:"保存到 Flash",hdr_save_t:"将运行配置写入 Flash",hdr_logout:"退出登录",hdr_logout_t:"结束当前 Web 会话",
 th_auto:"跟随系统",th_auto_sel:"跟随系统 (Selenized)",sy_display:"显示",sy_theme:"主题",sy_display_note:"仅保存在此浏览器中。",th_light:"浅色",th_dark:"深色",
 th_sel_light:"Selenized 浅色",th_sel_dark:"Selenized 深色",
 c_port:"端口",c_name:"名称",c_link:"链路",c_apply:"应用",c_cancel:"取消",c_confirm:"确认",
@@ -357,7 +357,7 @@ sy_httpport:"HTTP 端口",sy_httpport_err:"HTTP 端口必须为 1-65535",
 sy_httpport_q:"修改 HTTP 端口?",
 sy_httpport_d:"管理界面从现在起监听 {port} 端口。当前页面在关闭前仍可用，之后请用 http://{ip}:{port}/ 打开。",
 sy_cmdref:"常用命令速查",
-sy_cmdref_text:"系统与网络\n  version                          固件版本与编译日期\n  hostname [name]                  查看/设置交换机名                      hostname sw-1\n  ip [<addr>|dhcp]                 管理地址（dhcp 为自动获取）            ip 192.168.32.203\n  netmask <mask>                   设置子网掩码                          netmask 255.255.255.0\n  gw <addr>                        设置默认网关                          gw 192.168.32.254\n  dns server <ip> [<ip>]           设置 DNS，0.0.0.0 表示清除             dns server 192.168.32.254\n  dns lookup <name>                立即解析一个域名                      dns lookup ntp.tencent.com\n  http port <1-65535>              管理界面端口（默认 80）               http port 8000\n  passwd <text>                    修改管理密码（1-20 个字符）            passwd 1234\n  session <1-65535>                网页会话超时秒数                      session 600\n服务\n  ntp [on|off]                     开启/关闭时间同步                     ntp on\n  ntp server <name|ip>             设置 NTP 服务器                       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            时区偏移（默认 +08:00）               ntp timezone +08:00\n  ntp interval <1-1440>            同步间隔（分钟）                      ntp interval 60\n  ntp dst off|eu|us                夏令时规则                            ntp dst off\n  time                             查看本地时间与上次同步\n  syslog on|off|ip <ip>|port <n>   日志发送到 syslog 服务器              syslog ip 192.168.32.10\n交换功能\n  stat                             端口状态与计数器\n  port <n> [show|on|off]           端口开关、速率、名称、lldp            port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN 成员，t 表示 tagged              vlan 10 1 2 3t\n  vlan switch [on|off]             面板 VLAN 拨刀功能开关                vlan switch off\n  pvid <port> <1-4094>             端口 PVID                             pvid 1 10\n  l2 [forget]                      查看 MAC 表，forget 清空\n  stp on|off|status ...            生成树                                stp on\n  igmp on|off|show                 IGMP 侦听                             igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        查看/设置管理 MAC\n  bw in|out|status <port> ...      端口限速                              bw in 1 off\n  mirror <port> [port]...          端口镜像                              mirror 1 2\n  history                          本次启动以来输入过的命令\n  defaults                         恢复出厂配置并重启\n\n命令立即生效；如需重启后保留，请把该行写入上面的「启动配置」。",
+sy_cmdref_text:"系统与网络\n  version                          固件版本与编译日期\n  hostname [name]                  查看/设置交换机名                      hostname sw-1\n  ip [<addr>|dhcp]                 管理地址（dhcp 为自动获取）            ip 192.168.32.203\n  netmask <mask>                   设置子网掩码                          netmask 255.255.255.0\n  gw <addr>                        设置默认网关                          gw 192.168.32.254\n  dns server <ip> [<ip>]           设置 DNS，0.0.0.0 表示清除             dns server 192.168.32.254\n  dns lookup <name>                立即解析一个域名                      dns lookup ntp.tencent.com\n  http port <1-65535>              管理界面端口（默认 80）               http port 8000\n  passwd                           禁用 Web 管理；口令在网页里修改\n  session <1-65535>                网页会话超时秒数                      session 600\n服务\n  ntp [on|off]                     开启/关闭时间同步                     ntp on\n  ntp server <name|ip>             设置 NTP 服务器                       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            时区偏移（默认 +08:00）               ntp timezone +08:00\n  ntp interval <1-1440>            同步间隔（分钟）                      ntp interval 60\n  ntp dst off|eu|us                夏令时规则                            ntp dst off\n  time                             查看本地时间与上次同步\n  syslog on|off|ip <ip>|port <n>   日志发送到 syslog 服务器              syslog ip 192.168.32.10\n交换功能\n  stat                             端口状态与计数器\n  port <n> [show|on|off]           端口开关、速率、名称、lldp            port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN 成员，t 表示 tagged              vlan 10 1 2 3t\n  vlan switch [on|off]             面板 VLAN 拨刀功能开关                vlan switch off\n  pvid <port> <1-4094>             端口 PVID                             pvid 1 10\n  l2 [forget]                      查看 MAC 表，forget 清空\n  stp on|off|status ...            生成树                                stp on\n  igmp on|off|show                 IGMP 侦听                             igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        查看/设置管理 MAC\n  bw in|out|status <port> ...      端口限速                              bw in 1 off\n  mirror <port> [port]...          端口镜像                              mirror 1 2\n  history                          本次启动以来输入过的命令\n  defaults                         恢复出厂配置并重启\n\n命令立即生效；如需重启后保留，请把该行写入上面的「启动配置」。",
 sy_password:"管理员密码",sy_newpw:"新密码",sy_repeat:"重复输入",sy_pwapply:"修改密码",
 sy_pw_note:"立即生效；如需重启后保留请保存到 Flash。",sy_console:"控制台",
 sy_cmd:"CLI 命令...",sy_send:"发送",sy_startup:"启动配置",sy_replayed:"每次启动时重新执行",
@@ -368,7 +368,7 @@ sy_net_q:"应用网络设置?",sy_net_d:"管理 IP 将变为 {ip}，需要使用
 sy_ip_changed:"IP 已更改，请访问 http://{ip}/ 重新连接",sy_dhcp_q:"切换到 DHCP?",
 sy_dhcp_d:"交换机将通过 DHCP 请求地址。您需要查到新的 IP 才能重新连接。",
 sy_sysip_err:"syslog 服务器 IP 无效",sy_sysport_err:"syslog 端口范围为 1-65535",
-sy_pw_len:"密码: 1-20 个字符",sy_pw_space:"密码不能包含空格",sy_pw_match:"两次输入的密码不一致",
+sy_pw_len:"密码: 6-20 个字符",sy_pw_space:"密码不能包含空格",sy_pw_match:"两次输入的密码不一致",
 sy_pw_q:"修改管理员密码?",sy_pw_d:"对新的登录立即生效。如需保留请保存到 Flash。",
 sy_reboot_q:"重启交换机?",sy_reboot_d:"存在未保存的更改，重启后将丢失。如需保留请先保存到 Flash。",
 sy_defaults:"恢复出厂设置",sy_defaults_q:"恢复出厂设置?",sy_defaults_d:"将用镜像内嵌的出厂配置替换当前启动配置，并重启交换机。IP 地址会变成镜像的默认值（XikeStor 构建为 192.168.10.12，其它构建为 config.txt 中的地址），请到该地址重新连接。",sy_defaults_doing:"正在恢复出厂设置，交换机重启中",
@@ -403,7 +403,7 @@ nav_dash:"Panel",nav_ports:"Puertos",nav_stp:"Árbol de expansión",nav_stats:"E
 nav_vlan:"VLAN",nav_l2:"Tabla MAC",nav_mirror:"Duplicación",nav_lag:"LAG",nav_eee:"EEE",
 nav_bw:"Ancho de banda",nav_system:"Sistema",nav_fw:"Firmware",
 hdr_dirty:"cambios sin guardar",hdr_dirty_t:"La configuración en ejecución difiere de la guardada",
-hdr_save:"Guardar en flash",hdr_save_t:"Persistir la configuración en ejecución a flash",
+hdr_save:"Guardar en flash",hdr_save_t:"Persistir la configuración en ejecución a flash",hdr_logout:"Cerrar sesión",hdr_logout_t:"Finalizar la sesión web",
 th_auto:"Sistema",th_auto_sel:"Sistema (Selenized)",sy_display:"Pantalla",sy_theme:"Tema",sy_display_note:"Se almacena solo en este navegador.",th_light:"Claro",th_dark:"Oscuro",
 th_sel_light:"Selenized claro",th_sel_dark:"Selenized oscuro",
 c_port:"Puerto",c_name:"Nombre",c_link:"Enlace",c_apply:"Aplicar",c_cancel:"Cancelar",c_confirm:"Confirmar",
@@ -488,7 +488,7 @@ sy_net_q:"¿Aplicar ajustes de red?",sy_net_d:"La IP de gestión cambia a {ip}: 
 sy_ip_changed:"IP cambiada, reconecta en http://{ip}/",sy_dhcp_q:"¿Cambiar a DHCP?",
 sy_dhcp_d:"El switch solicita una dirección mediante DHCP. Deberás encontrar su nueva IP para reconectar.",
 sy_sysip_err:"IP del servidor syslog no válida",sy_sysport_err:"El puerto de syslog debe estar entre 1 y 65535",
-sy_pw_len:"Contraseña: 1-20 caracteres",sy_pw_space:"La contraseña no puede contener espacios",sy_pw_match:"Las contraseñas no coinciden",
+sy_pw_len:"Contraseña: 6-20 caracteres",sy_pw_space:"La contraseña no puede contener espacios",sy_pw_match:"Las contraseñas no coinciden",
 sy_pw_q:"¿Cambiar la contraseña de administrador?",sy_pw_d:"Toma efecto inmediatamente para los nuevos inicios de sesión. Guarda en flash para persistir.",
 sy_reboot_q:"¿Reiniciar el switch?",sy_reboot_d:"Hay cambios SIN GUARDAR y se perderán. Guarda en flash primero si quieres conservarlos.",
 sy_defaults:"Restaurar valores de fábrica",sy_defaults_q:"¿Restaurar los valores de fábrica?",sy_defaults_d:"La configuración incluida en la imagen sustituye a la configuración de arranque y el switch se reinicia. Su dirección IP pasa a ser la predeterminada de la imagen (192.168.10.12 en las compilaciones XikeStor, si no la de config.txt), así que vuelve a conectarte ahí.",sy_defaults_doing:"Restaurando los valores de fábrica, el switch se reinicia",
@@ -522,7 +522,7 @@ nav_dash:"Tableau de bord",nav_ports:"Ports",nav_stp:"Arborescence",nav_stats:"S
 nav_vlan:"LANs virtuels",nav_l2:"Table MAC",nav_mirror:"Mise en mirroir",nav_lag:"Aggrégation",nav_eee:"Energie",
 nav_bw:"Bande passante",nav_system:"Système",nav_fw:"Micro logiciel",
 hdr_dirty:"Changements non sauvegardés",hdr_dirty_t:"La configuration utilisée diffère de celle au démarrage",
-hdr_save:"Sauvegarder en flash",hdr_save_t:"Maintenir la configuration actuelle en flash",
+hdr_save:"Sauvegarder en flash",hdr_save_t:"Maintenir la configuration actuelle en flash",hdr_logout:"Déconnexion",hdr_logout_t:"Terminer la session web",
 th_auto:"Système",th_auto_sel:"Système (sélénisé)",sy_display:"Affichage",sy_theme:"Thème",sy_display_note:"Enregistré seulement dans ce navigateur.",th_light:"Clair",th_dark:"Sombre",
 th_sel_light:"Clair (sélénisé)",th_sel_dark:"Sombre (sélénisé)",
 c_port:"Port",c_name:"Nom",c_link:"Lien",c_apply:"Appliquer",c_cancel:"Annuler",c_confirm:"Confirmer",
@@ -610,7 +610,7 @@ sy_net_q:"Appliquer les paramètres réseau?",sy_net_d:"L'adresse IP de  managem
 sy_ip_changed:"L'adresse IP a changée, reconnectez-vous à http://{ip}/",sy_dhcp_q:"Passer en DHCP?",
 sy_dhcp_d:"Le commutateur va demander une addresse via le DHCP. Vous devrez rechercher sa prochaine adresse IP pour vous reconnecter.",
 sy_sysip_err:"Adresse IP du serveur Syslog invalide",sy_sysport_err:"Le port Syslog doit être compris entre 1 et 65535",
-sy_pw_len:"Mot de passe : 1 à 20 caractères",sy_pw_space:"Le mot de passe ne doit pas contenir d'espaces",sy_pw_match:"Les mots de passe ne correspondent pas",
+sy_pw_len:"Mot de passe : 6 à 20 caractères",sy_pw_space:"Le mot de passe ne doit pas contenir d'espaces",sy_pw_match:"Les mots de passe ne correspondent pas",
 sy_pw_q:"Changer le mot de passe d'administration?",sy_pw_d:"Cela prend effet immédiatement dès la prochaine connection. Enregistrez en Flash pour rendre la modification persistante.",
 sy_reboot_q:"Redémarrer le commutateur ?",sy_reboot_d:"Il y a des paramètres NON SAUVEGARDES qui vont être perdus. Sauvegardez-les au préalable en mémoire flash si vous souhaitez les conserver.",
 sy_defaults:"Rétablir les réglages d'usine",sy_defaults_q:"Rétablir les réglages d'usine ?",sy_defaults_d:"La configuration intégrée à l'image remplace la configuration de démarrage et le commutateur redémarre. Son adresse IP devient celle par défaut de l'image (192.168.10.12 pour les versions XikeStor, sinon celle de config.txt) : reconnectez-vous à cette adresse.",sy_defaults_doing:"Rétablissement des réglages d'usine, redémarrage du commutateur",
@@ -646,7 +646,7 @@ nav_dash:"Übersicht",nav_ports:"Ports",nav_stp:"Spanning Tree",nav_stats:"Stati
 nav_vlan:"VLANs",nav_l2:"MAC-Tabelle",nav_mirror:"Spiegelung",nav_lag:"LAG",nav_eee:"EEE",
 nav_bw:"Bandbreite",nav_system:"System",nav_fw:"Firmware",
 hdr_dirty:"ungespeicherte Änderungen",hdr_dirty_t:"Laufende Konfiguration weicht von der Startkonfiguration ab",
-hdr_save:"Im Flash speichern",hdr_save_t:"Laufende Konfiguration dauerhaft im Flash speichern",
+hdr_save:"Im Flash speichern",hdr_save_t:"Laufende Konfiguration dauerhaft im Flash speichern",hdr_logout:"Abmelden",hdr_logout_t:"Web-Sitzung beenden",
 th_auto:"System",th_auto_sel:"System (Selenized)",sy_display:"Anzeige",sy_theme:"Farbschema",sy_display_note:"Wird nur in diesem Browser gespeichert.",th_light:"Hell",th_dark:"Dunkel",
 th_sel_light:"Selenized Hell",th_sel_dark:"Selenized Dunkel",
 c_port:"Port",c_name:"Name",c_link:"Link",c_apply:"Übernehmen",c_cancel:"Abbrechen",c_confirm:"Bestätigen",
@@ -734,7 +734,7 @@ sy_net_q:"Netzwerkeinstellungen übernehmen?",sy_net_d:"Die Management-IP änder
 sy_ip_changed:"IP geändert, neu verbinden unter http://{ip}/",sy_dhcp_q:"Auf DHCP umstellen?",
 sy_dhcp_d:"Der Switch bezieht seine Adresse per DHCP. Du musst seine neue IP herausfinden, um dich wieder zu verbinden.",
 sy_sysip_err:"Ungültige IP des Syslog-Servers",sy_sysport_err:"Syslog-Port muss zwischen 1 und 65535 liegen",
-sy_pw_len:"Passwort: 1-20 Zeichen",sy_pw_space:"Das Passwort darf keine Leerzeichen enthalten",sy_pw_match:"Die Passwörter stimmen nicht überein",
+sy_pw_len:"Passwort: 6-20 Zeichen",sy_pw_space:"Das Passwort darf keine Leerzeichen enthalten",sy_pw_match:"Die Passwörter stimmen nicht überein",
 sy_pw_q:"Admin-Passwort ändern?",sy_pw_d:"Gilt sofort für neue Anmeldungen. Im Flash speichern, damit es erhalten bleibt.",
 sy_reboot_q:"Switch neu starten?",sy_reboot_d:"Es gibt UNGESPEICHERTE Änderungen, sie gehen verloren. Zuerst im Flash speichern, wenn du sie behalten willst.",
 sy_defaults:"Werkseinstellungen wiederherstellen",sy_defaults_q:"Werkseinstellungen wiederherstellen?",sy_defaults_d:"Die im Image eingebaute Konfiguration ersetzt die Startkonfiguration und der Switch startet neu. Seine IP-Adresse wird die des Images (192.168.10.12 bei den XikeStor-Builds, sonst die aus config.txt) - dort neu verbinden.",sy_defaults_doing:"Werkseinstellungen werden wiederhergestellt, der Switch startet neu",
@@ -839,6 +839,7 @@ function api(path,opts){
   return new Promise(function(resolve,reject){
     _q=_q.then(function(){
       opts=opts||{};
+      opts.headers=Object.assign({"X-RTLP":"1"},opts.headers||{});
       var ctl=("AbortController"in window)?new AbortController():null;
       if(ctl)opts.signal=ctl.signal;
       var to=setTimeout(function(){if(ctl)ctl.abort()},10000);
@@ -855,15 +856,51 @@ function api(path,opts){
 function getJSON(p){return api(p).then(function(r){if(!r.ok)throw new Error(p+" "+r.status);return JSON.parse(r.body)})}
 function getText(p){return api(p).then(function(r){if(!r.ok)throw new Error(p+" "+r.status);return r.body})}
 
+function sha256Hex(bytes){
+  var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var l=bytes.length, n=((l+9+63)>>6)<<6;
+  var b=new Uint8Array(n); b.set(bytes); b[l]=0x80;
+  var dv=new DataView(b.buffer);
+  dv.setUint32(n-4,(l*8)>>>0);
+  var w=new Uint32Array(64);
+  function rr(x,r){return (x>>>r)|(x<<(32-r));}
+  for(var off=0;off<n;off+=64){
+    for(var i=0;i<16;i++) w[i]=dv.getUint32(off+i*4);
+    for(i=16;i<64;i++){
+      var s0=rr(w[i-15],7)^rr(w[i-15],18)^(w[i-15]>>>3);
+      var s1=rr(w[i-2],17)^rr(w[i-2],19)^(w[i-2]>>>10);
+      w[i]=(w[i-16]+s0+w[i-7]+s1)>>>0;
+    }
+    var a=H[0],bb=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(i=0;i<64;i++){
+      var S1=rr(e,6)^rr(e,11)^rr(e,25);
+      var ch=(e&f)^(~e&g);
+      var t1=(h+S1+ch+K[i]+w[i])>>>0;
+      var S0=rr(a,2)^rr(a,13)^rr(a,22);
+      var maj=(a&bb)^(a&c)^(bb&c);
+      var t2=(S0+maj)>>>0;
+      h=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=bb;bb=a;a=(t1+t2)>>>0;
+    }
+    H[0]=(H[0]+a)>>>0;H[1]=(H[1]+bb)>>>0;H[2]=(H[2]+c)>>>0;H[3]=(H[3]+d)>>>0;
+    H[4]=(H[4]+e)>>>0;H[5]=(H[5]+f)>>>0;H[6]=(H[6]+g)>>>0;H[7]=(H[7]+h)>>>0;
+  }
+  var out="";
+  for(i=0;i<8;i++) out+=("00000000"+H[i].toString(16)).slice(-8);
+  return out;
+}
+function hexToBytes(h){var a=new Uint8Array(h.length/2);for(var i=0;i<a.length;i++)a[i]=parseInt(h.substr(i*2,2),16);return a;}
+function bytesToHex(b){var s="";for(var i=0;i<b.length;i++)s+=("0"+b[i].toString(16)).slice(-2);return s;}
+
 var CONF_CMDS=[
   /^ip\s+(\d{1,3}\.){3}\d{1,3}$/,/^ip\s+dhcp$/,
   /^gw\s+(\d{1,3}\.){3}\d{1,3}$/,/^netmask\s+(\d{1,3}\.){3}\d{1,3}$/,
   /^syslog\s+(on|off)$/,/^syslog\s+ip\s+(\d{1,3}\.){3}\d{1,3}$/,/^syslog\s+port\s+\d{1,5}$/,
-  /^session\s+\d{1,5}$/,/^http\s+port\s+\d{1,5}$/,
+  /^session\s+\d{1,5}$/,/^http\s+port\s+\d{1,5}$/,/^http\s+tls\s+(on|off)$/,
   /^dns\s+server\s+(\d{1,3}\.){3}\d{1,3}(\s+(\d{1,3}\.){3}\d{1,3})?$/,
   /^ntp\s+(on|off)$/,/^ntp\s+server\s+[A-Za-z0-9.-]{1,47}$/,/^ntp\s+interval\s+\d{1,4}$/,
   /^ntp\s+timezone\s+[+-]?\d{1,2}(:\d{2})?$/,/^ntp\s+dst\s+(off|eu|us)$/,
-  /^passwd\s+\S+$/,/^hostname\s+\S{1,23}$/,
+  /^passwd\s+\S+$/,/^passwd_hash\s+[0-9a-f]{32}\s+[0-9a-f]{64}$/,/^hostname\s+\S{1,23}$/,
   /^vlan\s+\d{1,4}\s+d$/,/^vlan\s+\d{1,4}\s+mgmt$/,/^vlan\s+switch\s+(on|off)$/,
   /^vlan\s+\d{1,4}(\s+[a-zA-Z]\w*)?(\s+\d{1,2}t?)+$/,
   /^pvid\s+\d{1,2}\s+\d{1,4}$/,
@@ -2294,14 +2331,24 @@ $("sy-sesstmo").addEventListener("change",function(){
 });
 $("sy-pwapply").addEventListener("click",function(){
   var a=$("sy-pw1").value,b=$("sy-pw2").value;
-  if(a.length<1||a.length>20){toast(t("sy_pw_len"),"err");return;}
+  if(a.length<6||a.length>20){toast(t("sy_pw_len"),"err");return;}
   if(/\s/.test(a)){toast(t("sy_pw_space"),"err");return;}
   if(a!==b){toast(t("sy_pw_match"),"err");return;}
   confirmModal(t("sy_pw_q"),t("sy_pw_d"),function(){
-    postCmd("passwd "+a).then(function(){
+    var salt=new Uint8Array(16);
+    crypto.getRandomValues(salt);
+    var pwd=new TextEncoder().encode(a);
+    var buf=new Uint8Array(salt.length+pwd.length);
+    buf.set(salt,0);buf.set(pwd,salt.length);
+    postCmd("passwd_hash "+bytesToHex(salt)+" "+sha256Hex(buf)).then(function(){
       $("sy-pw1").value=$("sy-pw2").value="";
+      toast("Password changed; log in again","ok");
+      setTimeout(function(){location.href="/login.html";},900);
     }).catch(function(){});
   });
+});
+$("logoutBtn").addEventListener("click",function(){
+  api("/logout",{method:"POST",body:"1"}).then(function(){location.href="/login.html";},function(){location.href="/login.html";});
 });
 $("sy-send").addEventListener("click",sysConsole);
 $("sy-cmd").addEventListener("keydown",function(e){if(e.key==="Enter")sysConsole()});
@@ -2664,6 +2711,7 @@ $("fwup").addEventListener("click",function(){
       fwSettle(st,false);
     })};
     xhr.open("POST","/upload");
+    xhr.setRequestHeader("X-RTLP","1");
     xhr.send(form);
   });
 });

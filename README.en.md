@@ -104,7 +104,7 @@ SoC under a heatsink. **Status: supported — verified on two units.**
 | Install | SPI clamp only. The stock firmware is an unmanaged Realtek reference image with a factory-test console on **9600 8N1** and no web interface, so the web-upgrade path does not exist for the first install |
 | Image for the programmer | pad the 512 KiB build to 2 MiB (`truncate -s 2097152 …`); **never** use a padded image for web flashing |
 | Reset button | **none**, and no unpopulated footprint for one — restore the built-in configuration from the web UI or with `defaults` |
-| Default IP | `192.168.10.247` (from `config.txt`) |
+| Default IP | DHCP (automatic, from `config.txt`'s `ip dhcp`) |
 | Console | 115200 8N1 once RTLPlayground runs |
 | Document | [doc/devices/PCB-K0402W-V1.0.md](doc/devices/PCB-K0402W-V1.0.md) |
 
@@ -123,7 +123,7 @@ RTL8373, 8 × 2.5GBASE-T + 1 × SFP+, 2 MiB Boya/BoHong `BY25Q16BS` (`RDID 68 40
 | Build | `make MACHINE=PCB_K0801W_V1 FLASH_NO_DIO=1` |
 | Install | SPI clamp only (same unmanaged stock firmware as above); keep the 2 MiB dump |
 | Reset button | **none**, and no unpopulated footprint for one |
-| Default IP | `192.168.10.247` |
+| Default IP | DHCP (automatic) |
 | Document | [doc/devices/PCB-K0801W-V1.0.md](doc/devices/PCB-K0801W-V1.0.md) |
 
 Verified: it boots with the V1.0 silkscreen, reports the RTL8373 class (no `INCORRECT MACHINE!`), lists
@@ -143,7 +143,7 @@ ZX-SWTGW215AS; the two targets differ only in the board/model names they report.
 | Build | `make MACHINE=SKS3200M_5GPY1XF` (or `MACHINE=LIANGUO_ZX_SWTGW215AS`, same wiring) |
 | Install | keep a full 2 MiB backup first — the stock image cannot be rebuilt from a dump. From the stock web UI: the OEM installer; once any RTLPlayground image runs: the web interface's *Firmware update* |
 | Reset button | `GPIO54` — **verified**: < 3 s nothing, ~5 s reboot with the startup configuration kept, ~13 s factory reset |
-| Default IP | `192.168.10.12` (the XikeStor targets embed `config-xikestor.txt`) |
+| Default IP | DHCP (automatic; the XikeStor targets embed `config-xikestor.txt`, also `ip dhcp`) |
 | Document | [doc/devices/SKS3200M-5GPY1XF.md](doc/devices/SKS3200M-5GPY1XF.md) |
 
 Verified: port order (UI 1-5 = jacks 1-5, UI 6 = SFP), links at 1G and 2.5G, SFP module detect/RX_LOS,
@@ -166,7 +166,7 @@ populated.
 | Factory MAC | restored: `mac_flash_offset = 0x1FC000` makes the board report `1C:2A:A3:23:E4:5E` again instead of a generated MAC |
 | The two cages | `J4` (left, jack 5) is logical port **8** — SerDes 1, detect GPIO30 / RX-LOS GPIO37, I2C SDA4+SCL3 — and `J2` (right, jack 6) is logical port **3** — SerDes 0, detect GPIO50 / RX-LOS GPIO51, I2C SDA3+SCL3. The two jacks **cross over** in the logical numbering |
 | Lamps | pad map measured on the unit: green/amber on pad 12/14 (jack 1), 15/17 (2), 18/20 (3), 21/23 (4), the two cage lamps on pad 24 (`J4`) and pad 9 (`J2`); a cage lamp lights at any speed |
-| Default IP | `192.168.10.12` |
+| Default IP | DHCP (automatic) |
 | Document | [doc/devices/SWTG024AS.md](doc/devices/SWTG024AS.md) |
 
 > [!NOTE]
@@ -184,7 +184,7 @@ model as `SKS3200M-8GPY1XF`.
 | Build | `make MACHINE=SKS3200M_8GPY1XF` (or `MACHINE=SWTGW218AS` for the V2.0 boards) |
 | Install (stock → RTLPlayground) | the stock firmware is a CGI image (固件版本 V1.9, `admin/admin`, `192.168.10.12`) whose 固件升级 page (`fwug.cgi`) accepts the OEM installer |
 | Reset button | `GPIO54` — **verified**: ~5 s reboot, ~13 s factory reset, < 3 s nothing |
-| Default IP | `192.168.10.12` |
+| Default IP | DHCP (automatic) |
 | Document | [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md) |
 
 Verified: the button's three states, the session handling, and restoring the built-in configuration from
@@ -204,7 +204,7 @@ The web interface shows **hardware `PB-2131` / model `IG204 V1`**, like the othe
 | First install | SPI clip or programmer only: the stock firmware is the unmanaged Realtek reference image (serial **9600 8N1**, prompt `RTL8371B:`, no web interface). The measured unit had its 4 MiB part replaced with a 1 MiB `MX25L8005M` (the 512 KiB image plus the web updater's 1 MB staging area need the room) |
 | Already running RTLPlayground | upload `output/STEAMEMO_IG204_V1/rtlplayground-*.bin` (512 KiB) in the web UI's firmware page |
 | Reset button | none, not even a footprint → *Restore factory defaults* in the web UI or the `defaults` command |
-| Default IP | `192.168.10.247` (`config.txt`) |
+| Default IP | DHCP (automatic, `config.txt`'s `ip dhcp`) |
 | Console | header `T7` (TX/GND/RX/3V3); 115200 8N1 once RTLPlayground runs |
 | Panel VLAN switch | `GPIO36`, reads 1 when on and 0 when off; on, the four copper ports are isolated from each other and only reach the SFP+ cages and the CPU port; off, everything talks. Polled once a second, so it takes effect in about a second |
 | Document | [doc/devices/STEAMEMO_IG204_V1.md](doc/devices/STEAMEMO_IG204_V1.md) |
@@ -228,7 +228,7 @@ both SFP cages at 10G were measured on the unit (2026-10-19).** Upstream has no 
 | First install | write the 512 KiB image at offset 0 of the `T25S40` with an SPI clip/programmer |
 | Web update | **not on a 512 KiB board**: the updater stages the image at `0x80000` and needs at least 1 MB, so the upload answers HTTP 400 `Flash too small for firmware upload!`. With a 2 MiB `BY25Q16BS` (same SOP-8 footprint) the web update works and both cages are detected automatically |
 | Reset button | none, `.reset_pin = GPIO_NA` → web UI button or `defaults` |
-| Default IP | `192.168.10.247` |
+| Default IP | DHCP (automatic) |
 | Console | header `JP1` (VCC/RX/GND/TX); 9600 8N1 on the stock firmware, 115200 8N1 on RTLPlayground |
 | Document | [doc/devices/F7005-2.5GPOE-V1.0.md](doc/devices/F7005-2.5GPOE-V1.0.md) |
 
@@ -245,8 +245,8 @@ was moved from cage to cage and read with `sfp` and linked at 10G in both.
 
 The System tab (*Maintenance*) has a **Restore factory defaults** button, and the console has the
 equivalent `defaults` command. Both write the configuration compiled into the image over the startup
-configuration and reboot the board, which then comes up at the image's default address (`192.168.10.12`
-on the XikeStor builds, otherwise the address in `config.txt`).
+configuration and reboot the board, which then comes up with the image's default configuration: **DHCP**
+for the address and **no password** for the web interface.
 
 It is deliberately **not** a configuration command: it never becomes part of the startup configuration.
 The UI text exists in all six interface languages (English, Japanese, Chinese, Spanish, French, German).
@@ -293,9 +293,10 @@ leave `model_name` empty behave exactly as before.
 
 ### 3.6 Per-target factory default configuration — new
 
-`config-xikestor.txt` (IP `192.168.10.12`) is embedded instead of `config.txt` for the three XikeStor
-targets; the Makefile picks the file per machine target (`DEFAULT_CONFIG`). A freshly flashed XikeStor
-board therefore comes up at `192.168.10.12` rather than `192.168.10.247`.
+`config-xikestor.txt` is still embedded instead of `config.txt` for the three XikeStor targets; the
+Makefile picks the file per machine target (`DEFAULT_CONFIG`). It now holds the same single line,
+`ip dhcp`, so every target comes up on DHCP. The separate file is kept for future vendor-specific
+defaults.
 
 ### 3.7 `FLASH_NO_DIO=1` — new build option
 
@@ -437,8 +438,13 @@ The image lands in `output/<target>/rtlplayground-<version>-<target>.bin` (512 K
 
 ### 4.3 After flashing
 
-- A freshly flashed XikeStor board comes up at `192.168.10.12` with the default password **`1234`**; a
-  Hi-K0402WS/Hi-K0801WS/IG204 4+2/AP-7024-2.5G board comes up at `192.168.10.247`.
+- A freshly flashed board of **any** model comes up on **DHCP** and has **no password**; the web
+  interface opens without a login. `passwd <text>` sets a password, a bare `passwd` clears it again.
+- If the segment has no DHCP server the board stays on its compiled-in fallback:
+  **`192.168.10.12/24` for the SKS3200M-8GPY1XF / 4GPY2XF / 5GPY1XF**, and
+  **`192.168.10.247/24` for every other model** (Hi-K0402WS, Hi-K0801WS, IG204, AP-7024, ...).
+  The fallback gateway is `192.168.10.1` and the web port is `80` (unless the startup configuration
+  sets `http port`). A DHCP lease replaces the fallback address as soon as one arrives.
 - **An upgrade keeps the board's startup configuration.** The image is written up to the configuration
   area, which is left alone, so VLANs, port names, the password and the IP address survive a firmware
   update. The configuration compiled into the image only applies to a board that has none yet, or after
@@ -741,11 +747,12 @@ When you power up the switch, the device will perform some examples and provide 
 
 ## (8) The web-interface
 
-The web-interface can be reached under the [default 192.168.10.247](http://192.168.10.247) unless you
-specified an IP address in the config.txt before compilation.
+The web interface is reachable on whatever address DHCP gives the board (or the static address you put
+into `config.txt` before compiling). It has **no password** by default: the login page is skipped
+entirely. Set one with `passwd <text>`, clear it again with a bare `passwd`.
 
 > [!TIP]
-> The default password is `1234`.
+> Find a freshly flashed board in the router's DHCP lease list, or by its hostname.
 
 ## (9) The command line
 

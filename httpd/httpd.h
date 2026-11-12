@@ -22,6 +22,9 @@ void httpd_appcall(void);
 
 void httpd_init(void) __banked;
 
+/* Invalidate the current web session (password change, logout). */
+void httpd_forget_sessions(void) __banked;
+
 /* TCP port the web interface listens on, and the only way to change it:
  * uIP has to be told about the new port, so the global is not written to
  * from anywhere else. 0 is refused, a port that is already in use is a

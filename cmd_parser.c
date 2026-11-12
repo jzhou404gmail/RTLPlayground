@@ -22,6 +22,7 @@
 #include "sfp.h"
 #include "dhcp.h"
 #include "syslog.h"
+#include "auth.h"
 #include "dns.h"
 #include "ntp.h"
 #include "uip/uip.h"
@@ -31,6 +32,9 @@
 #include "rtl837x_leds.h"
 #include "phy.h"
 
+/* httpd.c lives in BANK1; declared here to keep the dependency one-way. */
+void httpd_forget_sessions(void) __banked;
+
 #pragma codeseg BANK2
 #pragma constseg BANK2
 
@@ -38,6 +42,7 @@ extern __code const struct machine machine;
 extern __xdata bool stp_enabled;
 extern __code const uint8_t log_to_phys_port[9];
 extern __xdata bool lldp_enabled;
+extern __xdata uint8_t http_tls;
 
 extern volatile __xdata uint32_t ticks;
 extern volatile __xdata uint8_t sfr_data[4];
@@ -1463,19 +1468,51 @@ void parse_rnd(void)
 
 void parse_passwd(void)
 {
-	// cmd_words_len can be more then 2 if a SPACE in the password.
-	if (cmd_words_len >= 2) {
-		uint8_t i = cmd_words_b[1];		
-		uint8_t c = 0;
-		uint8_t j = 0;
-		do {
-			c = cmd_buffer[i++];
-			passwd[j++] = c;
-		} while (c != NUL && j < 20);
+	uint8_t i, j = 0;
+
+	if (cmd_words_len == 1) {
+		auth_clear();
+		auth_save_pending = 1;
+		httpd_forget_sessions();
+		print_string("Web management disabled; use the serial console to set a password\n");
+		return;
+	}
+
+	/* The startup configuration may still carry an old plaintext line while
+	 * a board is being migrated; it is replayed as the fallback credential. */
+	if (!save_cmd) {
+		i = cmd_words_b[1];
+		while (j < 20 && cmd_buffer[i + j] != NUL) {
+			passwd[j] = cmd_buffer[i + j];
+			j++;
+		}
 		passwd[j] = NUL;
 		return;
 	}
-	cmd_error("Missing password\n");
+
+	/* Hashing happens in the browser: the plaintext never has to be hashed on
+	 * the 8051, which has no RAM for a SHA-256 implementation. */
+	print_string("Set the password in the Web UI (it sends only the digest)\n");
+}
+
+
+/* "passwd_hash <32 hex salt> <64 hex digest>": the persisted form written by
+ * the Web UI or by the host tooling during a migration. */
+void parse_passwd_hash(void)
+{
+	__xdata uint8_t *salt = cmd_buffer + cmd_words_b[1];
+	__xdata uint8_t *hash = cmd_buffer + cmd_words_b[2];
+
+	if (cmd_words_len != 3 || salt[32] != ' ' || hash[64] != NUL
+	    || !auth_parse_hex(salt, hash)) {
+		cmd_error("passwd_hash <32-hex-salt> <64-hex-hash>\n");
+		return;
+	}
+	if (save_cmd) {
+		auth_save_pending = 1;
+		httpd_forget_sessions();
+	}
+	print_string("Password digest loaded\n");
 }
 
 
@@ -1753,14 +1790,29 @@ void parse_session(void)
 /* "http port <1-65535>": the TCP port the web interface listens on. The
  * listener is moved at once, so the page that asked for it has to be
  * reopened on the new port; a connection that is already open keeps
- * working until it is closed. */
+ * working until it is closed.
+ *
+ * "http tls on|off": the switch itself cannot terminate TLS. It tells the
+ * httpd it is behind a TLS terminator, so the session cookie gets Secure and
+ * responses carry HSTS. Do not enable it while the web UI is still reached
+ * over plain HTTP: a Secure cookie is never sent back. */
 void parse_http(void)
 {
-	if (cmd_words_len >= 2) {
-		if (!cmd_compare(1, "port") || cmd_words_len != 3) {
-			cmd_error("http [port <1-65535>]\n");
+	if (cmd_words_len == 3 && cmd_compare(1, "tls")) {
+		if (cmd_compare(2, "on"))
+			http_tls = 1;
+		else if (cmd_compare(2, "off"))
+			http_tls = 0;
+		else {
+			cmd_error("http tls on|off\n");
 			return;
 		}
+		print_string(http_tls ? "TLS mode on (cookie Secure + HSTS)\n"
+				      : "TLS mode off\n");
+		return;
+	}
+
+	if (cmd_words_len == 3 && cmd_compare(1, "port")) {
 		/* atoi_short() returns zero for no digits and for a value past
 		 * 65535, and port 0 is not a port either. */
 		if (!atoi_short(cmd_words_b[2]) || !atoi_results_short) {
@@ -1768,8 +1820,12 @@ void parse_http(void)
 			return;
 		}
 		httpd_set_port(atoi_results_short);
+	} else {
+		cmd_error("http [port <1-65535>] [tls on|off]\n");
+		return;
 	}
-	/* Also the confirmation after setting: one message for both. */
+
+	/* Also the confirmation after setting. */
 	print_string("HTTP port: ");
 	itoa_short(http_port);
 	write_char('\n');
@@ -2077,6 +2133,8 @@ void cmd_parser(void) __banked
 			parse_rnd();
 		} else if (cmd_compare(0, "passwd")) {
 			parse_passwd();
+		} else if (cmd_compare(0, "passwd_hash")) {
+			parse_passwd_hash();
 		} else if (cmd_compare(0, "eee")) {
 			parse_eee();
 		} else if (cmd_compare(0, "bw")) {
@@ -2122,7 +2180,8 @@ void cmd_parser(void) __banked
 		}
 
 
-		if (save_cmd && cmd_words_len && err_status == ERR_OK) {
+		if (save_cmd && cmd_words_len && err_status == ERR_OK
+		    && !cmd_compare(0, "passwd") && !cmd_compare(0, "passwd_hash")) {
 			// Find end of the cmd-buffer, looking for the NUL-byte.
 			uint8_t i = cmd_words_b[cmd_words_len - 1];
 			do {
@@ -2152,7 +2211,9 @@ void clear_command_history(void) __banked
 
 
 #define FLASH_READ_BURST_SIZE 0x100
-#define PASSWORD "1234"
+/* No password out of the box. The web interface skips the login page
+ * entirely while this is empty; see scan_header() in httpd.c. */
+#define PASSWORD ""
 
 #if CONFIG_LEN % FLASH_READ_BURST_SIZE
 	#error "CONFIG_LEN not a multiple of FLASH_READ_BURST_SIZE"

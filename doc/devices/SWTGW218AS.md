@@ -40,8 +40,8 @@ default Dual-I/O build is correct for it; only the Boya/BoHong parts
 (`68 40 15`) need `FLASH_NO_DIO=1`.
 
 Both XikeStor targets embed `config-xikestor.txt` instead of `config.txt`
-(selected by machine target in the Makefile), so a freshly flashed board comes up
-at **192.168.10.12** with the default login password `1234`.
+(selected by machine target in the Makefile). Both files now hold `ip dhcp`, so
+a freshly flashed board comes up on **DHCP** and with **no login password**.
 
 ## Reset button
 

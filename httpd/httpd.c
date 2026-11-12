@@ -7,13 +7,19 @@
 #include "rtl837x_flash.h"
 #include "uip.h"
 #include "html_data.h"
+#include "auth.h"
 
 // #define DEBUG
 #include "debug.h"
 
-#define SESSION_ID_LENGTH 12
+#define SESSION_ID_LENGTH 32
 #define SESSION_TIMEOUT_DEFAULT 200
 #define HTTP_PORT_DEFAULT 80
+
+/* Absolute lifetime of a session, regardless of activity. An idle timeout
+ * alone lets a cookie that is used often stay valid forever. Uptime is in
+ * seconds, 8 h is far below the wrap of the 32-bit counter. */
+#define SESSION_LIFETIME_MAX (8UL * 3600UL)
 
 /* Seconds of inactivity after which a session cookie stops validating.
  * Configurable with the "session" command, see cmd_parser.c. */
@@ -22,6 +28,23 @@ __xdata uint16_t session_timeout = SESSION_TIMEOUT_DEFAULT;
 /* TCP port the web interface listens on. Configurable with the "http port"
  * command, see cmd_parser.c; 80 unless something else is asked for. */
 __xdata uint16_t http_port = HTTP_PORT_DEFAULT;
+
+/* Set by "http tls on": the switch is behind a TLS terminator, so the session
+ * cookie gets Secure and responses get HSTS. Off while the UI is reached over
+ * plain HTTP - a Secure cookie would never be sent back. */
+__xdata uint8_t http_tls;
+
+/* Login throttle. Deliberately RAM-only: writing failures to flash would let
+ * an attacker wear the sector out, and a reboot is not a way past the password
+ * itself. */
+static __xdata uint8_t login_fails;
+static __xdata uint32_t login_lock_until;
+
+/* Per-request checks filled in by scan_header(). */
+static __xdata uint8_t host_ok;
+static __xdata uint8_t csrf_ok;
+static __xdata uint8_t host_ip[4];
+static __xdata uint8_t *host_hdr;
 
 #define CMARK_S 6
 
@@ -87,6 +110,7 @@ __xdata char session_id[SESSION_ID_LENGTH + 1];
 __xdata uint8_t authenticated;
 __xdata uint32_t now;
 __xdata uint32_t last_session_use;
+__xdata uint32_t session_started;
 
 #define TSTATE_NONE		0
 #define TSTATE_TX		1
@@ -289,13 +313,28 @@ void send_bad_request(void)
 void send_to_login(void)
 {
 	slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n" \
-			      "Location: login.html\r\n\r\n");
+			      "Cache-Control: no-store\r\nLocation: login.html\r\n\r\n");
 }
 
 
 void send_unauthorized(void)
 {
-	slen = strtox(outbuf, "HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n");
+	slen = strtox(outbuf, "HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n" \
+			      "Cache-Control: no-store\r\n\r\n");
+}
+
+
+void send_misdirected(void)
+{
+	slen = strtox(outbuf, "HTTP/1.1 421 Misdirected Request\r\nConnection: close\r\n" \
+			      "Cache-Control: no-store\r\n\r\n");
+}
+
+
+void send_forbidden(void)
+{
+	slen = strtox(outbuf, "HTTP/1.1 403 Forbidden\r\nConnection: close\r\n" \
+			      "Cache-Control: no-store\r\n\r\n");
 }
 
 
@@ -311,14 +350,90 @@ void send_ok(void)
 }
 
 
+/* Accept only the address the client actually reached us on, or the configured
+ * hostname. This closes DNS rebinding: a page on evil.example.com resolves to
+ * the switch, but its Host header still says evil.example.com. */
+static uint8_t host_is_ip(void)
+{
+	__xdata uint8_t *h = host_hdr;
+	uint16_t v;
+	uint8_t i, d;
+
+	for (i = 0; i < 4; i++) {
+		v = 0;
+		d = 0;
+		while (*h >= '0' && *h <= '9') {
+			if (d == 3)
+				return 0;
+			v = v * 10 + (*h - '0');
+			h++;
+			d++;
+			if (v > 255)
+				return 0;
+		}
+		if (!d)
+			return 0;
+		host_ip[i] = (uint8_t)v;
+		if (i < 3) {
+			if (*h != '.')
+				return 0;
+			h++;
+		}
+	}
+	if (*h == ':') {
+		h++;
+		d = 0;
+		while (*h >= '0' && *h <= '9') {
+			h++;
+			d++;
+		}
+		if (!d)
+			return 0;
+	}
+	if (*h != 0 && *h != '\r' && *h != '\n')
+		return 0;
+
+	return host_ip[0] == (uip_hostaddr[0] & 0xff)
+	    && host_ip[1] == (uip_hostaddr[0] >> 8)
+	    && host_ip[2] == (uip_hostaddr[1] & 0xff)
+	    && host_ip[3] == (uip_hostaddr[1] >> 8);
+}
+
+static uint8_t host_is_name(void)
+{
+	__xdata uint8_t *h = host_hdr;
+	__xdata char *n = hostname;
+	uint8_t a, b;
+
+	while (*n) {
+		a = *h++;
+		b = *n++;
+		if (a >= 'A' && a <= 'Z')
+			a += 'a' - 'A';
+		if (b >= 'A' && b <= 'Z')
+			b += 'a' - 'A';
+		if (a != b)
+			return 0;
+	}
+	if (*h == ':') {
+		h++;
+		while (*h >= '0' && *h <= '9')
+			h++;
+	}
+	return *h == 0 || *h == '\r' || *h == '\n';
+}
+
 __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 {
 	__xdata uint8_t *v;
+	__xdata uint8_t *host = 0;
 
 	content_type = 0;
 	content_length = 0;
 	session = 0;
 	authenticated = 0;
+	csrf_ok = 0;
+	host_ok = 1;
 
 	while (!strstart(p, "\r\n\r\n")) {
 		dbg_char(*p);
@@ -330,6 +445,10 @@ __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 		else if ((v = header_value(p, "\ncontent-length:"))) {
 			parse_short(v);
 			content_length = short_parsed;
+		} else if ((v = header_value(p, "\nhost:"))) {
+			host = v;
+		} else if ((v = header_value(p, "\nx-rtlp:"))) {
+			csrf_ok = (*v && *v != '\r' && *v != '\n');
 		} else if ((v = header_value(p, "\ncookie:"))) {
 			/* Scan for the "session" key: the header may hold several
 			 * cookies in any order. Match "session" not "session=" -
@@ -361,10 +480,16 @@ __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 		boundary[i + 4] = 0;
 	}
 
+	if (host) {
+		host_hdr = host;
+		host_ok = host_is_ip() || host_is_name();
+	}
+
 	read_timer(&now);
 
 	if (session && session_id[0]) {
-		if (now - last_session_use > session_timeout) {
+		if (now - last_session_use > session_timeout
+		    || now - session_started > SESSION_LIFETIME_MAX) {
 			dbg_string("Session expired\n");
 		} else {
 			if (is_word_x(session, session_id)) {
@@ -375,6 +500,11 @@ __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 			}
 		}
 	}
+	/* Fail closed. An empty password is not a credential: until one is
+	 * provisioned over the serial console, login.html is the only thing
+	 * that can be reached. Nothing may turn this back into a bypass. */
+	if (passwd[0] == NUL && !auth_set)
+		authenticated = 0;
 	return p;
 }
 
@@ -392,6 +522,16 @@ void gen_random_hex_chars(__xdata uint8_t * b, __xdata uint8_t bytes)
 		b[--bytes] = itohex(sfr_data[i] >> 4 | sfr_data[i] << 4);
 		i = (i + 1) & 0x3;
 	}
+}
+
+
+/* Drop the session: called when the password changes and, later, on
+ * logout. There is one slot for the whole web interface, so this also
+ * invalidates a cookie someone else may still hold. */
+void httpd_forget_sessions(void) __banked
+{
+	session_id[0] = NUL;
+	authenticated = 0;
 }
 
 
@@ -679,6 +819,11 @@ static void run_cmd_body(__xdata uint8_t *body)
 	if (cmd_capture == 2)
 		slen += strtox(outbuf + slen, CMD_TRUNCATED);
 	cmd_capture = 0;
+	if (auth_save_pending) {
+		auth_save_pending = 0;
+		if (!auth_persist() && slen + 38 < TCP_OUTBUF_SIZE)
+			slen += strtox(outbuf + slen, "Password not saved\n");
+	}
 	/* Commands that configure something print nothing at all. Saying
 	 * so beats an empty body, which reads the same as "nothing ran".
 	 * Only on success: a silent failure must not answer with "OK". */
@@ -697,21 +842,60 @@ static void run_cmd_body(__xdata uint8_t *body)
 }
 
 
+static void login_locked_reply(void)
+{
+	slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n" \
+			      "Cache-Control: no-store\r\nLocation: login.html\r\n\r\n");
+}
+
 static void run_login_body(__xdata uint8_t *body)
 {
-	if (strstart(body, "pwd=") && is_url_word_x(body + 4, passwd)) {
+	uint8_t ok = 0;
+
+	read_timer(&now);
+	if (now < login_lock_until) {
+		dbg_string("Login throttled\n");
+		login_locked_reply();
+		return;
+	}
+
+	if (strstart(body, "pwd=")) {
+		if (auth_set)
+			ok = auth_verify_hex(body + 4);
+		/* Until the plaintext line is removed from the configuration, it is
+		 * still accepted: this is the way back in if a digest login fails. */
+		if (!ok && passwd[0])
+			ok = is_url_word_x(body + 4, passwd);
+	}
+
+	if (ok) {
 		dbg_string("Password accepted!\n");
+		login_fails = 0;
+		login_lock_until = 0;
 		read_timer(&last_session_use);
+		session_started = last_session_use;
 		gen_random_hex_chars(session_id, SESSION_ID_LENGTH);
 		session_id[SESSION_ID_LENGTH] = NUL;
-		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\nLocation: index.html\r\n" \
+		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n" \
+				      "Cache-Control: no-store\r\nLocation: index.html\r\n" \
 				      "Set-Cookie: session=");
 		for (uint8_t i = 0; i < SESSION_ID_LENGTH; i++)
 			outbuf[slen++] = session_id[i];
-		slen += strtox(outbuf + slen, "; SameSite=Strict\r\n\r\n");
+		if (http_tls)
+			slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict; Secure\r\n\r\n");
+		else
+			slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict\r\n\r\n");
 	} else {
 		dbg_string("Password invalid!\n");
-		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\nLocation: login.html\r\n\r\n");
+		if (login_fails < 255)
+			login_fails++;
+		if (login_fails >= 5) {
+			uint8_t sh = login_fails - 5;
+			if (sh > 5)
+				sh = 5;
+			login_lock_until = now + (1UL << sh);
+		}
+		login_locked_reply();
 	}
 }
 
@@ -793,6 +977,19 @@ void handle_post(void)
 			send_not_found();
 			return;
 		}
+		if (!host_ok) {
+			dbg_string("Bad Host header\n");
+			send_misdirected();
+			return;
+		}
+		/* A custom header forces a CORS preflight, so a cross-site form or
+		 * fetch cannot reach the state-changing endpoints. The login form is
+		 * a plain HTML POST and is exempt. */
+		if (authenticated && !is_word(request_path, "login") && !csrf_ok) {
+			dbg_string("Missing X-RTLP header\n");
+			send_forbidden();
+			return;
+		}
 		if (is_word(request_path, "upload")) {
 			if (!authenticated) {
 				send_unauthorized();
@@ -851,6 +1048,13 @@ void handle_post(void)
 		if (!post_body_take(p))
 			return;
 		run_cmd_body(p);
+		return;
+	} else if (is_word(request_path, "logout")) {
+		if (!authenticated) {
+			send_unauthorized();
+			return;
+		}
+		auth_logout_reply();
 		return;
 	} else if (is_word(request_path, "login")) {
 		dbg_string("POST login\n");
@@ -1002,6 +1206,11 @@ void httpd_appcall(void)
 		dbg_string("GET request ");
 		p += 4;
 		scan_header(p);
+		if (!host_ok) {
+			dbg_string("Bad Host header\n");
+			send_misdirected();
+			goto do_send;
+		}
 		__xdata uint8_t *q = p;
 		while (*p && !is_separator(*p))
 			p++;
@@ -1013,6 +1222,10 @@ void httpd_appcall(void)
 		entry = find_entry(q);
 		dbg_string("Entry is: "); dbg_byte(entry); dbg_char('\n');
 		if (entry == 0xff) {
+			if (!strcmp(q, "/auth.json")) {
+				auth_send_info();
+				goto do_send;
+			}
 			if (!authenticated) {
 				dbg_string("Not authorized!\n");
 				send_unauthorized();
@@ -1088,7 +1301,10 @@ void httpd_appcall(void)
 			slen += strtox(outbuf + slen, "; charset=UTF-8\r\n");
 			if (f_data[entry].gzip)
 				slen += strtox(outbuf + slen, "Content-Encoding: gzip\r\n");
-			slen += strtox(outbuf + slen, "Cache-Control: max-age=60, must-revalidate\r\nConnection: close\r\nAccess-Control-Allow-Origin: *\r\nContent-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'\r\n\r\n");
+			slen += strtox(outbuf + slen, "Cache-Control: max-age=60, must-revalidate\r\nConnection: close\r\n" \
+				      "X-Frame-Options: DENY\r\nX-Content-Type-Options: nosniff\r\n" \
+				      "Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'\r\n" \
+				      "\r\n");
 
 			len_left = f_data[entry].len;
 			if (len_left > (TCP_OUTBUF_SIZE - slen)) {

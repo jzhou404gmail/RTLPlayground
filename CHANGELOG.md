@@ -2,6 +2,44 @@
 
 ## [0.x] - 2026-xx-XX
 
+## Changed
+
+- The build date in the System tab is the wall clock at build time again, so an image shows when it
+  was actually made. Pass `SOURCE_DATE_EPOCH=<unix time>` for a reproducible build.
+- Login throttling: five failed attempts delay the next try by 1 s, doubling up to 32 s. The Web UI
+  requires 6-20 characters without spaces for a new password.
+- Passwords are stored as a salted SHA-256 digest (`passwd_hash <salt> <digest>`). The browser fetches
+  the salt from `/auth.json`, hashes the password locally and posts only the digest; the 8051 never sees
+  the plaintext and does not run SHA-256. `passwd` no longer accepts a plaintext argument; a bare
+  `passwd` still disables web management. An old plaintext `passwd` line is replayed as a fallback
+  until it is removed from the startup configuration.
+- `POST /logout` and a Log out button in the header: the session is cleared and the cookie expired.
+- Fixed a missing comma in the new logout i18n entry that made `app.js` fail to parse, leaving the
+  dashboard blank after login (`v0.1.7`).
+- Fixed an 8-bit loop counter in the configuration write-back verification; a configuration longer than
+  255 bytes could hang the CPU (found on one of our test units and recovered with a power cycle).
+- Web hardening: `X-Frame-Options: DENY`, CSP `frame-ancestors 'none'`, `X-Content-Type-Options:
+  nosniff`, `Cache-Control: no-store` on the dynamic endpoints, `Access-Control-Allow-Origin: *`
+  removed, the `Host` header must name the switch or the configured hostname (421 otherwise), and
+  state-changing POSTs require the `X-RTLP: 1` header (the bundled UI sends it). Scripts that POST to
+  `/cmd`, `/config` or `/upload` need to send it too.
+- `http tls on|off`: tell the web server it is behind a TLS terminator, so the session cookie gets
+  `Secure`. The switch itself still speaks HTTP; terminate TLS on the management host.
+- `rtl837x_igmp.c` moved to BANK3 and the response headers were trimmed to keep the image inside
+  BANK1.
+- Factory defaults on every machine target: the embedded `config.txt` and `config-xikestor.txt` now hold
+  `ip dhcp`, so a freshly flashed board obtains its management address over DHCP instead of coming up
+  at `192.168.10.247` / `192.168.10.12`. If no DHCP server answers, the firmware stays on its built-in
+  fallback, which now matches the model's nameplate: `192.168.10.12/24` for the three XikeStor targets
+  (`SKS3200M_8GPY1XF`, `SKS3200M_4GPY2XF`, `SKS3200M_5GPY1XF`) and `192.168.10.247/24` for every other
+  target. The fallback gateway is `192.168.10.1`; a lease replaces the address as soon as one arrives.
+- The web interface is fail-closed: an empty admin password no longer authenticates every request.
+  `POST /login` only issues a session for a non-empty, matching password, so a board without a password
+  has to be provisioned over the serial console (`passwd <text>`) before its web interface is usable.
+  A bare `passwd` now disables web management instead of opening it. Sessions are 128 bit, carry
+  `Path=/; HttpOnly; SameSite=Strict`, expire after 8 h regardless of activity, and changing or
+  clearing the password invalidates the current session.
+
 ## Added
 
 - Web UI

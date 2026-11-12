@@ -258,6 +258,7 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
     </button>
     <span id="ttitle"></span>
     <span id="dirty" data-i18n="hdr_dirty" data-i18n-t="hdr_dirty_t">unsaved changes</span>
+    <button class="ctl" id="logoutBtn" data-i18n="hdr_logout" data-i18n-t="hdr_logout_t">Log out</button>
     <button class="ctl pri" id="saveBtn" data-i18n="hdr_save" data-i18n-t="hdr_save_t">Save to flash</button>
   </header>
 
@@ -469,7 +470,7 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
   dns server &lt;ip&gt; [&lt;ip&gt;]           DNS servers, 0.0.0.0 clears them   dns server 192.168.32.254
   dns lookup &lt;name&gt;                resolve a name now                 dns lookup ntp.tencent.com
   http port &lt;1-65535&gt;              web interface port (default 80)    http port 8000
-  passwd &lt;text&gt;                    admin password, 1-20 characters    passwd 1234
+  passwd [&lt;text&gt;]                  admin password, empty disables it  passwd 1234
   session &lt;1-65535&gt;                web session timeout in seconds     session 600
 Services
   ntp [on|off]                     start or stop the time client      ntp on
