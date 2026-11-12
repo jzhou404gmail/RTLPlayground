@@ -135,7 +135,7 @@ void vlan_switch_poll(void) __banked
 	}
 
 	/* Every port of this machine plus the CPU port */
-	for (port = machine.min_port; port <= machine.max_port; port++)
+	for (port = MACHINE_MIN_PORT; port <= MACHINE_MAX_PORT; port++)
 		all |= ((uint16_t)1) << port;
 	all |= ((uint16_t)1) << 9;	/* CPU port */
 
@@ -143,12 +143,12 @@ void vlan_switch_poll(void) __banked
 	 * other RJ45 ports: the SFP cages and the CPU port stay reachable. */
 	mask = all;
 	if (state == 1) {
-		for (port = machine.min_port; port <= machine.max_port; port++)
+		for (port = MACHINE_MIN_PORT; port <= MACHINE_MAX_PORT; port++)
 			if (!machine.is_sfp[port])
 				mask &= ~(((uint16_t)1) << port);
 	}
 
-	for (port = machine.min_port; port <= machine.max_port; port++) {
+	for (port = MACHINE_MIN_PORT; port <= MACHINE_MAX_PORT; port++) {
 		if (machine.is_sfp[port])
 			continue;
 		port_isolate(port, mask);

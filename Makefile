@@ -22,7 +22,7 @@ MACHINE_TARGETS := $(shell ls machine/*.c 2>/dev/null | sed -E 's#machine/##; s#
 ifeq ($(MACHINE),)
 	MACHINE:= $(shell grep "^\s*#define MACHINE_" machine.h | sed "s/^\s*#define MACHINE_//")
 else
-	CC_FLAGS += -DMACHINE_$(MACHINE)
+	CC_FLAGS += -DMACHINE_NAME=$(MACHINE)
 endif
 
 # Goals that make sense without a machine selection.
@@ -91,6 +91,10 @@ CONFIG ?= $(DEFAULT_CONFIG)
 BUILDDIR = output/$(MACHINE)
 VERSION_HEADER := version.h
 
+# Shown by the "version" command; the tree does not carry the in-tree SDCC,
+# so the system compiler is what a build here uses.
+SDCC_BANNER := system
+
 GIT_VERSION := $(shell git rev-parse --short HEAD)
 ifeq ($(shell git status --porcelain --untracked-files=no),)
 else
@@ -136,6 +140,7 @@ create_build_dir:
 	mkdir -p "$(BUILDDIR)"
 	mkdir -p "$(BUILDDIR)/uip"
 	mkdir -p "$(BUILDDIR)/httpd"
+	mkdir -p "$(BUILDDIR)/machine"
 
 # Keep machine.c in first position to fail immediately on invalid $MACHINE value
 # Every machine is a pair machine/<MACHINE>.c + machine/<MACHINE>.h; an
@@ -175,10 +180,12 @@ SRCS += \
 	rtl837x_init.c \
 	rtl837x_leds.c \
 	rtl837x_leds_dump.c \
+	rtl837x_nic.c \
 	rtl837x_phy.c \
 	rtl837x_pins.c\
 	rtl837x_port.c \
 	rtl837x_stp.c \
+	rtl837x_stp_cli.c \
 	rtl837x_lacp.c \
 	rtl837x_lldp.c \
 	rtl837x_storm.c \
@@ -216,6 +223,7 @@ $(VERSION_HEADER): FORCE
 	@printf '%s\n' "#ifndef VERSION_H" "#define VERSION_H" \
 		"#define VERSION_SW \"$(VERSION_EXTENSION)\"" \
 		"#define BUILD_DATE \"$(BUILD_DATE)\"" \
+		"#define SDCC_TOOLCHAIN \"$(SDCC_BANNER)\"" \
 		"#endif" > $(VERSION_HEADER).tmp
 	@cmp -s $(VERSION_HEADER).tmp $(VERSION_HEADER) \
 		&& rm -f $(VERSION_HEADER).tmp \
