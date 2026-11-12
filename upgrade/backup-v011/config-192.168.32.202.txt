@@ -1,0 +1,9 @@
+hostname 4GPY2XF-23e45e
+ip dhcp
+dns server 192.168.32.254
+ntp server ntp.tencent.com
+ntp interval 60
+ntp timezone +08:00
+ntp dst off
+ntp on
+http port 8000

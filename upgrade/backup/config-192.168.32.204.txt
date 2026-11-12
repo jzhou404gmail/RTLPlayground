@@ -1,0 +1,9 @@
+hostname IG204-7a943d
+ntp server ntp.tencent.com
+ntp interval 60
+ntp timezone +08:00
+ntp dst off
+ntp on
+http port 8000
+passwd 1234
+ip dhcp

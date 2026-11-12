@@ -89,7 +89,9 @@ Custom mapping for ONT-S207CW-62TS-SE:
 
 ## Flashing Instructions
 
-See the [README.en.md](../../README.en.md) for general flashing instructions.
+See the [README.md](../../README.md) for general flashing instructions.
+For compilation, use command `make MACHINE=ONT_S207CW_62TS_SE` to specify the machine.
+If you are using managed version of the switch, you can then also compile the installer and flash using GUI - run command `cd installer` and finally `make`.
 
 ## Stock Firmware Information
 

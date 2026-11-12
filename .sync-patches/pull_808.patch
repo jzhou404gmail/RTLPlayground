@@ -1,0 +1,243 @@
+From 762f5b885a48b4729ecc80abd793fb3de024fee5 Mon Sep 17 00:00:00 2001
+From: "Luca S." <luca.salvestrini@rozro.com>
+Date: Wed, 4 Nov 2026 09:33:13 +0100
+Subject: [PATCH 1/5] Add OUTPUT_NAME, OUTPUT_PREFIX, OUTPUT_DIR as Make
+ parameters.
+
+---
+ Makefile  | 33 ++++++++++++++++++++++++---------
+ README.md | 18 ++++++++++++++++++
+ 2 files changed, 42 insertions(+), 9 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 3f330f305..f51b7369c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -75,6 +75,19 @@ endif
+ VERSION_EXTENSION = v$(VERSION)-$(GIT_VERSION)
+ FILENAME_EXTENSION = $(VERSION_EXTENSION)-$(MACHINE)
+ 
++# Path and file name of the final image. BUILDDIR still holds the intermediate
++# objects and tools. OUTPUT_DIR changes only the destination, keeping the
++# version, git hash and machine in the file name; OUTPUT_PREFIX is prepended to
++# that automatic name. OUTPUT_NAME replaces the whole name, and OUTPUT
++# overrides both with a complete path:
++# make MACHINE=<name> OUTPUT_DIR=/path/to/firmware
++# make MACHINE=<name> OUTPUT_DIR=/path/to/firmware OUTPUT_PREFIX=my-switch-
++# make MACHINE=<name> OUTPUT=/path/to/firmware.bin
++OUTPUT_DIR ?= $(BUILDDIR)
++OUTPUT_PREFIX ?= rtlplayground-
++OUTPUT_NAME ?= $(OUTPUT_PREFIX)$(FILENAME_EXTENSION).bin
++OUTPUT ?= $(OUTPUT_DIR)/$(OUTPUT_NAME)
++
+ # Deterministic build date: honor SOURCE_DATE_EPOCH, else the HEAD commit date,
+ # else wall-clock (no-git fallback). Keeps same-commit builds byte-identical
+ # (BUILD_DATE is baked into the image and covered by the trailing CRC).
+@@ -89,7 +102,7 @@ endif
+ # $(MACHINE_SRC) and $(CONFIG) are listed here so an unknown $MACHINE or a
+ # missing config file fails before anything else is built, including the tools/
+ # subdirectory.
+-all: create_build_dir $(VERSION_HEADER) $(MACHINE_SRC) $(CONFIG) $(SUBDIRS) $(BUILDDIR)/rtlplayground-$(FILENAME_EXTENSION).bin
++all: create_build_dir $(VERSION_HEADER) $(MACHINE_SRC) $(CONFIG) $(SUBDIRS) $(OUTPUT)
+ 
+ bank_size:
+ 	tools/bank_occupancy.sh "$(MACHINE)"
+@@ -260,14 +273,16 @@ $(BUILDDIR)/rtlplayground.ihx: $(OBJS) $(BUILDDIR)/crtbank.rel $(BUILDDIR)/crc16
+ $(BUILDDIR)/rtlplayground.img: $(BUILDDIR)/rtlplayground.ihx
+ 	objcopy --input-target=ihex -O binary $< $@
+ 
+-$(BUILDDIR)/rtlplayground-$(FILENAME_EXTENSION).bin: $(BUILDDIR)/rtlplayground.img $(CONFIG) $(CONFIG_STAMP) | tools
+-	if [ -e $@ ]; then rm $@; fi
+-	tools/$(BUILDDIR)/imagebuilder -i $(BUILDDIR)/rtlplayground.img $@
+-	tools/$(BUILDDIR)/fileadder -a $(DEFAULT_CONFIG_LOCATION) -s $(IMAGESIZE) -d "$(CONFIG)" $@
+-	tools/$(BUILDDIR)/fileadder -a $(CONFIG_LOCATION) -s $(IMAGESIZE) -d "$(CONFIG)" $@
+-	tools/$(BUILDDIR)/fileadder -a $(HTML_LOCATION) -s $(IMAGESIZE) -z -d $(HTML_MIN) -b BANK1 $@
+-	tools/$(BUILDDIR)/crc_calculator -u $@
+-	ln -sf $(MACHINE)/rtlplayground-$(FILENAME_EXTENSION).bin $(BUILDDIR)/../rtlplayground.bin
++$(OUTPUT): $(BUILDDIR)/rtlplayground.img $(CONFIG) $(CONFIG_STAMP) | tools
++	@mkdir -p "$(dir $@)"
++	if [ -e "$@" ]; then rm "$@"; fi
++	tools/$(BUILDDIR)/imagebuilder -i $(BUILDDIR)/rtlplayground.img "$@"
++	tools/$(BUILDDIR)/fileadder -a $(DEFAULT_CONFIG_LOCATION) -s $(IMAGESIZE) -d "$(CONFIG)" "$@"
++	tools/$(BUILDDIR)/fileadder -a $(CONFIG_LOCATION) -s $(IMAGESIZE) -d "$(CONFIG)" "$@"
++	tools/$(BUILDDIR)/fileadder -a $(HTML_LOCATION) -s $(IMAGESIZE) -z -d $(HTML_MIN) -b BANK1 "$@"
++	tools/$(BUILDDIR)/crc_calculator -u "$@"
++	@mkdir -p "$(BUILDDIR)/.."
++	python3 -c 'import os,sys; src=os.path.abspath(sys.argv[1]); dst=os.path.abspath(sys.argv[2]); os.makedirs(os.path.dirname(dst),exist_ok=True); os.unlink(dst) if os.path.lexists(dst) else None; os.symlink(os.path.relpath(src,os.path.dirname(dst)),dst)' "$(OUTPUT)" "$(BUILDDIR)/../rtlplayground.bin"
+ 
+ .PHONY: clean distclean all $(SUBDIRS) $(SUBDIRSCLEAN) create_build_dir
+ 
+diff --git a/README.md b/README.md
+index b3ddafaf2..95fc23182 100644
+--- a/README.md
++++ b/README.md
+@@ -142,6 +142,24 @@ make MACHINE=DEFAULT_8C_1SFP CONFIG=configs/DEFAULT_8C_1SFP.txt
+ `CONFIG` defaults to `config.txt`; the selected file is embedded in the image
+ and changing it triggers a rebuild.
+ 
++To choose the output directory while keeping the automatic file name (with
++version, git hash and machine), pass `OUTPUT_DIR`:
++```
++make MACHINE=DEFAULT_8C_1SFP OUTPUT_DIR=/tmp/firmware
++```
++To also change the leading part of the name while keeping that automatic
++suffix, use `OUTPUT_PREFIX` (it is prepended verbatim):
++```
++make MACHINE=DEFAULT_8C_1SFP OUTPUT_DIR=/tmp/firmware OUTPUT_PREFIX=my-switch-
++```
++This produces `/tmp/firmware/my-switch-v<version>-<git>-<machine>.bin`.
++To set the complete path and file name at once, use `OUTPUT`:
++```
++make MACHINE=DEFAULT_8C_1SFP OUTPUT=/tmp/firmware/my-switch.bin
++```
++Without overrides the image is `output/<machine>/rtlplayground-v<version>-<git>-<machine>.bin`.
++`BUILDDIR` still selects where intermediate objects and tools are written.
++
+ > [!TIP]
+ > You can write configuration parameters in config.txt (see below) in order your switch to get
+ > straight at the first boot, a correct IP configuration.
+
+From 47b3cd22e63f3bf7397cd57ef6a78d395db875f6 Mon Sep 17 00:00:00 2001
+From: "Luca S." <luca.salvestrini@rozro.com>
+Date: Wed, 4 Nov 2026 09:34:14 +0100
+Subject: [PATCH 2/5] Add OUTPUT_NAME in Readme
+
+---
+ README.md | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/README.md b/README.md
+index 95fc23182..a8ce1664b 100644
+--- a/README.md
++++ b/README.md
+@@ -153,6 +153,11 @@ suffix, use `OUTPUT_PREFIX` (it is prepended verbatim):
+ make MACHINE=DEFAULT_8C_1SFP OUTPUT_DIR=/tmp/firmware OUTPUT_PREFIX=my-switch-
+ ```
+ This produces `/tmp/firmware/my-switch-v<version>-<git>-<machine>.bin`.
++To set the file name explicitly, use `OUTPUT_NAME` (it replaces the whole
++automatic name, so the version/git suffix is not appended):
++```
++make MACHINE=DEFAULT_8C_1SFP OUTPUT_DIR=/tmp/firmware OUTPUT_NAME=my-switch.bin
++```
+ To set the complete path and file name at once, use `OUTPUT`:
+ ```
+ make MACHINE=DEFAULT_8C_1SFP OUTPUT=/tmp/firmware/my-switch.bin
+
+From ce2cc34b4cba9b3fb8a0e342e89d99378505d68f Mon Sep 17 00:00:00 2001
+From: "Luca S." <luca.salvestrini@rozro.com>
+Date: Wed, 4 Nov 2026 14:55:22 +0100
+Subject: [PATCH 3/5] Removed crap script and copied file to output dir / path
+
+---
+ Makefile | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index f51b7369c..fbff79ef9 100644
+--- a/Makefile
++++ b/Makefile
+@@ -281,8 +281,11 @@ $(OUTPUT): $(BUILDDIR)/rtlplayground.img $(CONFIG) $(CONFIG_STAMP) | tools
+ 	tools/$(BUILDDIR)/fileadder -a $(CONFIG_LOCATION) -s $(IMAGESIZE) -d "$(CONFIG)" "$@"
+ 	tools/$(BUILDDIR)/fileadder -a $(HTML_LOCATION) -s $(IMAGESIZE) -z -d $(HTML_MIN) -b BANK1 "$@"
+ 	tools/$(BUILDDIR)/crc_calculator -u "$@"
+-	@mkdir -p "$(BUILDDIR)/.."
+-	python3 -c 'import os,sys; src=os.path.abspath(sys.argv[1]); dst=os.path.abspath(sys.argv[2]); os.makedirs(os.path.dirname(dst),exist_ok=True); os.unlink(dst) if os.path.lexists(dst) else None; os.symlink(os.path.relpath(src,os.path.dirname(dst)),dst)' "$(OUTPUT)" "$(BUILDDIR)/../rtlplayground.bin"
++	if [ "$(OUTPUT)" = "$(BUILDDIR)/rtlplayground-$(FILENAME_EXTENSION).bin" ]; then \
++		ln -sf $(MACHINE)/rtlplayground-$(FILENAME_EXTENSION).bin "$(BUILDDIR)/../rtlplayground.bin"; \
++	else \
++		cp -f "$(OUTPUT)" "$(BUILDDIR)/../rtlplayground.bin"; \
++	fi
+ 
+ .PHONY: clean distclean all $(SUBDIRS) $(SUBDIRSCLEAN) create_build_dir
+ 
+
+From bd70dcd09b3c283c7e7d36f5bdc017f52a87a39f Mon Sep 17 00:00:00 2001
+From: "Luca S." <luca.salvestrini@rozro.com>
+Date: Wed, 4 Nov 2026 15:59:48 +0100
+Subject: [PATCH 4/5] Docs improvements
+
+---
+ Makefile  | 10 ++++++----
+ README.md |  6 ++++--
+ 2 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index fbff79ef9..40835bf42 100644
+--- a/Makefile
++++ b/Makefile
+@@ -76,12 +76,14 @@ VERSION_EXTENSION = v$(VERSION)-$(GIT_VERSION)
+ FILENAME_EXTENSION = $(VERSION_EXTENSION)-$(MACHINE)
+ 
+ # Path and file name of the final image. BUILDDIR still holds the intermediate
+-# objects and tools. OUTPUT_DIR changes only the destination, keeping the
+-# version, git hash and machine in the file name; OUTPUT_PREFIX is prepended to
+-# that automatic name. OUTPUT_NAME replaces the whole name, and OUTPUT
+-# overrides both with a complete path:
++# objects and tools. OUTPUT_DIR is the destination directory. OUTPUT_PREFIX is
++# prepended to the automatic file name (version, git hash and machine);
++# OUTPUT_NAME replaces that whole name and takes precedence, so use only one of
++# OUTPUT_PREFIX and OUTPUT_NAME. Both refer to OUTPUT_DIR. OUTPUT sets a
++# complete path and overrides all three:
+ # make MACHINE=<name> OUTPUT_DIR=/path/to/firmware
+ # make MACHINE=<name> OUTPUT_DIR=/path/to/firmware OUTPUT_PREFIX=my-switch-
++# make MACHINE=<name> OUTPUT_DIR=/path/to/firmware OUTPUT_NAME=my-switch.bin
+ # make MACHINE=<name> OUTPUT=/path/to/firmware.bin
+ OUTPUT_DIR ?= $(BUILDDIR)
+ OUTPUT_PREFIX ?= rtlplayground-
+diff --git a/README.md b/README.md
+index a8ce1664b..98d5f7ca5 100644
+--- a/README.md
++++ b/README.md
+@@ -153,11 +153,13 @@ suffix, use `OUTPUT_PREFIX` (it is prepended verbatim):
+ make MACHINE=DEFAULT_8C_1SFP OUTPUT_DIR=/tmp/firmware OUTPUT_PREFIX=my-switch-
+ ```
+ This produces `/tmp/firmware/my-switch-v<version>-<git>-<machine>.bin`.
+-To set the file name explicitly, use `OUTPUT_NAME` (it replaces the whole
+-automatic name, so the version/git suffix is not appended):
++To set the complete file name inside `OUTPUT_DIR`, use `OUTPUT_NAME` (it replaces
++the automatic name, so the version/git suffix is not appended):
+ ```
+ make MACHINE=DEFAULT_8C_1SFP OUTPUT_DIR=/tmp/firmware OUTPUT_NAME=my-switch.bin
+ ```
++`OUTPUT_PREFIX` and `OUTPUT_NAME` are alternatives: use only one of them. If
++`OUTPUT_NAME` is set, `OUTPUT_PREFIX` is ignored.
+ To set the complete path and file name at once, use `OUTPUT`:
+ ```
+ make MACHINE=DEFAULT_8C_1SFP OUTPUT=/tmp/firmware/my-switch.bin
+
+From 7ee548c964c62720efcfb6204fdba58849fb1079 Mon Sep 17 00:00:00 2001
+From: "Luca S." <luca.salvestrini@rozro.com>
+Date: Sat, 7 Nov 2026 09:05:22 +0100
+Subject: [PATCH 5/5] Do not touch "rtlplayground.bin" is OUTPUT is set
+
+---
+ Makefile  | 2 --
+ README.md | 2 ++
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 40835bf42..acd24bc82 100644
+--- a/Makefile
++++ b/Makefile
+@@ -285,8 +285,6 @@ $(OUTPUT): $(BUILDDIR)/rtlplayground.img $(CONFIG) $(CONFIG_STAMP) | tools
+ 	tools/$(BUILDDIR)/crc_calculator -u "$@"
+ 	if [ "$(OUTPUT)" = "$(BUILDDIR)/rtlplayground-$(FILENAME_EXTENSION).bin" ]; then \
+ 		ln -sf $(MACHINE)/rtlplayground-$(FILENAME_EXTENSION).bin "$(BUILDDIR)/../rtlplayground.bin"; \
+-	else \
+-		cp -f "$(OUTPUT)" "$(BUILDDIR)/../rtlplayground.bin"; \
+ 	fi
+ 
+ .PHONY: clean distclean all $(SUBDIRS) $(SUBDIRSCLEAN) create_build_dir
+diff --git a/README.md b/README.md
+index 98d5f7ca5..152252ed6 100644
+--- a/README.md
++++ b/README.md
+@@ -164,6 +164,8 @@ To set the complete path and file name at once, use `OUTPUT`:
+ ```
+ make MACHINE=DEFAULT_8C_1SFP OUTPUT=/tmp/firmware/my-switch.bin
+ ```
++When `OUTPUT` is a custom path, `output/rtlplayground.bin` is left untouched:
++only the default build updates that symlink (and the installer uses it).
+ Without overrides the image is `output/<machine>/rtlplayground-v<version>-<git>-<machine>.bin`.
+ `BUILDDIR` still selects where intermediate objects and tools are written.
+ 

@@ -7,7 +7,7 @@ HTML_LOCATION = 262144
 ifeq ($(origin CC),default)
 CC = sdcc
 endif
-CC_FLAGS = -mmcs51 -I. -Ihttpd -Iuip
+CC_FLAGS = -mmcs51 -I. -Imachine -Ihttpd -Iuip
 ASM ?= sdas8051
 AFLAGS= -plosgff
 
@@ -17,7 +17,7 @@ SUBDIRSCLEAN=$(addsuffix clean,$(SUBDIRS))
 # Machine selection: either pass MACHINE=<target> on the command line, or
 # uncomment exactly one "#define MACHINE_<target>" line in machine.h. The
 # latter needs no -D flag because machine.h itself then defines the macro.
-MACHINE_TARGETS := $(shell grep -E '^[[:space:]]*(//[[:space:]]*)?#define MACHINE_' machine.h | sed -E 's%^[[:space:]]*(//[[:space:]]*)?#define MACHINE_%%' | awk '{print $$1}' | sort -u)
+MACHINE_TARGETS := $(shell ls machine/*.c 2>/dev/null | sed -E 's#machine/##; s#\.c$$##' | grep -v '_init$$' | sort -u)
 
 ifeq ($(MACHINE),)
 	MACHINE:= $(shell grep "^\s*#define MACHINE_" machine.h | sed "s/^\s*#define MACHINE_//")
@@ -121,6 +121,11 @@ else
 BUILD_DATE := $(shell date +"%Y-%m-%d %H:%M:%S")
 endif
 
+$(MACHINE_SRC):
+	@echo "ERROR: MACHINE='$(MACHINE)' has no definition (expected $(MACHINE_SRC))." >&2
+	@echo "       Every machine is one file pair under machine/; see machine/*.c." >&2
+	@false
+
 all: create_build_dir $(VERSION_HEADER) $(SUBDIRS) $(OUTPUT)
 
 # Report how much room is left in each code bank of the last build.
@@ -133,9 +138,17 @@ create_build_dir:
 	mkdir -p "$(BUILDDIR)/httpd"
 
 # Keep machine.c in first position to fail immediately on invalid $MACHINE value
+# Every machine is a pair machine/<MACHINE>.c + machine/<MACHINE>.h; an
+# optional machine/<MACHINE>_init.c carries a custom boot hook.
+MACHINE_SRC = machine/$(MACHINE).c
+MACHINE_INIT_SRC := $(wildcard machine/$(MACHINE)_init.c)
+ifeq ($(MACHINE_INIT_SRC),)
+	MACHINE_INIT_SRC := machine/default_machine_init.c
+endif
+
 SRCS = \
-	machine.c \
-	machine_init.c \
+	$(MACHINE_SRC) \
+	$(MACHINE_INIT_SRC) \
 	cmd_editor.c \
 	cmd_parser.c \
 	dhcp.c \
@@ -156,6 +169,7 @@ SRCS = \
 # RTL837x
 SRCS += \
 	rtl837x_bandwidth.c \
+	rtl837x_cabletest.c \
 	rtl837x_flash.c \
 	rtl837x_igmp.c \
 	rtl837x_init.c \
@@ -165,12 +179,14 @@ SRCS += \
 	rtl837x_pins.c\
 	rtl837x_port.c \
 	rtl837x_stp.c \
+	rtl837x_lacp.c \
 	rtl837x_lldp.c \
 	rtl837x_storm.c \
 	rtl837x_trap.c
 SRCS += \
 	httpd/httpd.c \
-	httpd/page_impl.c
+	httpd/page_impl.c \
+	httpd/page_stp.c
 SRCS += \
 	uip/uip.c \
 	uip/uiplib.c \
@@ -239,7 +255,7 @@ $(BUILDDIR)/%.rel: %.asm $(CCFLAGS_STAMP) | create_build_dir
 #	mv -f $(addprefix $(basename $^), .lst .rel .sym) .
 
 $(BUILDDIR)/rtlplayground.ihx: $(OBJS) $(BUILDDIR)/crtbank.rel $(BUILDDIR)/crc16.rel
-	$(CC) $(CC_FLAGS) --xram-size 49151 -Wl-bHOME=0x00000 -Wl-bBANK1=0x14000 -Wl-bBANK2=0x24000 -Wl-bBANK3=0x34000 -Wl-r -o $@ $^
+	$(CC) $(CC_FLAGS) --xram-size 49151 -Wl-bHOME=0x00000 -Wl-bBANK1=0x14000 -Wl-bBANK2=0x24000 -Wl-bBANK3=0x34000 -Wl-bBANK4=0x44000 -Wl-r -o $@ $^
 
 $(BUILDDIR)/rtlplayground.img: $(BUILDDIR)/rtlplayground.ihx
 	objcopy --input-target=ihex -O binary $< $@

@@ -14,6 +14,7 @@
 #include "version.h"
 #include "machine.h"
 #include "rtl837x_stp.h"
+#include "rtl837x_lacp.h"
 #include "page_impl.h"
 #include "syslog.h"
 
@@ -350,7 +351,7 @@ void send_vlan(uint16_t vlan)
 	}
 	slen += strtox(outbuf + slen, "\",\"pvid\":\"0x");
 	uint16_t pvid_mask = 0;
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		if (port_pvid_get(i) == vlan)
 			pvid_mask |= (1 << i);
 }
@@ -366,7 +367,7 @@ void send_vlan(uint16_t vlan)
 bool send_counters(uint8_t phys_port)
 {
 	uint8_t phys_port_idx = phys_port - 1;
-	if (phys_port_idx > (machine.max_port - machine.min_port))
+	if (phys_port_idx > (MACHINE_MAX_PORT - MACHINE_MIN_PORT))
 		goto err;
 	uint8_t log_port = machine.phys_to_log_port[phys_port_idx];
 
@@ -613,137 +614,47 @@ void send_lag(void)
 }
 
 
-static __xdata uint32_t pi_u32;
-static __xdata uint8_t pi_prio, pi_ext;
-static __xdata uint8_t * __xdata pi_mac;
-
-
-static void u32hex_html(void)
+void send_lacp(void)
 {
-	__xdata uint8_t *b = (__xdata uint8_t *)&pi_u32;
-	byte_to_html(b[3]);
-	byte_to_html(b[2]);
-	byte_to_html(b[1]);
-	byte_to_html(b[0]);
-}
-
-
-static void bridge_to_html(void)
-{
-	byte_to_html(pi_prio);
-	byte_to_html(pi_ext);
-	for (uint8_t i = 0; i < 6; i++)
-		byte_to_html(pi_mac[i]);
-}
-
-void send_stp(void)
-{
-	uint8_t i, j, st, dsg;
-
-	dbg_string("send_stp called\n");
+	dbg_string("send_lacp called\n");
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
 
 	slen += strtox(outbuf + slen, "{\"on\":");
-	bool_to_html(stp_enabled);
-	slen += strtox(outbuf + slen, ",\"rstp\":");
-	bool_to_html(stp_rstp);
-	slen += strtox(outbuf + slen, ",\"prio\":");
-	itoa_html(stp_prio >> 4);
-	slen += strtox(outbuf + slen, ",\"hello\":");
-	itoa_html(stp_hello_s);
-	slen += strtox(outbuf + slen, ",\"maxage\":");
-	itoa_html(stp_maxage_s);
-	slen += strtox(outbuf + slen, ",\"fwd\":");
-	itoa_html(stp_fwddelay_s);
-	slen += strtox(outbuf + slen, ",\"txhold\":");
-	itoa_html(stp_txhold);
-	slen += strtox(outbuf + slen, ",\"rootPrio\":\"");
-	byte_to_html(root_bridge.prio);
-	byte_to_html(root_bridge.ext);
-	slen += strtox(outbuf + slen, "\",\"rootMac\":\"");
-	for (j = 0; j < 6; j++)
-		byte_to_html(root_bridge.mac[j]);
-	slen += strtox(outbuf + slen, "\",\"myMac\":\"");
-	for (j = 0; j < 6; j++)
-		byte_to_html(uip_ethaddr.addr[j]);
-	slen += strtox(outbuf + slen, "\",\"cost\":\"");
-	byte_to_html(root_bridge_cost >> 24);
-	byte_to_html(root_bridge_cost >> 16);
-	byte_to_html(root_bridge_cost >> 8);
-	byte_to_html(root_bridge_cost);
-	slen += strtox(outbuf + slen, "\",\"weRoot\":");
-	bool_to_html(stp_root_port == 0xff ? 1 : 0);
-	slen += strtox(outbuf + slen, ",\"rootPort\":");
-	j = stp_root_port;
-	if (j != 0xff && j >= STP_LAG_BASE) {
-		j = 0;
-		while (j < STP_LAG_BASE && !((stp_lag_mask[stp_root_port - STP_LAG_BASE] >> j) & 1))
-			j++;
-		if (j >= STP_LAG_BASE)
-			j = 0;
+	bool_to_html(lacpEnabled);
+	slen += strtox(outbuf + slen, ",\"lags\":[");
+	for (uint8_t l = 0; l < LACP_NUM_LAGS; l++) {
+		slen += strtox(outbuf + slen, "{\"cfg\":\"");
+		byte_to_html(lacp_lag_ports[l] >> 8);
+		byte_to_html(lacp_lag_ports[l]);
+		slen += strtox(outbuf + slen, "\",\"aggValid\":");
+		bool_to_html(lacp_agg_valid[l]);
+		slen += strtox(outbuf + slen, ",\"agg\":\"");
+		for (uint8_t j = 0; j < MAC_ADDR_LEN; j++)
+			byte_to_html(lacp_agg_sys[l][j]);
+		slen += strtox(outbuf + slen, "\",\"members\":\"");
+		byte_to_html(lacp_members_last[l] >> 8);
+		byte_to_html(lacp_members_last[l]);
+		slen += strtox(outbuf + slen, "\"},");
 	}
-	itoa_html(j == 0xff ? 0 : machine.log_to_phys_port[j]);
-	slen += strtox(outbuf + slen, ",\"tc\":\"");
-	byte_to_html(stp_tc_count >> 8);
-	byte_to_html(stp_tc_count);
-	slen += strtox(outbuf + slen, "\",\"ports\":[");
-	reg_read_m(RTL837X_MSTP_STATES);
-	for (i = 0; i < STP_ENTITIES; i++) {
-		if (i < STP_LAG_BASE && (i < machine.min_port || i > machine.max_port))
-			continue;
-		if (i < STP_LAG_BASE && stp_ent_of[i] != i)
-			continue;
-		if (i >= STP_LAG_BASE && !stp_lag_mask[i - STP_LAG_BASE])
-			continue;
+	slen -= 1; // remove comma
+	slen += strtox(outbuf + slen, "],\"ports\":[");
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		slen += strtox(outbuf + slen, "{\"p\":");
-		itoa_html(i < STP_LAG_BASE ? machine.log_to_phys_port[i] : 0);
+		itoa_html(machine.log_to_phys_port[i]);
 		slen += strtox(outbuf + slen, ",\"lag\":");
-		itoa_html(i < STP_LAG_BASE ? 0 : i - STP_LAG_BASE + 1);
-		slen += strtox(outbuf + slen, ",\"mbr\":");
-		itoa16_html(i < STP_LAG_BASE ? 0 : stp_lag_mask[i - STP_LAG_BASE]);
-		slen += strtox(outbuf + slen, ",\"st\":");
-		j = i;
-		if (i >= STP_LAG_BASE) {
-			j = 0;
-			while (j < STP_LAG_BASE && !((stp_lag_mask[i - STP_LAG_BASE] >> j) & 1))
-				j++;
-			if (j >= STP_LAG_BASE)
-				j = 0;
-		}
-		st = (sfr_data[3 - (j >> 2)] >> ((j << 1) & 0x7)) & 0x3;
-		itoa_html(st);
-		slen += strtox(outbuf + slen, ",\"role\":");
-		if (!(stp_pflags[i] & STP_PF_ENABLED) || (stp_pflags[i] & STP_PF_TRIPPED))
-			itoa_html(0);
-		else if (i == stp_root_port)
-			itoa_html(1);
-		else if (st == 3)
-			itoa_html(2);
-		else
-			itoa_html(3);
-		slen += strtox(outbuf + slen, ",\"f\":");
-		itoa_html(stp_pflags[i]);
-		slen += strtox(outbuf + slen, ",\"pc\":\"");
-		pi_u32 = stp_pcost[i]; u32hex_html();
-		slen += strtox(outbuf + slen, "\",\"prio\":");
-		itoa_html(stp_pprio[i]);
-		slen += strtox(outbuf + slen, ",\"p2\":");
-		itoa_html(stp_pp2p[i]);
-		dsg = stp_dpid[i] && stp_bpdu_age[i] < (uint16_t)stp_maxage_s * STP_HZ;
-		slen += strtox(outbuf + slen, ",\"db\":\"");
-		if (dsg) {
-			pi_prio = stp_dbridge[i].prio; pi_ext = stp_dbridge[i].ext;
-			pi_mac = stp_dbridge[i].mac;
-		} else {
-			pi_prio = stp_prio; pi_ext = 0;
-			pi_mac = uip_ethaddr.addr;
-		}
-		bridge_to_html();
-		slen += strtox(outbuf + slen, "\",\"dp\":\"");
-		byte_to_html(dsg ? (stp_dpid[i] >> 8) : stp_pprio[i]);
-		byte_to_html(dsg ? stp_dpid[i] : (i + 1));
-		slen += strtox(outbuf + slen, "\",\"dc\":\"");
-		pi_u32 = dsg ? stp_dcost[i] : root_bridge_cost; u32hex_html();
+		itoa_html(lacp_port_lag[i]);
+		slen += strtox(outbuf + slen, ",\"a\":\"");
+		byte_to_html(lacp_actor_state[i]);
+		slen += strtox(outbuf + slen, "\",\"pt\":\"");
+		byte_to_html(lacp_partner_state[i]);
+		slen += strtox(outbuf + slen, "\",\"rs\":");
+		itoa_html(lacp_rx_state[i]);
+		slen += strtox(outbuf + slen, ",\"rx\":\"");
+		byte_to_html(lacp_rx_count[i] >> 8);
+		byte_to_html(lacp_rx_count[i]);
+		slen += strtox(outbuf + slen, "\",\"psys\":\"");
+		for (uint8_t j = 0; j < MAC_ADDR_LEN; j++)
+			byte_to_html(lacp_partner_sys[i][j]);
 		slen += strtox(outbuf + slen, "\"},");
 	}
 	slen -= 1; // remove comma
@@ -759,7 +670,7 @@ void send_lldp(void)
 	bool_to_html(lldp_enabled);
 	slen += strtox(outbuf + slen, ",\"portStatus\":[");
 
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		slen += strtox(outbuf + slen, "{\"portNum\":");
 		itoa_html(machine.log_to_phys_port[i]);
 
@@ -774,12 +685,13 @@ void send_lldp(void)
 		bool_to_html(1 & (lldp_logical_port_status >> i));
 		slen += strtox(outbuf + slen, "}");
 
-		if (i < machine.max_port)
+		if (i < MACHINE_MAX_PORT)
 			char_to_html(',');
 	}
 	char_to_html(']');
 	char_to_html('}');
 }
+
 
 void send_eee(void)
 {
@@ -790,7 +702,7 @@ void send_eee(void)
 	uint8_t eee_ablty = sfr_data[3];
 
 	char_to_html('[');
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		slen += strtox(outbuf + slen, "{\"portNum\":");
 		itoa_html(machine.log_to_phys_port[i]);
 
@@ -822,7 +734,7 @@ void send_eee(void)
 			bool_to_html(eee_ablty & (1 << i));
 		}
 		char_to_html('}');
-		if (i < machine.max_port)
+		if (i < MACHINE_MAX_PORT)
 			char_to_html(',');
 	}
 	char_to_html(']');
@@ -834,7 +746,7 @@ void send_bandwidth(void)
 	dbg_string("send_bandwidth called\n");
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
 	char_to_html('[');
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		slen += strtox(outbuf + slen, "{\"portNum\":");
 		itoa_html(machine.log_to_phys_port[i]);
 		slen += strtox(outbuf + slen, ",\"iLimited\":");
@@ -864,7 +776,7 @@ void send_bandwidth(void)
 		byte_to_html(sfr_data[3]);
 		char_to_html('"');
 		char_to_html('}');
-		if (i < machine.max_port)
+		if (i < MACHINE_MAX_PORT)
 			char_to_html(',');
 	}
 	char_to_html(']');
@@ -877,7 +789,7 @@ void send_storm(void)
 
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
 	char_to_html('[');
-	for (i = machine.min_port; i <= machine.max_port; i++) {
+	for (i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		slen += strtox(outbuf + slen, "{\"portNum\":");
 		itoa_html(machine.log_to_phys_port[i]);
 		slen += strtox(outbuf + slen, ",\"en\":\"");
@@ -897,7 +809,7 @@ void send_storm(void)
 		}
 		char_to_html('"');
 		char_to_html('}');
-		if (i < machine.max_port)
+		if (i < MACHINE_MAX_PORT)
 			char_to_html(',');
 	}
 	char_to_html(']');
@@ -911,7 +823,7 @@ void send_isolation(void)
 	dbg_string("send_isolation called\n");
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
 	char_to_html('[');
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		slen += strtox(outbuf + slen, "{\"portNum\":");
 		itoa_html(machine.log_to_phys_port[i]);
 		slen += strtox(outbuf + slen, ",\"allow\":\"");
@@ -920,7 +832,7 @@ void send_isolation(void)
 		byte_to_html(allow & 0xff);
 		char_to_html('"');
 		char_to_html('}');
-		if (i < machine.max_port)
+		if (i < MACHINE_MAX_PORT)
 			char_to_html(',');
 	}
 	char_to_html(']');
@@ -932,7 +844,7 @@ void send_mtu(void)
 	dbg_string("send_mtu called\n");
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
 	char_to_html('[');
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		slen += strtox(outbuf + slen, "{\"portNum\":");
 		itoa_html(machine.log_to_phys_port[i]);
 		slen += strtox(outbuf + slen, ",\"mtu\":\"0x");
@@ -942,7 +854,7 @@ void send_mtu(void)
 		byte_to_html(mtu & 0xff);
 		char_to_html('"');
 		char_to_html('}');
-		if (i < machine.max_port)
+		if (i < MACHINE_MAX_PORT)
 			char_to_html(',');
 	}
 	char_to_html(']');
@@ -955,7 +867,7 @@ void send_status(void)
 	dbg_string("sending status\n");
 	char_to_html('[');
 
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		slen += strtox(outbuf + slen, "{\"portNum\":");
 		itoa_html(machine.log_to_phys_port[i]);
 		slen += strtox(outbuf + slen, ",\"logPort\":");
@@ -1072,8 +984,11 @@ void send_status(void)
 		slen += strtox(outbuf + slen, "\",\"rxB\":\"0x");
 		STAT_GET(STAT_COUNTER_ERR_PKTS, i);
 		reg_to_html(RTL837X_STAT_V_HIGH);	// 32bit RX packet errors
+
+		slen += strtox(outbuf + slen, "\",\"macs\":\"0x");
+		reg_to_html(RTL837X_L2_LRN_PORT_CONSTRT_CNT + (i << 2));
 		slen += strtox(outbuf + slen, "\"}");
-		if (i < machine.max_port)
+		if (i < MACHINE_MAX_PORT)
 			char_to_html(',');
 	}
 	char_to_html(']');

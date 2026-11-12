@@ -1,0 +1,12 @@
+11:29:33 === 192.168.32.202 -> v0.1.7
+11:29:33 before: v0.1.4-5911eda-dirty
+11:29:38 ABORT: GET /config
+11:29:54 === 192.168.32.202 -> v0.1.7
+11:29:54 before: v0.1.4-5911eda-dirty
+11:29:54 config write http=200
+11:31:29 plaintext removal http=200
+11:31:29 plaintext removed
+11:32:10 no reboot observed, retrying reset (attempt 1)
+11:32:51 no reboot observed, retrying reset (attempt 2)
+11:33:32 no reboot observed, retrying reset (attempt 3)
+11:33:32 ABORT: device did not reboot

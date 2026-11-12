@@ -3,76 +3,62 @@
 
 #include <stdint.h>
 
-/*
- * Select your machine type below
- */
-// Legacy KP-9000 4+2 targets. Prefer the PCB-revision-specific targets below.
-// #define MACHINE_KP_9000_6XHML_X2
-// #define MACHINE_KP_9000_6XH_X2
+#define MACHINE_STR_HELPER(x)  #x
+#define MACHINE_STR(x) MACHINE_STR_HELPER(x)
 
-// KP-9000 4+2 targets by PCB silkscreen revision.
-// #define MACHINE_KP_9000_6XH_X2_V1_1
-// #define MACHINE_KP_9000_6XHML_X2_V1_1
-// #define MACHINE_KP_9000_6XH_X2_V1_2
-// #define MACHINE_KP_9000_6XHML_X2_V1_2
-// #define MACHINE_KP_9000_6XH_X2_V2_1
-// #define MACHINE_KP_9000_6XHML_X2_V2_1
 
-// #define MACHINE_KP_9000_6XH_X
-// #define MACHINE_KP_9000_9XH_X_EU
-// #define MACHINE_KP_9000_9XHML_X_V2_2
-// #define MACHINE_KP_9000_9XHML_X_V3_1
-// #define MACHINE_KP_9000_9XHML_X_V3_2
-// #define MACHINE_SWGT024_V2_0_MANAGED
-// #define MACHINE_SWGT024_V2_0_UNMANAGED
-// #define MACHINE_TRENDNET_TEG_S562
-// #define MACHINE_HG0402XG_V1_1
-// #define MACHINE_SWTG018AS_A_V_2_0
-// #define MACHINE_SWTGW218AS
-// XikeStor SKS3200M-8GPY1XF: 8 x 2.5GBASE-T + 1 x SFP+ on the
-// SWTG118AS-V2.1-17462 PCB, i.e. the SWTGW218AS board. doc/devices/SWTGW218AS.md
-// #define MACHINE_SKS3200M_8GPY1XF
-// #define MACHINE_PCB_SWTG018AS_V2_1_0
-// #define MACHINE_PCB_K0402WS_V3
-// #define MACHINE_PCB_K0402WS_V2
-// Hisource Hi-K0402WS on PCB-K0402W-V1.0: verified on hardware; build it with
-// FLASH_NO_DIO=1 (Boya/BoHong flash). doc/devices/PCB-K0402W-V1.0.md
-// #define MACHINE_PCB_K0402W_V1
-// #define MACHINE_K0501W_V2_0
-// #define MACHINE_LIANGUO_ZX_SWTGW215AS
-// #define MACHINE_ZX310S_4T2XH
-// #define MACHINE_ZX310S_4T2XT
-// IG204 4+2 on the PB-2131 PCB: 4 x 2.5GBASE-T + 2 x SFP+, RTL8372, stock
-// 4 MiB cFeon EN25QE32A. doc/devices/STEAMEMO_IG204_V1.md
-// #define MACHINE_STEAMEMO_IG204_V1
-// #define MACHINE_DEFAULT_8C_1SFP
-// #define MACHINE_HI_K0801WS
-// Hisource Hi-K0801WS on PCB-K0801W-V1.0: older PCB revision of the same 8+1
-// model, parameters inherited from HI_K0801WS (V2.0); build it with
-// FLASH_NO_DIO=1 (Boya/BoHong flash). doc/devices/PCB-K0801W-V1.0.md
-// #define MACHINE_PCB_K0801W_V1
-// #define MACHINE_FNS1200P
-// #define MACHINE_PCB_SWTG024AS_A_2_0_1
-// #define MACHINE_ONT_S207CW_62TS_SE
-// #define MACHINE_SWTG024AS_A_2_0_1_5C_1SFP
-// #define MACHINE_SWTG024AS_V2_0
-// XikeStor SKS3200M-4GPY2XF: 4 x 2.5GBASE-T + 2 x SFP on the SWTG024AS-V1.0
-// PCB, i.e. the SWTG024AS board. doc/devices/SWTG024AS.md
-// #define MACHINE_SKS3200M_4GPY2XF
-// #define MACHINE_FG_4GT_2SX_V2_0
-// #define MACHINE_FG_8GT_1SX
-// #define MACHINE_LIANGUO_HYWS_SGT0108S
-// #define MACHINE_POE_2G080110GS
-// #define MACHINE_PB_2132
-// #define MACHINE_HASIVO_S600W_4GT_2XGT_SE
-// #define MACHINE_HASIVO_S1100WP_8GT_1SX_SE
-// #define MACHINE_F7008_2_5
-// NPA AP-7024-2.5G on the F7005-2.5GPOE-V1.0 PCB: 4 x 2.5GBASE-T + 2 x SFP+,
-// 512 KiB BrightMoon T25S40 flash. doc/devices/F7005-2.5GPOE-V1.0.md
-// #define MACHINE_F7005_2_5
-// XikeStor SKS3200M-5GPY1XF: 5 x 2.5GBASE-T + 1 x 10G SFP+ on
-// PCB-SWTG115AS-V2.1, i.e. the ZX-SWTGW215AS board. doc/devices/SKS3200M-5GPY1XF.md
-// #define MACHINE_SKS3200M_5GPY1XF
+#define MACHINE_DEF_DIR machine
+
+#ifndef MACHINE_NAME
+	#define MACHINE_NAME default_machine
+#endif
+
+#define MACHINE_INC(dir,file) MACHINE_STR(dir/file)
+
+#define RTL8370 0x70
+#define RTL8372 0x72
+#define RTL8373 0x73
+
+#include  MACHINE_INC(MACHINE_DEF_DIR,MACHINE_NAME.h)
+
+
+#ifndef MACHINE_CHIPSET
+#error "MACHINE_CHIPSET shall be defined in <machine>.h file"
+#endif
+
+#ifndef MACHINE_MIN_PORT
+#if MACHINE_CHIPSET == RTL8372
+#define MACHINE_MIN_PORT 3
+#else
+#define MACHINE_MIN_PORT 0
+#endif
+#endif
+
+#ifndef MACHINE_MAX_PORT
+#if MACHINE_CHIPSET == RTL8370
+#define MACHINE_MAX_PORT 7
+#else
+#define MACHINE_MAX_PORT 8
+#endif
+#endif
+
+#define MACHINE_PORT_VALID(p) \
+	((uint8_t)((p) - MACHINE_MIN_PORT) <= (MACHINE_MAX_PORT - MACHINE_MIN_PORT))
+
+// auto derive SOC_FAMILY
+#define RTL836X 6
+#define RTL837X 7
+
+#ifdef SOC_FAMILY
+#error "SOC_FAMILY can not be manually defined, shall be auto derived"
+#endif
+#if (MACHINE_CHIPSET == RTL8372) || (MACHINE_CHIPSET == RTL8373)
+#define SOC_FAMILY RTL837X
+#elif (MACHINE_CHIPSET == RTL8370 )
+#define SOC_FAMILY RTL836X
+#else
+#error "Unsupported MACHINE_CHIPSET is specified!"
+#endif
 
 #define LED_27 1
 // SYSTEM LED
@@ -97,16 +83,11 @@ struct sfp_port
 
 struct machine {
 	char machine_name[30];
-	// Retail model the board is sold as, when that differs from the board
-	// revision in machine_name - e.g. the ZX-SWTGW215AS PCB sold as
-	// SKS3200M-5GPY1XF. Left empty by targets whose machine_name already is
-	// the model; the web UI then shows no separate model line.
+	/* Retail model the board is sold as, when that differs from the board
+	 * revision in machine_name - e.g. the ZX-SWTGW215AS PCB sold as
+	 * SKS3200M-5GPY1XF. Empty when machine_name already is the model. */
 	char model_name[30];
 	uint8_t isRTL8373;
-	// Lowest logical port number
-	uint8_t min_port;
-	// Highest logical port number
-	uint8_t max_port;
 	uint8_t n_sfp;
 	uint8_t n_10g;
 	uint8_t log_to_phys_port[9];
@@ -126,14 +107,18 @@ struct machine {
 	uint8_t led_mux_custom;
 	uint8_t led_mux[28];
 	uint32_t mac_flash_offset;
-	// GPIO of a front-panel "VLAN" slide switch, 0 when the board has none
-	// (GPIO0 is an LED pad and never a switch). The firmware reads it and
-	// isolates the non-SFP ports from each other while the switch is on, see
-	// vlan_switch_poll() in rtl837x_pins.c.
+	// Read the flash with single-IO (CMD_FREAD) instead of DIO for MMIO/code
+	// fetch. Set for boards whose flash chip is not usable in DIO mode, which
+	// shows up as a board that does not boot at all, garbled console output or
+	// random resets. Costs management-plane speed only, the ASIC keeps
+	// forwarding in hardware.
+	uint8_t flash_sio;
+	/* GPIO of a front-panel "VLAN" slide switch, 0 when the board has none
+	 * (GPIO0 is an LED pad and never a switch). The firmware reads it and
+	 * isolates the non-SFP ports from each other while the switch is on. */
 	uint8_t vlan_switch_pin;
-	// Idle state of the SYS LED: 0 keeps it steady on (the default), 1 makes
-	// it blink slowly. The PB-2131 manual asks for "SYS slow blink = the
-	// device works normally", other boards' panels want a steady lamp.
+	/* Idle state of the SYS LED: 0 keeps it steady on, 1 makes it blink
+	 * slowly. The PB-2131 manual asks for a slow blink. */
 	uint8_t sys_led_blink_idle;
 };
 

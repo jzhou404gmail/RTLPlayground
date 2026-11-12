@@ -1,0 +1,12 @@
+
+115200
+
+picocom -b 115200 /dev/ttyUSB0 
+
+LAN口和SFP向下
+
+从上往下
+
+TX---白
+GND--黑
+RX---红

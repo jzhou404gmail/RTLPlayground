@@ -1,0 +1,21 @@
+== 201
+  info: v0.1.7-5911eda-dirty | 2026-11-12 11:26:21 | 8GPY1XF-1aa2aa | 8000
+  time: Time not synchronised, no usable answer from 106.55.184.199 
+  links: p1=2.5G p2=2.5G p3=Down p4=2.5G p5=1000M p6=2.5G p7=1000M p8=Down p9=10G 
+  vlan: {"mgmt":1,"vlan":[{"id":1,"name":""}]}
+  auth: {"set":1,"salt":"b84e0a8d8a812607155fc3c3a000665c"}
+  plaintext: 0
+== 202
+  info: v0.1.7-5911eda-dirty | 2026-11-12 11:26:28 | 4GPY2XF-23e45e | 8000
+  time: Time 2026-11-12 11:37:06 UTC+08:00, synchronised 2 min ago, stratum 2 
+  links: p6=Down p1=Down p2=Down p3=Down p4=2.5G p5=10G 
+  vlan: {"mgmt":1,"vlan":[{"id":1,"name":""}]}
+  auth: {"set":1,"salt":"534d7e1257caa6c0e189877ed85150a6"}
+  plaintext: 0
+== 203
+  info: v0.1.7-5911eda-dirty | 2026-11-12 11:26:34 | 5GPY1XF-7085aa | 8000
+  time: Time 2026-11-12 11:37:06 UTC+08:00, synchronised 7 min ago, stratum 2 
+  links: p5=2.5G p1=Down p2=Down p3=Down p4=1000M p6=Down 
+  vlan: {"mgmt":1,"vlan":[{"id":1,"name":""}]}
+  auth: {"set":1,"salt":"e3028deba70de5256cc8ead43a06ba4b"}
+  plaintext: 0

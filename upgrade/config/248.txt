@@ -1,0 +1,11 @@
+hostname K0402W_V1_f35806
+ip 192.168.1.248
+netmask 255.255.255.0
+gw 192.168.1.1
+dns server 192.168.1.1
+ntp server ntp.tencent.com
+ntp interval 60
+ntp timezone +08:00
+ntp dst off
+ntp on
+http port 80

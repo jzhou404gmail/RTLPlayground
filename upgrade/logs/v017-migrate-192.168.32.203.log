@@ -1,0 +1,10 @@
+11:26:52 === 192.168.32.203 -> v0.1.7
+11:26:52 before: v0.1.4-5911eda-dirty
+11:26:52 config write http=200
+11:28:27 plaintext removal http=200
+11:28:27 plaintext removed
+11:28:27 waiting for reboot...
+11:28:30 back after ~3s
+11:28:30 digest login /config: 200
+11:28:30 plaintext 1234 cookies: 1 (expect 0)
+11:28:30 === OK 192.168.32.203

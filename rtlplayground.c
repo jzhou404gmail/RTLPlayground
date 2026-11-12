@@ -2,7 +2,6 @@
 #include <stdint.h>
 
 // #define REGDBG 1
-// #define RXTXDBG 1
 
 #include "rtl837x_sfr.h"
 #include "rtl837x_regs.h"
@@ -12,12 +11,15 @@
 #include "rtl837x_phy.h"
 #include "rtl837x_port.h"
 #include "rtl837x_trap.h"
+#include "rtl837x_nic.h"
 #include "rtl837x_stp.h"
+#include "rtl837x_lacp.h"
 #include "rtl837x_igmp.h"
 #include "rtl837x_leds.h"
 #include "rtl837x_bandwidth.h"
 #include "rtl837x_init.h"
 #include "rtl837x_lldp.h"
+#include "rtl837x_cabletest.h"
 #include "dhcp.h"
 #include "cmd_parser.h"
 #include "cmd_editor.h"
@@ -139,8 +141,8 @@ __code const uint8_t * __code const hex = "0123456789abcdef";
 __xdata uint8_t flash_buf[FLASH_BUF_SIZE];
 
 // NIC buffers for packet RX/TX
-__xdata uint8_t rx_headers[16]; // Packet header(s) on RX
-__xdata uint8_t uip_buf[UIP_CONF_BUFFER_SIZE+2];
+__xdata uint8_t rx_headers[16]; // RX descriptor
+__xdata uint8_t uip_buf[UIP_CONF_BUFFER_ALLOC_SIZE];
 
 __xdata uint16_t rx_packet_vlan;
 __xdata uint16_t management_vlan;
@@ -152,6 +154,7 @@ __xdata uint8_t vlan_switch_enabled;
 __xdata uint8_t igmpEnabled;
 __xdata bool lldp_enabled;
 __xdata char hostname[24];	/* device hostname, default set at boot, see rtl837x_common.h */
+__xdata uint8_t lacpEnabled;
 
 __code const uint16_t bit_mask[16] = {
 	0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080,
@@ -318,6 +321,19 @@ void itoa(uint8_t v)
 	write_char('0' + (v % 10));
 }
 
+
+void itoa_no_syslog(uint8_t v)
+{
+	uint8_t t = (v / 100);
+	uint8_t print_zeros = t;
+	if (print_zeros)
+		write_char_no_syslog('0' + t);
+	t = (v / 10) % 10;
+	print_zeros |= t;
+	if (print_zeros)
+		write_char_no_syslog('0' + t);
+	write_char_no_syslog('0' + (v % 10));
+}
 
 /* Same as itoa(), one decade wider: enough for a port number. Kept separate
  * rather than widening itoa() itself, because every existing caller passes a
@@ -728,108 +744,6 @@ void get_random_32(void)
 }
 
 
-/*
- * Transfer Network Interface RX data from the ASIC to the 8051 XMEM
- * data will be stored in the rx_header structure
- * len is the length of data to be transferred
- */
-bool nic_rx_header(uint16_t ring_ptr)
-{
-	uint16_t buffer = (uint16_t) &rx_headers[0];
-	uint16_t guard = 0;
-
-	SFR_NIC_DATA_U16LE = buffer;
-	SFR_NIC_RING_U16LE = ring_ptr;
-	SFR_NIC_CTRL = 1;
-	while (SFR_NIC_CTRL != 0) {
-		if (++guard == 0) {
-			print_string("NIC: RX header transfer did not complete\n");
-			return false;
-		}
-	}
-	return true;
-}
-
-
-/*
- * Transfer Network Interface RX data from the ASIC to the 8051 XMEM
- * the description of the packet must be in the rx_headers data structure
- * data will be returned in the xmem buffer points to
- * ring_ptr is the current position of the RX Ring on the ASIC side
- */
-bool nic_rx_packet(uint16_t buffer, uint16_t ring_ptr)
-{
-	uint16_t guard = 0;
-
-	SFR_NIC_DATA_U16LE = buffer;
-	SFR_NIC_RING_U16LE = ring_ptr;
-
-	uint16_t len = (((uint16_t)rx_headers[5]) << 8) | rx_headers[4];
-	len += 7;
-	len >>= 3;
-#ifdef RXTXDBG
-	print_string(" len: ");
-	print_short(len);
-#endif
-	SFR_NIC_CTRL = len;
-	while (SFR_NIC_CTRL != 0) {
-		if (++guard == 0) {
-			print_string("NIC: RX transfer did not complete\n");
-			return false;
-		}
-	}
-	return true;
-}
-
-
-/*
- * Transfers data in XMEM to the ASIC for transmission by the nic
- */
-void nic_tx_packet(uint16_t ring_ptr)
-{
-	uint16_t len;
-	uint16_t guard = 0;
-
-	/* A frame that got a dot1Q tag was shifted forward over its padding, so it
-	 * starts at uip_buf and carries the q_frame layout. One that did not keeps
-	 * the padding in front and the nonq_frame layout, so the padding is skipped.
-	 */
-	if (frame_tagged) {
-		SFR_NIC_DATA_U16LE = (uint16_t) uip_buf;
-		len = FRAME_Q->len;
-		/*
-		(__xdata struct rtl_dot1q_frame *)uip_buf
-#define FRAME (((__xdata struct rtl_dot1q_frame *)&uip_buf[0]).nonq_frame)*/
-	} else {
-		SFR_NIC_DATA_U16LE = (uint16_t) uip_buf + VLAN_TAG_SIZE;
-		len = FRAME->len;
-	}
-
-#ifdef RXTXDBG
-	print_string("TX: \n");
-	for (uint8_t i = 0; i < 100; i++) {
-		print_byte(uip_buf[i]);
-		write_char(' ');
-	}
-	write_char('\n');
-#endif
-
-	ring_ptr <<= 3;
-	ring_ptr |= 0x8000;
-	SFR_NIC_RING_U16LE = ring_ptr;
-
-	len += 0xf;
-	len >>= 3;
-	SFR_NIC_CTRL = len;
-	while (SFR_NIC_CTRL != 0) {
-		if (++guard == 0) {
-			print_string("NIC: TX transfer did not complete\n");
-			return;
-		}
-	}
-}
-
-
 /* Read flash using the MMIO capabilities of the DW8051 core
  * Bank is < 0x3f and is the MSB
  * addr gives the address in the bank
@@ -1021,8 +935,12 @@ void tcpip_output(void)
 	uint16_t ring_ptr = ((uint16_t)sfr_data[2]) << 8;
 	ring_ptr |= sfr_data[3];
 
-	// Move data over from xmem buffer to ASIC side using DMA
-	nic_tx_packet(ring_ptr);
+	// Move data over from xmem buffer to ASIC side using DMA. A VLAN-tagged
+	// frame starts at uip_buf; an untagged frame retains four bytes of padding.
+	if (frame_tagged)
+		nic_tx_packet(uip_buf, FRAME_Q->len, ring_ptr);
+	else
+		nic_tx_packet(uip_buf + VLAN_TAG_SIZE, FRAME->len, ring_ptr);
 
 	// New position of the ring-pointer on the NIC-side indicates number of bytes transmitted
 	reg_read_m(RTL837X_REG_NIC_TX_CURR_PKT);
@@ -1059,7 +977,7 @@ void handle_rx(void)
 			write_char(' ');
 		}
 #endif
-		if (!nic_rx_packet((uint16_t) &uip_buf[0], ring_ptr + 8)) {
+		if (!nic_rx_packet(uip_buf, ring_ptr + 8)) {
 			REG_SET(RTL837X_REG_NIC_RXCMD, 1);
 			return;
 		}
@@ -1084,12 +1002,16 @@ void handle_rx(void)
 		print_byte(uip_buf[3]); print_byte(uip_buf[4]); print_byte(uip_buf[5]); write_char('\n');
 		print_string(" MGMT-VLAN: "); print_short(management_vlan); write_char('\n');
 #endif
-		if (stp_enabled && uip_buf[0] == 0x01 && uip_buf[1] == 0x80 && uip_buf[2] == 0xc2 // STP packet?
-			&& uip_buf[3] == 0x00 && uip_buf[4] == 0x00 && uip_buf[5] == 0x00) {
-			stp_in();
-			if (uip_len) {
-				print_string("STP TX\n");
-				tcpip_output();
+		if ((stp_enabled || lacpEnabled) && uip_buf[0] == 0x01 && uip_buf[1] == 0x80
+			&& uip_buf[2] == 0xc2 && uip_buf[3] == 0x00 && uip_buf[4] == 0x00) {
+			if (stp_enabled && uip_buf[5] == 0x00) {
+				stp_in();
+				if (uip_len) {
+					print_string("STP TX\n");
+					tcpip_output();
+				}
+			} else if (lacpEnabled && uip_buf[5] == 0x02) {
+				lacp_in();
 			}
 		} else if (igmpEnabled && uip_buf[0] == 0x01 && uip_buf[1] == 0x00 && uip_buf[2] == 0x5e // IPv4-MC packet?
 			&& igmp_packet_handler()) {
@@ -1323,9 +1245,12 @@ static void handle_tick(void)
 			stp_timers();
 		}
 	}
+	if (lacpEnabled)
+		lacp_timers();
 	health_phase(HEALTH_PH_STP);
 	lldp_tick();
-	health_phase(HEALTH_LLDP);
+	health_phase(HEALTH_PH_LLDP);
+	cabletest_tick();
 }
 
 
@@ -1675,6 +1600,15 @@ void check_and_flash_update_image(void)
 }
 
 
+/* Called by the SDCC startup code before it copies XINIT to XISEG and clears XSEG.
+ * Hardware reset starts us with MAP_FLASH_PAGE_TO_XDATA = 1, which maps xdata
+ * 0x4000-0xbfff to the flash image (reads return flash, writes are lost), so it
+ * must be 0 by then. */
+unsigned char __sdcc_external_startup(void)
+{
+	MAP_FLASH_PAGE_TO_XDATA = 0;
+	return 0;
+}
 
 void main(void)
 {
@@ -1685,7 +1619,6 @@ void main(void)
 	sbuf_ptr = 0;
 
 	CKCON = 0;	// Initial Clock configuration
-	SFR_97 = 0;	// HADDR?
 
 	// Set in managed mode:
 	SFR_b9 = 0x00;
@@ -1707,17 +1640,18 @@ void main(void)
 	// Flash controller should be initialized before any code in other banks is being fetched
 	// See this issue: https://github.com/logicog/RTLPlayground/issues/70
 	print_string("\nInitializing Flash controller\n");
-#ifdef FLASH_NO_DIO
 	/*
 	 * Single-bit fast read for the flash-controller MMIO window. Some SPI NOR
 	 * chips (e.g. Boya/BoHong BY25Q16BS, RDID 0x68 0x40 0x15) return garbage
 	 * for Dual-I/O (0xBB) MMIO reads, which makes every fetch from a code bank
 	 * fail: the firmware then resets about every 10 ms right after
-	 * "Detecting CPU". Build with FLASH_NO_DIO=1 for such boards.
+	 * "Detecting CPU". The board definition can set machine.flash_sio, and
+	 * FLASH_NO_DIO=1 forces it for every target.
 	 */
+#ifdef FLASH_NO_DIO
 	flash_init(0);
 #else
-	flash_init(1);
+	flash_init(machine.flash_sio ? 0 : 1);
 #endif
 
 	// Set default for SFP pins so we can start up a module already inserted
@@ -1839,8 +1773,9 @@ void main(void)
 	 * "vlan switch off" line in the startup configuration says otherwise. */
 	vlan_switch_enabled = 1;
 	stp_defaults();		/* 802.1D/w default config before any "stp ..." replay */
+	lacpEnabled = 0;
+	lacp_init();
 	nic_setup();
-	REG_SET(RTL837X_NIC_INT_MSK, NIC_INT_RXIE);
 	trap_init();
 	vlan_setup();
 	port_l2_setup();

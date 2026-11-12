@@ -1,0 +1,19 @@
+11:45:48 === 192.168.32.162:80 -> v0.1.7 (new port 8000)
+11:45:48 before: v0.1.1-5911eda-dirty port 80
+11:45:48 flash JEDEC: 684015 (expect 684015)
+11:45:48 new config:
+    ip dhcp
+    http port 8000
+    passwd 1234
+    passwd_hash ff4c770b2b492aff5d010a874ad33d23 b43332478630fd0b540a2595c9719517cdd93c40c2c16f6c26083530ecee79a4
+11:45:48 config write http=200 (port 80)
+11:45:48 uploading rtlplayground-v0.1.7-5911eda-dirty-PCB_K0402W_V1.bin ...
+OK: checksum verified, rebooting
+11:46:17 waiting for new firmware on port 8000 ...
+11:47:26 back after ~45s
+11:47:26 after: v0.1.7-5911eda-dirty port 8000
+11:47:26 plaintext removal http=200
+11:47:39 rebooted after ~4s
+11:47:40 digest login /config: 200
+11:47:40 plaintext 1234 cookies: 0 (expect 0)
+11:47:40 === OK 192.168.32.162 (port 8000, salt ff4c770b2b492aff5d010a874ad33d23)

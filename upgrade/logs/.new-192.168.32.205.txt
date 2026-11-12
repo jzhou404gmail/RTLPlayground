@@ -1,0 +1,10 @@
+hostname K0801W_V1_016118
+ip dhcp
+dns server 192.168.32.254
+ntp server ntp.tencent.com
+ntp interval 60
+ntp timezone +08:00
+ntp dst off
+ntp on
+http port 8000
+passwd_hash 696596cd2e7553018c6fcd2b7696a329 73748c989b32ed2fdd00914037e80621dd6eb80d527d696e817bb09929a4a270

@@ -1,0 +1,7 @@
+15:36:56 === flashing 192.168.1.247:80 with k0402w-nodio.bin (expect 06:14:19:e4:e7:0b)
+15:36:56 before: v0.1.0-fc2193c
+15:36:56 login http 302
+15:37:26 upload rc=0 response: OK: checksum verified, rebooting
+15:37:26 waiting for reboot ...
+15:38:05 back after ~18s: v0.1.0-5911eda-dirty
+15:38:05 === OK 192.168.1.247

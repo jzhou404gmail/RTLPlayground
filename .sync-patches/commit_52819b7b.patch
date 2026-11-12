@@ -1,0 +1,57 @@
+From 52819b7b788e03506e09ba6097b0438b9f53308f Mon Sep 17 00:00:00 2001
+From: d00f <8052722+DrDoof@users.noreply.github.com>
+Date: Fri, 30 Oct 2026 23:59:35 +0100
+Subject: [PATCH] httpd: reset also when the client's FIN carries the
+ acknowledgement
+
+A client that closes right after the headers can send its FIN together
+with the acknowledgement of the answer. uIP reports both in one call and
+the closed branch came first, so the reset waiting for that
+acknowledgement would not happen and the switch would keep running after
+a 200 to /reset or to a verified upload.
+---
+ httpd/httpd.c        |  2 ++
+ test/test_httpd_tx.c | 10 ++++++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/httpd/httpd.c b/httpd/httpd.c
+index 68ad0ee16..e6e0b3f5c 100644
+--- a/httpd/httpd.c
++++ b/httpd/httpd.c
+@@ -885,6 +885,8 @@ void httpd_appcall(void)
+ 	} else if (uip_closed()) {
+ 		dbg_string("Connection closed\n");
+ 		s->tstate = TSTATE_CLOSED;
++		if (s->fw_reset_pending && uip_acked())
++			reset_chip();
+ 	} else if (uip_aborted() || uip_timedout()) {
+ 		dbg_string("Connection aborted\n");
+ 		uip_close();
+diff --git a/test/test_httpd_tx.c b/test/test_httpd_tx.c
+index 684dd56a9..4a451e225 100644
+--- a/test/test_httpd_tx.c
++++ b/test/test_httpd_tx.c
+@@ -31,6 +31,7 @@
+ #include "html_data.h"
+ 
+ /* Private to uip.c, and the client needs them to build segments. */
++#define TCP_FIN 0x01
+ #define TCP_SYN 0x02
+ #define TCP_PSH 0x08
+ #define TCP_ACK 0x10
+@@ -833,6 +834,15 @@ static void scenario_reset_after_ack(void)
+ 	      "reset: the answer goes out before the switch resets");
+ 	client_ack(MSS_FULL);
+ 	CHECK(reset_calls == 1, "reset: the switch resets once the answer is acknowledged");
++
++	session_start(MSS_FULL);
++	strcpy(session_id, "0123456789ab");
++	reset_calls = 0;
++	client_send(TCP_ACK | TCP_PSH, get, (int)strlen(get));
++	CHECK(reset_calls == 0 && stream_contains("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n"),
++	      "reset: the answer goes out before a closing client resets");
++	client_send(TCP_FIN | TCP_ACK, NULL, 0);
++	CHECK(reset_calls == 1, "reset: a FIN carrying the acknowledgement resets as well");
+ }
+ 
+ static void scenario_fragmented_get_cookie(void)

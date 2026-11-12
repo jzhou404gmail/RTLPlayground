@@ -57,7 +57,7 @@ void port_mirror_del(void) __banked
 
 bool port_ingress_filter(__xdata uint8_t port, __xdata vlan_ingress_mode_t type) __banked
 {
-	if (port > 9 || type >= VLAN_INVALID) {
+	if (port > CPU_PORT || type >= VLAN_INVALID) {
 		print_string("Invalid port or ingress filter type\n");
 		return false;
 	}
@@ -271,7 +271,7 @@ void vlan_setup(void) __banked
 	wait_table_ready();
 
 	// Set PVID 1 for every port. TODO: Skip unused ports!
-	for (uint8_t i = machine.min_port; i <= machine.max_port + 1; i++) {  // Do this also for the CPU port (+1)
+	for (uint8_t i = MACHINE_MIN_PORT; i <= CPU_PORT; i++) { // CPU MAC is independent of the last user port
 		uint16_t reg = RTL837x_PVID_BASE_REG + ((i >> 1) << 2);
 #ifdef DEBUG
 		print_byte(i); write_char(':'); write_char(' '); print_short(reg); write_char('=');
@@ -307,7 +307,7 @@ void vlan_setup(void) __banked
 	REG_SET(RTL837X_VLAN_L2_LRN_DIS_0, 0);
 	REG_SET(RTL837X_VLAN_L2_LRN_DIS_1, 0);
 
-	// Enable VLAN 1: Ports 0-9, i.e. including the CPU port are untagged members
+	// Enable VLAN 1: user ports untagged, CPU MAC9 tagged (untag bit 19 clear)
 	REG_SET(RTL837x_TBL_DATA_IN_A, machine_detected.isRTL8373? 0x0207ffff : 0x0207e3f8);	// 02: Entry valid, 7...: membership
 
 	REG_SET(RTL837X_TBL_CTRL, 0x00010303);	// Write VLAN 1
@@ -459,7 +459,7 @@ void port_l2_setup(void) __banked
 
 	port_l2_forget();
 
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		// Limit the number of automatically learned MAC-Entries per port to 0x1040
 		uint8_t idx = (i << 2);
 		REG_SET(RTL837X_L2_LRN_PORT_CONSTRAINT + idx, 0x00001040);
@@ -510,8 +510,8 @@ void port_media_show(uint8_t port) __banked
 
 void port_stats_print(void) __banked
 {
-	print_string("\nPort\tState\tLink\tTxGood\t\tTxBad\t\tRxGood\t\tRxBad\n");
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	print_string("\nPort\tState\tLink\tTxGood\t\tTxBad\t\tRxGood\t\tRxBad\t\tMACs\n");
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		print_phys_port(i); write_char('\t');
 
 		if (!machine.is_sfp[i]) {
@@ -584,6 +584,9 @@ void port_stats_print(void) __banked
 
 		STAT_GET(STAT_COUNTER_ERR_PKTS, i);
 		print_reg(RTL837X_STAT_V_HIGH); write_char('\t');
+
+		reg_read(RTL837X_L2_LRN_PORT_CONSTRT_CNT + (i << 2));
+		itoa_short(SFR_DATA_U16 & L2_LRN_PORT_CNT_MASK);
 		print_string("\n");
 	}
 }
@@ -591,14 +594,14 @@ void port_stats_print(void) __banked
 
 void port_isolate(uint8_t port, __xdata uint16_t pmask) __banked
 {
-	if (port <= machine.max_port)
+	if (port <= MACHINE_MAX_PORT)
 		REG_SET(RTL837X_PORT_ISOLATION_BASE + (port << 2), pmask);
 }
 
 
 uint16_t port_isolation_get(uint8_t port) __banked
 {
-	if (port > machine.max_port)
+	if (port > MACHINE_MAX_PORT)
 		return 0;
 
 	reg_read_m(RTL837X_PORT_ISOLATION_BASE + (port << 2));
@@ -772,7 +775,7 @@ void port_eee_status(uint8_t port) __banked
 
 void port_eee_enable_all(__xdata uint8_t speed) __banked
 {
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		if (i == 3 && machine.n_10g) {
 			port_eee_enable(i, speed);
 		} else if (i == 8 && machine.n_10g == 2) {
@@ -789,7 +792,7 @@ void port_eee_enable_all(__xdata uint8_t speed) __banked
 
 void port_eee_disable_all(void) __banked
 {
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		port_eee_disable(i);
 	}
 }
@@ -797,7 +800,7 @@ void port_eee_disable_all(void) __banked
 
 void port_eee_status_all(void) __banked
 {
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		port_eee_status(i);
 	}
 }
@@ -905,7 +908,7 @@ void vlan_dump(void) __banked
 {
 	print_string("Ingress VLAN configuration:\n");
 	print_string("Port\tPVID\tType\tFiltering\n");
-	for (uint8_t port = machine.min_port; port <= machine.max_port; port++) {
+	for (uint8_t port = MACHINE_MIN_PORT; port <= MACHINE_MAX_PORT; port++) {
 		print_vlan_ingress_port(port);
 	}
 	print_vlan_ingress_port(9);
@@ -920,7 +923,7 @@ void vlan_dump(void) __banked
 /** Set the ingress VLAN filtering */
 bool port_ingress_vlan_filter_set(uint8_t port, __xdata bool enabled) __banked
 {
-	if (port < machine.min_port || (port > machine.max_port && port != CPU_PORT)) {
+	if (!MACHINE_PORT_VALID(port) && port != CPU_PORT) {
 		return false;
 	}
 	if (enabled)
@@ -934,7 +937,7 @@ bool port_ingress_vlan_filter_set(uint8_t port, __xdata bool enabled) __banked
 /** Get the ingress VLAN filtering status */
 bool port_ingress_vlan_filter_get(uint8_t port) __banked
 {
-	if (port < machine.min_port || (port > machine.max_port && port != CPU_PORT)) {
+	if (!MACHINE_PORT_VALID(port) && port != CPU_PORT) {
 		return false;
 	}
 

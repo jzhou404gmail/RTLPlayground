@@ -1,0 +1,9 @@
+ip dhcp
+http port 8000
+passwd_hash 5f3c6ac1c12f81f3f1095f02cc65c05e 6fcabffe67fd0b86c1a199268e3fda929e0ccd3deeacf33f2389652853363967
+dns server 192.168.32.254
+ntp server ntp.tencent.com
+ntp interval 60
+ntp timezone +08:00
+ntp dst off
+ntp on

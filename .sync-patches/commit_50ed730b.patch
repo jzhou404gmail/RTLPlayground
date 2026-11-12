@@ -1,0 +1,70 @@
+From 50ed730bd2095df9bfebd098edb7a27470d90b3a Mon Sep 17 00:00:00 2001
+From: DrDoof <8052722+DrDoof@users.noreply.github.com>
+Date: Fri, 30 Oct 2026 17:51:09 +0100
+Subject: [PATCH] httpd: reset after the answer to /reset is acknowledged
+
+/reset closed the connection and waited a second before resetting, but
+uip_close() only marks the connection and uIP sends the FIN after the
+application returns, and delay() does not run the main loop. Nothing
+left the switch in that second, so the browser saw the connection die.
+Answer with an empty 200 and reset once it is acknowledged, the way an
+uploaded image is applied.
+---
+ httpd/httpd.c        |  5 ++---
+ test/test_httpd_tx.c | 20 ++++++++++++++++++++
+ 2 files changed, 22 insertions(+), 3 deletions(-)
+
+diff --git a/httpd/httpd.c b/httpd/httpd.c
+index 61838e95a..68ad0ee16 100644
+--- a/httpd/httpd.c
++++ b/httpd/httpd.c
+@@ -1067,9 +1067,8 @@ void httpd_appcall(void)
+ 				clear_command_history();
+ 				send_mtu(); // dummy response
+ 			} else if (is_word(q, "/reset")) {
+-				uip_close();
+-				delay(1000); //wait for the close packet to be sent, otherwise the browser will retry
+-				reset_chip();
++				slen = strtox(outbuf, "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
++				s->fw_reset_pending = 1;
+ 			} else {
+ 				send_not_found();
+ 			}
+diff --git a/test/test_httpd_tx.c b/test/test_httpd_tx.c
+index 4b2001c3c..684dd56a9 100644
+--- a/test/test_httpd_tx.c
++++ b/test/test_httpd_tx.c
+@@ -816,6 +816,25 @@ static void scenario_fragmented_missing_content_length(void)
+ }
+ 
+ 
++static void scenario_reset_after_ack(void)
++{
++	static const char get[] =
++		"GET /reset HTTP/1.1\r\n"
++		"Host: sw\r\n"
++		"Cookie: session=0123456789ab\r\n"
++		"\r\n";
++
++	session_start(MSS_FULL);
++	strcpy(session_id, "0123456789ab");
++	reset_calls = 0;
++
++	client_send(TCP_ACK | TCP_PSH, get, (int)strlen(get));
++	CHECK(reset_calls == 0 && stream_contains("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n"),
++	      "reset: the answer goes out before the switch resets");
++	client_ack(MSS_FULL);
++	CHECK(reset_calls == 1, "reset: the switch resets once the answer is acknowledged");
++}
++
+ static void scenario_fragmented_get_cookie(void)
+ {
+ 	static const char first[] =
+@@ -1285,6 +1304,7 @@ int main(int argc, char **argv)
+ 	scenario_post_header_timeout();
+ 	scenario_oversized_post_header();
+ 	scenario_fragmented_missing_content_length();
++	scenario_reset_after_ack();
+ 	scenario_fragmented_get_cookie();
+ 	scenario_fragmented_get_cookie_value();
+ 	scenario_split_get_header_terminator();

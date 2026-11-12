@@ -1,0 +1,9 @@
+== 192.168.32.204 v0.1.7 pilot 2026年 11月 12日 星期四 11:22:52 CST
+info: v0.1.7-5911eda-dirty 2026-11-12 11:20:35
+app.js: 200 syntax-ok
+index logoutBtn: 1
+login sha256: 2
+auth.json: {"set":1,"salt":"527808c7cc40bbe6570f3202af1ba1f2"}
+config tail: passwd_hash 527808c7cc40bbe6570f3202af1ba1f2 4a638c3cfe3904fc03d5ad6c9b90c79dbd55fedc09804b24d40369ba106822f7
+logout: HTTP/1.1 302 Found
+old cookie: 401
