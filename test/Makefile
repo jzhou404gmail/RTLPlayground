@@ -57,8 +57,9 @@ $(BUILDDIR)/test_page_json: test_page_json.c $(TABLE_ENV) hw_mock.h | $(BUILDDIR
 
 # httpd/httpd.c and uip/uip.c are compiled UNMODIFIED from the firmware tree;
 # this test carries the environment below them itself.
-$(BUILDDIR)/test_httpd_tx: test_httpd_tx.c $(SRCROOT)/httpd/httpd.c $(SRCROOT)/uip/uip.c | $(BUILDDIR)
-	$(CC) $(CFLAGS) $(filter %.c,$^) -o $@ $(LDFLAGS)
+$(BUILDDIR)/test_httpd_tx: test_httpd_tx.c httpd_env.c $(SRCROOT)/httpd/httpd.c $(SRCROOT)/uip/uip.c \
+                         $(SRCROOT)/sessions.c $(SRCROOT)/timer.c | $(BUILDDIR)
+	$(CC) $(CFLAGS) -I$(SRCROOT) $(filter %.c,$^) -o $@ $(LDFLAGS)
 
 # ntp.c and dns.c are compiled UNMODIFIED from the firmware tree; the uIP edge
 # they use is mocked in the test, so uip.c itself is not linked.
