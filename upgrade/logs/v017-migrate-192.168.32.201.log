@@ -1,9 +1,0 @@
-11:34:27 === 192.168.32.201 -> v0.1.7
-11:34:27 before: v0.1.4-5911eda-dirty
-11:34:27 config write http=200
-11:35:59 plaintext removal http=200
-11:35:59 plaintext removed
-11:36:42 rebooted after ~15s
-11:36:42 digest login /config: 200
-11:36:42 plaintext 1234 cookies: 0 (expect 0)
-11:36:42 === OK 192.168.32.201

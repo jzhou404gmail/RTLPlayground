@@ -1,6 +1,0 @@
-18:31:14 === 192.168.32.205:8000 -> k0801w-nodio.bin (SFP-J08E-HG1, flash 684015)
-18:31:14   flash id: 684015 (expected 684015)
-18:31:37   upload rc=0: OK: checksum verified, rebooting
-18:31:37   waiting for reboot ...
-18:32:09   back after ~6s: v0.1.1-5911eda-dirty
-18:32:09 === OK 192.168.32.205

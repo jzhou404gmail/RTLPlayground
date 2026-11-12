@@ -1,6 +1,0 @@
-15:40:03 === writing config to 192.168.1.248:80 from 248.txt (expect 06:0d:65:f3:58:06)
-15:40:03 config write:  200 
-15:40:03 read-back OK
-15:40:08 reset requested; waiting ...
-15:40:19 back after ~6s, no login needed
-15:40:19 === OK 192.168.1.248

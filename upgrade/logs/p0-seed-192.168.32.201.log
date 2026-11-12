@@ -1,5 +1,0 @@
-08:00:17 === seed 192.168.32.201:8000 (expect 1c:2a:a3:1a:a2:aa)
-08:00:17 config write http=200 
-08:00:18 login with 1234: http=302
-08:00:18 authenticated /config: http=200 (167 bytes)
-08:00:18 === SEEDED 192.168.32.201

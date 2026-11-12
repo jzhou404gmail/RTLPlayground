@@ -1,6 +1,0 @@
-18:33:50 === 192.168.1.103:80 -> k0402w-nodio.bin (Hi-K0402WS, flash 684015)
-18:33:50   flash id: 684015 (expected 684015)
-18:34:13   upload rc=0: OK: checksum verified, rebooting
-18:34:13   waiting for reboot ...
-18:34:48   back after ~6s: v0.1.1-5911eda-dirty
-18:34:48 === OK 192.168.1.103

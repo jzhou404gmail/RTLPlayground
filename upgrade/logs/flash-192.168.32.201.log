@@ -1,7 +1,0 @@
-15:28:49 === flashing 192.168.32.201:8000 with sks3200m-8gpy1xf.bin (expect 1c:2a:a3:1a:a2:aa)
-15:28:49 before: v0.1.0-fc2193c
-15:28:50 login http 302
-15:29:18 upload rc=0 response: OK: checksum verified, rebooting
-15:29:18 waiting for reboot ...
-15:29:48 back after ~27s: v0.1.0-5911eda-dirty
-15:29:48 === OK 192.168.32.201

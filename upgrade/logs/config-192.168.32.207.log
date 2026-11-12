@@ -1,4 +1,0 @@
-15:36:18 === writing config to 192.168.32.207:8000 from 207.txt (expect 06:09:15:01:61:18)
-15:36:18 config write:  200 
-15:36:18 read-back OK
-15:36:23 reset requested

@@ -1,6 +1,0 @@
-15:30:05 === writing config to 192.168.32.201:8000 from 201.txt (expect 1c:2a:a3:1a:a2:aa)
-15:30:06 config write:  200 
-15:30:06 read-back OK
-15:30:11 reset requested; waiting ...
-15:30:21 back after ~6s, no login needed
-15:30:21 === OK 192.168.32.201
