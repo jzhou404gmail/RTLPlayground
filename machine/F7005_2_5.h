@@ -1,0 +1,7 @@
+#ifndef _MACHINE_F7005_2_5_H_
+#define _MACHINE_F7005_2_5_H_
+
+#define MACHINE_MODEL "NPA AP-7024-2.5G"
+#define MACHINE_CHIPSET RTL8372
+
+#endif

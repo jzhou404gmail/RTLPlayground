@@ -1,0 +1,7 @@
+#ifndef _MACHINE_PCB_K0402W_V1_H_
+#define _MACHINE_PCB_K0402W_V1_H_
+
+#define MACHINE_MODEL "Hi-K0402WS"
+#define MACHINE_CHIPSET RTL8372
+
+#endif
