@@ -4,6 +4,10 @@
 
 ## Added
 
+- RSTP (802.1w) with the reworked Spanning Tree page, LACP (802.3ad) with `lag <n> lacp <ports>`, the `port <n> cabletest` command, and a per-port learned-MAC count in `/status.json` (`macs`).
+- The board definitions moved to one file pair per board under `machine/` (`machine/<NAME>.c` + `.h`, optional `_init.c`). `MACHINE_CHIPSET` in the header selects the port range. RSTP and the Spanning Tree page live in a fourth code bank (`BANK4`).
+- The web UI is the upstream single-page app, which matches the merged JSON schema, with two local rules kept: every POST carries `X-RTLP: 1`, and a password change sends `passwd_hash <salt> <digest>` computed in the browser.
+
 - Four web logins at once (`sessions.c`, in BANK3): each browser has its own cookie, idle timeout and 8 h absolute lifetime; the fifth login replaces the least recently used. A logout ends only the calling browser, a password change ends them all.
 - `test/test_sessions.c` covers the session table on the host: distinct 128-bit ids, idle and absolute expiry, LRU eviction, logout scope.
 - Build: `CONFIG=<file>` selects the embedded startup configuration, `OUTPUT_DIR`/`OUTPUT_PREFIX`/`OUTPUT_NAME`/`OUTPUT` place the image, `make bank_size` prints how full each code bank of the last build is. BANK1 is at 99.4%, so check it before adding code.
