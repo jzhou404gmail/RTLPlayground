@@ -14,7 +14,7 @@
 // #define DEBUG
 #include "debug.h"
 
-#define SESSION_TIMEOUT_DEFAULT 200
+#define SESSION_TIMEOUT_DEFAULT 3600
 #define HTTP_PORT_DEFAULT 80
 
 /* Seconds of inactivity after which a session cookie stops validating.

@@ -33,6 +33,7 @@ extern __xdata uint16_t management_vlan;
 extern __xdata uint16_t session_timeout;
 extern __xdata uint16_t cont_len;
 extern __xdata uint32_t cont_addr;
+extern volatile __xdata uint32_t uptime_secs;
 extern __code const uint8_t * __code const hex;
 extern __xdata uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
 
@@ -304,6 +305,14 @@ void send_basic_info(void)
 	slen += strtox(outbuf + slen, VERSION_SW);
 	slen += strtox(outbuf + slen, "\",\"build_date\":\"");
 	slen += strtox(outbuf + slen, BUILD_DATE);
+	slen += strtox(outbuf + slen, "\",\"uptime\":\"0x");
+	{
+		uint8_t sh = 28;
+		do {
+			char_to_html("0123456789abcdef"[(uptime_secs >> sh) & 0x0f]);
+			sh -= 4;
+		} while (sh != 0xfc);
+	}
 	slen += strtox(outbuf + slen, "\",\"hw_ver\":\"");
 	slen += strtox(outbuf + slen, machine.machine_name);
 	slen += strtox(outbuf + slen, "\",\"model\":\"");

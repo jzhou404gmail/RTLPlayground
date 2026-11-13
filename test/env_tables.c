@@ -70,6 +70,7 @@ struct machine_runtime machine_detected = { .isRTL8373 = 1 };
 uint8_t  outbuf[TCP_OUTBUF_SIZE];
 uint16_t slen;
 uint16_t management_vlan = 1;
+volatile uint32_t uptime_secs;
 uint16_t cont_len;
 uint32_t cont_addr;
 uint8_t  vlan_names[VLAN_NAMES_SIZE];

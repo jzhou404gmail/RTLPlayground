@@ -4,6 +4,10 @@
 
 ## Added
 
+- `/information.json` reports `uptime` (seconds since boot) and the dashboard shows it as days and hh:mm:ss in every language.
+- The web session idle timeout is 1 h instead of 200 s, so switching tabs no longer logs the operator out.
+- The image builder enforces region limits (`fileadder -l`), so an oversized HTML or configuration payload fails the build instead of overwriting the next region.
+
 - RSTP (802.1w) with the reworked Spanning Tree page, LACP (802.3ad) with `lag <n> lacp <ports>`, the `port <n> cabletest` command, and a per-port learned-MAC count in `/status.json` (`macs`).
 - LLDP transmits immediately when it is switched on or a permitted port comes up (four one-second frames, then the 30 s interval), and every frame carries the 802.3 MAC/PHY, 802.1 Port VLAN ID, 802.3 Link Aggregation and Maximum Frame Size TLVs for that port.
 - The board definitions moved to one file pair per board under `machine/` (`machine/<NAME>.c` + `.h`, optional `_init.c`). `MACHINE_CHIPSET` in the header selects the port range. RSTP and the Spanning Tree page live in a fourth code bank (`BANK4`).

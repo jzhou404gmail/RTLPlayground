@@ -15,7 +15,7 @@ c_full:"full",c_half:"half",c_yes:"yes",c_no:"no",
 d_system:"System",d_traffic:"Traffic",
 d_traffic_h:"packets/s, live",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX bad",d_rxbad:"RX bad",
 i_host:"Hostname",i_ip:"IP address",i_mask:"Netmask",i_gw:"Gateway",i_mac:"MAC",i_fw:"Firmware",
-i_built:"Built",i_hw:"Hardware",i_temp:"Temperature",i_flash:"Flash",i_syslog:"Syslog",
+i_built:"Built",i_uptime:"Uptime",i_uptime_d:"{d} d {t}",i_hw:"Hardware",i_temp:"Temperature",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"State",p_disabled:"disabled",p_up:"up",
 p_pkts:"pkts",p_module:"Module",p_temp:"Temperature",p_vcc:"Vcc",p_txbias:"TX bias",p_txpower:"TX power",
 p_rxpower:"RX power",p_txfault:"TX fault",p_txdis:"TX disabled",p_rxlos:"RX LOS",p_adv:"Advertising",
@@ -150,7 +150,7 @@ c_full:"全二重",c_half:"半二重",c_yes:"はい",c_no:"いいえ",
 d_system:"システム",d_traffic:"トラフィック",
 d_traffic_h:"パケット/秒、リアルタイム",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 異常",d_rxbad:"RX 異常",
 i_host:"ホスト名",i_ip:"IP アドレス",i_mask:"ネットマスク",i_gw:"ゲートウェイ",i_mac:"MAC",i_fw:"ファームウェア",
-i_built:"ビルド日",i_hw:"ハードウェア",i_temp:"温度",i_flash:"フラッシュ",i_syslog:"Syslog",
+i_built:"ビルド日",i_uptime:"稼働時間",i_uptime_d:"{d}日 {t}",i_hw:"ハードウェア",i_temp:"温度",i_flash:"フラッシュ",i_syslog:"Syslog",
 p_state:"状態",p_disabled:"無効",p_up:"アップ",
 p_pkts:"pkts",p_module:"モジュール",p_temp:"温度",p_vcc:"電圧",p_txbias:"TX バイアス",p_txpower:"TX 電力",
 p_rxpower:"RX 電力",p_txfault:"TX 障害",p_txdis:"TX 無効",p_rxlos:"RX 信号ロス",p_adv:"アドバタイズ",
@@ -261,7 +261,7 @@ c_full:"全双工",c_half:"半双工",c_yes:"是",c_no:"否",
 d_system:"系统",d_traffic:"流量",
 d_traffic_h:"包/秒，实时",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 错误",d_rxbad:"RX 错误",
 i_host:"主机名",i_ip:"IP 地址",i_mask:"子网掩码",i_gw:"网关",i_mac:"MAC",i_fw:"固件",
-i_built:"构建日期",i_hw:"硬件",i_temp:"温度",i_flash:"Flash",i_syslog:"Syslog",
+i_built:"构建日期",i_uptime:"运行时间",i_uptime_d:"{d}天 {t}",i_hw:"硬件",i_temp:"温度",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"状态",p_disabled:"已禁用",p_up:"已连接",
 p_pkts:"个包",p_module:"模块",p_temp:"温度",p_vcc:"供电电压",p_txbias:"TX 偏置电流",p_txpower:"TX 光功率",
 p_rxpower:"RX 光功率",p_txfault:"TX 故障",p_txdis:"TX 禁用",p_rxlos:"RX 信号丢失",p_adv:"通告能力",
@@ -372,7 +372,7 @@ c_full:"dúplex completo",c_half:"semidúplex",c_yes:"sí",c_no:"no",
 d_system:"Sistema",d_traffic:"Tráfico",
 d_traffic_h:"paquetes/s, en vivo",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX erróneos",d_rxbad:"RX erróneos",
 i_host:"Nombre de host",i_ip:"Dirección IP",i_mask:"Máscara de red",i_gw:"Puerta de enlace",i_mac:"MAC",i_fw:"Firmware",
-i_built:"Compilado",i_hw:"Hardware",i_flash:"Flash",i_syslog:"Syslog",
+i_built:"Compilado",i_uptime:"Tiempo en marcha",i_uptime_d:"{d} d {t}",i_hw:"Hardware",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"Estado",p_disabled:"deshabilitado",p_up:"activo",
 p_pkts:"paquetes",p_module:"Módulo",p_temp:"Temperatura",p_vcc:"Vcc",p_txbias:"Polarización TX",p_txpower:"Potencia TX",
 p_rxpower:"Potencia RX",p_txfault:"Fallo TX",p_txdis:"TX deshabilitado",p_rxlos:"Pérdida RX (LOS)",p_adv:"Anunciado",
@@ -482,7 +482,7 @@ c_full:"full",c_half:"half",c_yes:"oui",c_no:"non",
 d_system:"Système",d_traffic:"Trafic",
 d_traffic_h:"paquets/s (en direct)",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX KO",d_rxbad:"RX KO",
 i_host:"Nom d'hote",i_ip:"Adresse IP",i_mask:"Masque réseau",i_gw:"Passerelle",i_mac:"Adresse MAC",i_fw:"Micro logiciel",
-i_built:"Compilé le",i_hw:"Matériel",i_temp:"Température",i_flash:"Taille Flash",i_syslog:"Journal système",
+i_built:"Compilé le",i_uptime:"Temps de fonctionnement",i_uptime_d:"{d} j {t}",i_hw:"Matériel",i_temp:"Température",i_flash:"Taille Flash",i_syslog:"Journal système",
 p_state:"Etat",p_disabled:"Inactif",p_up:"Actif",
 p_pkts:"paquets",p_module:"Module",p_temp:"Température",p_vcc:"Vcc",p_txbias:"TX biais",p_txpower:"TX puissance",
 p_rxpower:"RX puissance",p_txfault:"TX erreur",p_txdis:"TX désactivé",p_rxlos:"RX pertes de signaux",p_adv:"Capacités",
@@ -608,7 +608,7 @@ c_full:"voll",c_half:"halb",c_yes:"ja",c_no:"nein",
 d_system:"System",d_traffic:"Datenverkehr",
 d_traffic_h:"Pakete/s, live",d_txpps:"TX Pakete/s",d_rxpps:"RX Pakete/s",d_txbad:"TX fehlerhaft",d_rxbad:"RX fehlerhaft",
 i_host:"Hostname",i_ip:"IP-Adresse",i_mask:"Netzmaske",i_gw:"Gateway",i_mac:"MAC",i_fw:"Firmware",
-i_built:"Erstellt",i_hw:"Hardware",i_temp:"Temperatur",i_flash:"Flash",i_syslog:"Syslog",
+i_built:"Erstellt",i_uptime:"Betriebszeit",i_uptime_d:"{d} T {t}",i_hw:"Hardware",i_temp:"Temperatur",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"Zustand",p_disabled:"deaktiviert",p_up:"verbunden",
 p_pkts:"Pakete",p_module:"Modul",p_temp:"Temperatur",p_vcc:"Vcc",p_txbias:"TX-Bias",p_txpower:"Sendeleistung",
 p_rxpower:"Empfangsleistung",p_txfault:"TX-Fehler",p_txdis:"TX deaktiviert",p_rxlos:"RX LOS",p_adv:"Angeboten",
@@ -1146,14 +1146,22 @@ function portDetail(i){
   S.detail=i;
 }
 
+function fmtUptime(hex){
+  var s=parseInt(hex,16);
+  function p(n){return String(n).padStart(2,"0")}
+  var t3=p(Math.floor(s/3600)%24)+":"+p(Math.floor(s/60)%60)+":"+p(s%60), d=Math.floor(s/86400);
+  return d?t("i_uptime_d",{d:d,t:t3}):t3;
+}
 function renderInfo(){
   var m=[["i_host","hostname"],["i_ip","ip_address"],["i_mask","ip_netmask"],
     ["i_gw","ip_gateway"],["i_mac","mac_address"],["i_fw","sw_ver"],["i_built","build_date"],
+    ["i_uptime","uptime"],
     ["i_hw","hw_ver"],["i_temp","chip_temp"],["i_flash","flash_size"],["i_syslog","syslog_server"]];
   var tb=$("sysinfo");tb.innerHTML="";
   m.forEach(function(r){
     var v=S.info[r[1]];
     if(v==null||v==="")return;
+    if(r[1]==="uptime")v=fmtUptime(v);
     tb.appendChild(h("tr",null,[h("td",{class:"mut",text:t(r[0])}),h("td",{class:"mono",text:String(v)})]));
   });
   if(S.info.hostname){
