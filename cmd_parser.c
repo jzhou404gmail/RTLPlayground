@@ -467,8 +467,8 @@ static uint8_t name_char(uint8_t c)
 
 
 // Sets the management MAC from a "mac <aa:bb:cc:dd:ee:ff>" command (or prints
-// the current one with a bare "mac"). Refuses blank/multicast/locally
-// administered/all-zero-OUI addresses so the running MAC stays reachable, and
+// the current one with a bare "mac"). Refuses blank/multicast/all-zero-OUI
+// addresses so the running MAC stays reachable, and
 // re-registers the static L2 management entry so the change applies without a
 // reboot. As a regular command a "mac ..." line in the startup config applies
 // on every boot (execute_config runs before the final static L2 entry).
@@ -484,7 +484,7 @@ void parse_mac_cmd(void)
 		cmd_error("mac [<aa:bb:cc:dd:ee:ff>]\n");
 		return;
 	}
-	if ((mac_parse_result[0] & 0x03) || ((mac_parse_result[0] | mac_parse_result[1] | mac_parse_result[2]) == 0)) {
+	if ((mac_parse_result[0] & 0x01) || ((mac_parse_result[0] | mac_parse_result[1] | mac_parse_result[2]) == 0)) {
 		cmd_error("the MAC must be unicast and globally administered\n");
 		return;
 	}
@@ -661,9 +661,16 @@ void parse_vlan(void)
 		vlan_settings.vlan = atoi_results_short;
 
 		if (cmd_compare(2, "mgmt")) {
+			if (management_vlan == vlan_settings.vlan) {
+				print_string("Management VLAN unchanged\n");
+				return;
+			}
 			port_l2_static_mgmt(uip_ethaddr.addr, management_vlan, true);
 			management_vlan = vlan_settings.vlan;
 			port_l2_static_mgmt(uip_ethaddr.addr, management_vlan, false);
+			/* A switch on DHCP would keep its old lease in the new VLAN. */
+			if (dhcp_state.state != DHCP_OFF)
+				dhcp_start();
 			if (!vlan_settings.vlan)
 				print_string("Management VLAN disabled\n");
 			else
@@ -972,6 +979,8 @@ void parse_port(void)
 		print_string("\"\n");
 	} else if (cmd_compare(2, "lldp")) {
 		if (cmd_compare(3, "block")){
+			if (lldp_enabled)
+				lldp_shutdown((uint16_t)1 << phy_settings.port);
 			lldp_logical_port_status &= ~((uint16_t)1 << phy_settings.port);
 		} else if (cmd_compare(3, "permit")) {
 			lldp_logical_port_status |= (uint16_t)1 << phy_settings.port;
@@ -1978,7 +1987,7 @@ void cmd_parser(void) __banked
 		if (cmd_compare(0, "reset")) {
 			print_string("\nRESET\n\n");
 			reset_chip();
-		} else if (cmd_compare(0, "defaults")) {
+		} else if (cmd_compare(0, "defaults") || cmd_compare(0, "factory-reset")) {
 			/*
 			 * Restore the configuration the image was built with and reboot -
 			 * exactly what the reset button does when it is held for more than
@@ -2211,6 +2220,8 @@ void cmd_parser(void) __banked
 				lldp_enabled = 1;
 				trap_rma_set(RTL837X_RMA0E_CONF, RTL837X_RMA_ACT_TRAP);
 			} else {
+				if (lldp_enabled)
+					lldp_shutdown(lldp_logical_port_status);
 				print_string("LLDP disabled\n");
 				lldp_enabled = 0;
 				trap_rma_set(RTL837X_RMA0E_CONF, RTL837X_RMA_ACT_FORWARD);
