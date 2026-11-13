@@ -192,6 +192,7 @@ SRCS += \
 	rtl837x_trap.c
 SRCS += \
 	httpd/httpd.c \
+	httpd/html_out.c \
 	httpd/page_impl.c \
 	httpd/page_stp.c
 SRCS += \

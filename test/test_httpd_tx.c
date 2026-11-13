@@ -108,6 +108,12 @@ void clear_command_history(void) { }
 void udp_callbacks(void) { }
 void tcpip_output(void) { }
 void send_lacp(void) { }
+void send_ports(void) { }
+void send_traffic(void) { }
+const uint8_t * const HTTP_RESPONSE_TXT =
+	(const uint8_t *)"HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/plain\r\n\r\n";
+const uint8_t * const HTTP_RESPONSE_JSON =
+	(const uint8_t *)"HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: application/json\r\n\r\n";
 void get_random_32(void) { }
 void read_timer(uint32_t *tmr) { *tmr = 0; }
 

@@ -10,6 +10,7 @@
 
 #include "rtl837x_common.h"
 #include "rtl837x_lacp.h"
+#include "dhcp.h"
 #include "rtl837x_port.h"
 #include "machine.h"
 #include "uip.h"
@@ -71,6 +72,7 @@ uint8_t  outbuf[TCP_OUTBUF_SIZE];
 uint16_t slen;
 uint16_t management_vlan = 1;
 volatile uint32_t uptime_secs;
+__xdata struct dhcp_state dhcp_state;
 uint16_t cont_len;
 uint32_t cont_addr;
 uint8_t  vlan_names[VLAN_NAMES_SIZE];
