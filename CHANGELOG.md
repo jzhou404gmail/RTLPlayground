@@ -5,6 +5,7 @@
 ## Added
 
 - RSTP (802.1w) with the reworked Spanning Tree page, LACP (802.3ad) with `lag <n> lacp <ports>`, the `port <n> cabletest` command, and a per-port learned-MAC count in `/status.json` (`macs`).
+- LLDP transmits immediately when it is switched on or a permitted port comes up (four one-second frames, then the 30 s interval).
 - The board definitions moved to one file pair per board under `machine/` (`machine/<NAME>.c` + `.h`, optional `_init.c`). `MACHINE_CHIPSET` in the header selects the port range. RSTP and the Spanning Tree page live in a fourth code bank (`BANK4`).
 - The web UI is the upstream single-page app, which matches the merged JSON schema, with two local rules kept: every POST carries `X-RTLP: 1`, and a password change sends `passwd_hash <salt> <digest>` computed in the browser.
 
