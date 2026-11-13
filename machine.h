@@ -15,6 +15,12 @@
 
 #define MACHINE_INC(dir,file) MACHINE_STR(dir/file)
 
+#define RTL8370 0x70
+#define RTL8372 0x72
+#define RTL8373 0x73
+
+#include  MACHINE_INC(MACHINE_DEF_DIR,MACHINE_NAME.h)
+
 /* The PCB revision shown next to the board name. Boards sold under several
  * names share a PCB; here the model string in machine/<NAME>.h is the PCB
  * revision, so it doubles as the info value unless a header overrides it. */
@@ -22,11 +28,7 @@
 #define MACHINE_PCB_INFO "unknown"
 #endif
 
-#define RTL8370 0x70
-#define RTL8372 0x72
-#define RTL8373 0x73
 
-#include  MACHINE_INC(MACHINE_DEF_DIR,MACHINE_NAME.h)
 
 
 #ifndef MACHINE_CHIPSET

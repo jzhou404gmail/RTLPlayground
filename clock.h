@@ -54,24 +54,6 @@
 
 #include "clock-arch.h"
 
-extern volatile __xdata uint32_t ticks;
-
-/**
- * Initialize the clock library.
- *
- * This function initializes the clock library and should be called
- * from the main() function of the system.
- *
- */
-void clock_init(void);
-
-/**
- * Get the current clock time.
- *
- * Implemented in timer.c: the tick interrupt can split a 32-bit load, so
- * the caller must not read the counter directly.
- */
-clock_time_t clock_time(void);
 
 /**
  * A second, measured in system clock time.

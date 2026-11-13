@@ -50,17 +50,14 @@
 
 extern volatile __xdata uint32_t ticks;
 
-/* The tick interrupt can split a 32-bit load between two bytes, so read the
- * counter again until the low byte agrees: every tick changes it, and the
- * low byte is loaded first. */
-clock_time_t clock_time(void)
+static clock_time_t clock_time(void)
 {
-	clock_time_t t;
+  clock_time_t t;
 
-	do {
-		t = ticks;
-	} while ((uint8_t)t != (uint8_t)ticks);
-	return t;
+  do {
+    t = (clock_time_t)ticks;
+  } while ((uint8_t)t != (uint8_t)ticks);
+  return t;
 }
 
 /*---------------------------------------------------------------------------*/

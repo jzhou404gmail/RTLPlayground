@@ -69,7 +69,7 @@ $(BUILDDIR)/test_httpd_tx: test_httpd_tx.c httpd_env.c $(SRCROOT)/httpd/httpd.c 
 # ntp.c and dns.c are compiled UNMODIFIED from the firmware tree; the uIP edge
 # they use is mocked in the test, so uip.c itself is not linked.
 $(BUILDDIR)/test_ntp: test_ntp.c support.c hw_mock.c $(SRCROOT)/cmd_editor.c \
-                      $(SRCROOT)/ntp.c $(SRCROOT)/dns.c | $(BUILDDIR)
+                      $(SRCROOT)/ntp.c $(SRCROOT)/dns.c $(SRCROOT)/timer.c | $(BUILDDIR)
 	$(CC) $(CFLAGS) $(filter %.c,$^) -o $@ $(LDFLAGS)
 
 run: $(TESTS)

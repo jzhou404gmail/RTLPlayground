@@ -2,6 +2,7 @@
 #define _DNS_H_
 
 #include <stdint.h>
+#include "timer.h"
 
 #define DNS_NAME_LEN	48
 
@@ -21,7 +22,7 @@ struct dns_state {
 	uint8_t tries;		/* queries sent for the current lookup */
 	uint8_t send;		/* a query is due on the connection */
 	uint16_t id;
-	uint32_t sent;		/* ticks when the last query went out */
+	struct timer wait;
 	struct uip_udp_conn *conn;
 };
 
@@ -29,7 +30,6 @@ extern __xdata struct dns_state dns_state;
 
 void dns_init(void) __banked;
 void dns_lookup(void) __banked;
-uint8_t dns_has_server(void) __banked __reentrant;
 void dns_show(void) __banked;
 void dns_callback(uint16_t lport) __banked __reentrant;
 void dns_parse(void) __banked __reentrant;

@@ -36,10 +36,7 @@
 
 #include <stdint.h>
 
-/* 16 bits is enough: the longest wait is 30 s, at 200 Hz a 16-bit count
- * covers 327 s. */
 typedef uint16_t clock_time_t;
-/* Must equal SYS_TICK_HZ in rtlplayground.c. */
 #define CLOCK_CONF_SECOND 200
 
 #endif /* __CLOCK_ARCH_H__ */

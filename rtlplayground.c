@@ -24,7 +24,6 @@
 #include "cmd_parser.h"
 #include "cmd_editor.h"
 #include "uip/uipopt.h"
-#include "timer.h"
 #include "uip/uip.h"
 #include "uip/uip_arp.h"
 #include "machine.h"
@@ -32,6 +31,7 @@
 #include "syslog.h"
 #include "dns.h"
 #include "ntp.h"
+#include "timer.h"
 #include "httpd/page_impl.h"
 #include "boot.h"
 #include "sfp.h"
@@ -76,8 +76,6 @@ void crc16_bank1(__xdata uint8_t *v) __naked;
    - T_TIMER_DIV12_OVERFLOW = F_SYS / DIV12 / 1..65536 = 125MHz / 12 / 1..65536 = 10.42 MHz .. 158.9 Hz
    Selecting dividor 12 settings to get lowest timer tick posiable which is already high.
 */
-#define SYS_TICK_HZ 200
-
 #define TIMER2_DIV (CLOCK_HZ / 12 / SYS_TICK_HZ)
 #if TIMER2_DIV > 0xFFFF
 #error "SYS_TICK_HZ to low, must be >= 159"
@@ -88,16 +86,14 @@ __xdata uint8_t idle_ready;
 
 /*
  * Address the board keeps while no DHCP lease has arrived (and if no DHCP
- * server answers at all). The three XikeStor models print 192.168.10.12 on
- * their nameplate; every other target keeps RTLPlayground's traditional
- * 192.168.10.247. "ip dhcp" replaces this as soon as a lease arrives, so it
- * is only the pre-lease / no-server fallback - not a static configuration.
+ * server answers at all). The XikeStor models print 192.168.10.12 on their
+ * nameplate; every other target keeps 192.168.10.247. A board header overrides
+ * MACHINE_FALLBACK_IP. "ip dhcp" replaces this as soon as a lease arrives.
  */
-#if defined(MACHINE_SKS3200M_8GPY1XF) || defined(MACHINE_SKS3200M_4GPY2XF) || defined(MACHINE_SKS3200M_5GPY1XF)
-__code const uint8_t ownIP[] = { 192, 168, 10, 12 };
-#else
-__code const uint8_t ownIP[] = { 192, 168, 10, 247 };
+#ifndef MACHINE_FALLBACK_IP
+#define MACHINE_FALLBACK_IP 247
 #endif
+__code const uint8_t ownIP[] = { 192, 168, 10, MACHINE_FALLBACK_IP };
 __code const uint8_t gatewayIP[] = { 192, 168, 10, 1 };
 __code const uint8_t netmask[] = { 255, 255, 255, 0};
 
@@ -105,21 +101,20 @@ __xdata struct uip_eth_addr uip_ethaddr;
 
 volatile __xdata uint32_t ticks;
 volatile __xdata uint8_t sec_counter;
-// Seconds since boot, kept in RAM: the hardware seconds register it is mirrored
-// to does not hold a written value on an RTL8372, see read_timer()
+/* Seconds since boot, kept in RAM: the hardware seconds register only holds a
+ * written value on an RTL8373, so deadlines measured from it are useless on an
+ * RTL8372. read_timer() serves the web session timeout and the console. */
 volatile __xdata uint32_t uptime_secs;
-/* Each wait owns its timer: a delay() from a command run inside sleep() must
- * not cut the sleep short. */
-static __xdata struct timer delay_timer;
-static __xdata struct timer sleep_timer;
-__xdata uint8_t stp_tick_last;
+__xdata uint32_t button_press_ticks;
+__xdata uint8_t vlan_switch_enabled;
 __xdata uint8_t arp_age_secs;
 extern __xdata struct dhcp_state dhcp_state;
 
-#define STP_TICK_STEP (SYS_TICK_HZ / STP_HZ)
 #define STP_CATCH_UP 8
 #define SFP_TICK_STEP 10
-__xdata uint8_t sfp_tick_last;
+static __xdata struct timer second;
+static __xdata struct timer sfp_poll;
+static __xdata struct timer delay_timer;
 
 /* Buffer for serial input, SBUF_SIZE must be power of 2 < 256
  * Writing to this buffer is under the sole control of the serial ISR
@@ -150,7 +145,6 @@ __xdata bool frame_tagged;
 __xdata uint8_t tx_seq;
 
 __xdata bool stp_enabled;
-__xdata uint8_t vlan_switch_enabled;
 __xdata uint8_t igmpEnabled;
 __xdata bool lldp_enabled;
 __xdata char hostname[24];	/* device hostname, default set at boot, see rtl837x_common.h */
@@ -163,6 +157,7 @@ __code const uint16_t bit_mask[16] = {
 
 
 __xdata uint8_t linkbits_last[4];
+__xdata uint16_t link_changed;
 __xdata uint8_t linkbits_last_p89;
 __data __at(0x20) volatile uint8_t evflags;
 volatile __bit __at(0x00) link_irq;
@@ -171,7 +166,7 @@ volatile __bit __at(0x02) tick_pending;
 __bit __at(0x03) cmd_available;
 // Last known state of the SFP detection/Loss of Signal pins
 __xdata bool button_last;
-__xdata uint32_t button_press_ticks;
+__xdata uint8_t button_sec_counter_last;
 volatile __bit tx_buf_empty;
 
 
@@ -872,25 +867,23 @@ void cpy_4(__xdata uint8_t dest[], __xdata uint8_t source[])
 }
 
 
-/*
- * Seconds since boot, from the counter handle_tick() keeps in RAM.
- *
- * It used to read RTL837X_REG_SEC_COUNTER instead, which only holds a written
- * value on an RTL8373: on an RTL8372 the register always reads back 0, so every
- * deadline measured from it - the HTTP session timeout in particular - was
- * already expired or never expired, depending on which side compared. Since the
- * firmware is what increments the register in the first place (handle_tick()
- * reads its top byte, adds one and writes it back), keeping the same count in
- * RAM costs nothing and works on both chip classes. The register is still
- * updated for the console's `time` command and for regget.
- *
- * Deriving the value from `ticks` with a division was tried first and broke
- * session handling in practice (a cookie stopped being accepted seconds after
- * login), so the count is maintained directly instead.
- */
 void read_timer(__xdata uint32_t * tmr)
 {
 	*tmr = uptime_secs;
+}
+
+
+void read_reg_timer(__xdata uint32_t * tmr)
+{
+	uint8_t * val = (uint8_t *)tmr;
+	SFR_REG_ADDR_U16 = RTL837X_REG_SEC_COUNTER;
+	SFR_EXEC_GO = SFR_EXEC_READ_REG;
+	do {
+	} while (SFR_EXEC_STATUS != 0);
+	*val++ = SFR_DATA_0;
+	*val++ = SFR_DATA_8;
+	*val++ = SFR_DATA_16;
+	*val = SFR_DATA_24;
 }
 
 
@@ -1104,14 +1097,8 @@ void handle_button(void)
 	bool button_pressed = !gpio_pin_test(machine.reset_pin);
 	if (button_last != button_pressed)
 	{
-		/*
-		 * Time the press with the software tick counter, not with the hardware
-		 * seconds register: that register is only writable on the RTL8373. On
-		 * an RTL8372 it always reads back 0, so a duration measured from it is
-		 * 0 no matter how long the button is held and every press ends up in
-		 * the "short press, no action" case. boot.c times its boot-time press
-		 * from the ticks already.
-		 */
+		/* Time the press with the software tick counter: the hardware
+		 * seconds register reads back 0 on an RTL8372. */
 		__xdata uint32_t held_ticks = ticks - button_press_ticks;
 		print_string(button_pressed ? "Button pressed\n" : "Button released\n");
 		button_last = button_pressed;
@@ -1119,7 +1106,6 @@ void handle_button(void)
 		if (button_pressed)
 		{
 			button_press_ticks = ticks;
-			// Give the user feedback for button press
 			set_sys_led_state(SYS_LED_SLOW);
 			return;
 		}
@@ -1139,10 +1125,11 @@ void handle_button(void)
 		else
 		{
 			print_string("Short button press detected; no action.\n");
-			set_sys_led_state(SYS_LED_ON);
+			set_sys_led_state(machine.sys_led_blink_idle ? SYS_LED_SLOW : SYS_LED_ON);
 		}
 	}
 }
+
 
 void check_links(void)
 {
@@ -1186,14 +1173,14 @@ void check_links(void)
 //
 static void handle_tick(void)
 {
-	if (sec_counter >= SYS_TICK_HZ) {
-		sec_counter -= SYS_TICK_HZ;
+	if (timer_expired(&second)) {
+		timer_reset(&second);
+		uptime_secs++;
 		reg_read_m(RTL837X_REG_SEC_COUNTER);
 		uint8_t v = sfr_data[3];
 #ifdef DEBUG
 		print_string("  Tick counter: "); print_long(ticks); write_char('\n');
 #endif
-		uptime_secs++;
 		v++;
 		sfr_data[3] = v;
 		if (!v) {
@@ -1230,8 +1217,8 @@ static void handle_tick(void)
 	}
 
 	health_phase(HEALTH_PH_LINK);
-	if (TICKS_DUE(sfp_tick_last, SFP_TICK_STEP)) {
-		sfp_tick_last += SFP_TICK_STEP;
+	if (timer_expired(&sfp_poll)) {
+		timer_reset(&sfp_poll);
 		handle_sfp();
 		vlan_switch_poll();
 	}
@@ -1240,8 +1227,8 @@ static void handle_tick(void)
 	health_phase(HEALTH_PH_TX);
 	if (stp_enabled) {
 		uint8_t n = STP_CATCH_UP;
-		while (n-- && TICKS_DUE(stp_tick_last, STP_TICK_STEP)) {
-			stp_tick_last += STP_TICK_STEP;
+		while (n-- && timer_expired(&stp_step)) {
+			timer_reset(&stp_step);
 			stp_timers();
 		}
 	}
@@ -1265,9 +1252,13 @@ void idle(void)
 	}
 	if (link_irq) {
 		link_irq = 0;
+		reg_read_m(RTL837X_ISR_INT_PORT_LINK_CHG);
+		link_changed = ((uint16_t)sfr_data[2] << 8) | sfr_data[3];
 		REG_SET(RTL837X_ISR_INT_PORT_LINK_CHG, 0x3ff);
 		EX0 = 1;
 		check_links();
+		if (lacpEnabled)
+			lacp_link_change(link_changed);
 	}
 	health_phase(HEALTH_PH_LINK);
 	if (rx_irq) {
@@ -1289,19 +1280,6 @@ void idle(void)
 		print_cmd_prompt();
 	}
 	health_phase(HEALTH_PH_CMD);
-}
-
-
-// Sleep the given number of ticks and perform idle tasks if initialized
-void sleep(uint16_t t)
-{
-	timer_set(&sleep_timer, t);
-	while (!timer_expired(&sleep_timer)) {
-		if (idle_ready)
-			idle();
-		else
-			PCON |= 1;
-	}
 }
 
 
@@ -1613,8 +1591,6 @@ unsigned char __sdcc_external_startup(void)
 void main(void)
 {
 	ticks = 0;
-	stp_tick_last = (uint8_t)ticks;
-	sfp_tick_last = (uint8_t)ticks;
 	dhcp_state.state = DHCP_OFF;
 	sbuf_ptr = 0;
 
@@ -1640,14 +1616,6 @@ void main(void)
 	// Flash controller should be initialized before any code in other banks is being fetched
 	// See this issue: https://github.com/logicog/RTLPlayground/issues/70
 	print_string("\nInitializing Flash controller\n");
-	/*
-	 * Single-bit fast read for the flash-controller MMIO window. Some SPI NOR
-	 * chips (e.g. Boya/BoHong BY25Q16BS, RDID 0x68 0x40 0x15) return garbage
-	 * for Dual-I/O (0xBB) MMIO reads, which makes every fetch from a code bank
-	 * fail: the firmware then resets about every 10 ms right after
-	 * "Detecting CPU". The board definition can set machine.flash_sio, and
-	 * FLASH_NO_DIO=1 forces it for every target.
-	 */
 #ifdef FLASH_NO_DIO
 	flash_init(0);
 #else
@@ -1809,11 +1777,11 @@ void main(void)
 	/* After the config: a name from it wins, otherwise derive one. */
 	set_hostname_default();
 	print_cmd_prompt();
+	timer_set(&second, SYS_TICK_HZ);
+	timer_set(&sfp_poll, SFP_TICK_STEP);
 	idle_ready = 1;
 
-	/* Some panels show "working" as a slow blink of the SYS LED (see the
-	 * board manual), most are fine with a steady lamp. */
-	set_sys_led_state(machine.sys_led_blink_idle ? SYS_LED_SLOW : SYS_LED_ON);
+	set_sys_led_state(SYS_LED_ON);
 
 	cmd_editor_init();
 

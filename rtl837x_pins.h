@@ -84,10 +84,19 @@ void gpio_input_setup(uint8_t pin) __banked;
  */
 void gpio_output_setup(uint8_t pin, __xdata uint8_t initial_val) __banked;
 
+/* Values for the mode argument of set_gpio_pull_updown() */
+#define GPIO_PULL_NONE 0
+#define GPIO_PULL_UP   1
+#define GPIO_PULL_DOWN 2
+
 /*
- * Front-panel "VLAN" switch support: poll the switch (isolating the RJ45
- * ports while it is on) and append its state to /information.json.
+ * Configure the internal pull resistor of a GPIO pin
+ * pin: GPIO pin number 0-63
+ * mode: GPIO_PULL_NONE to disable pull up and pull down,
+ *       GPIO_PULL_UP to enable the pull up,
+ *       GPIO_PULL_DOWN to enable the pull down
  */
+void gpio_set_pull_mode(uint8_t pin, uint8_t mode) __banked;
 void vlan_switch_poll(void) __banked;
 void vlan_switch_json(void) __banked;
 
