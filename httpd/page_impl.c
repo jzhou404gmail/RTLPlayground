@@ -260,10 +260,20 @@ void send_basic_info(void)
 	str_code_to_html(machine.machine_name);
 	str_code_to_html("\"," JSONQUOTE("pcb_ver") ":\"");
 	str_code_to_html(MACHINE_PCB_INFO);
+	/* Retail model when the board is sold under a name that differs from
+	 * the PCB revision (fork board definitions set it). */
+	if (machine.model_name[0]) {
+		str_code_to_html("\"," JSONQUOTE("model") ":\"");
+		str_code_to_html(machine.model_name);
+	}
 	str_code_to_html("\"," JSONQUOTE("chip_temp") ":\"");
 	temp_to_html();
 	str_code_to_html("\"," JSONQUOTE("flash_size") ":\"");
 	str_code_to_html(get_flash_size_str());
+
+	/* Front-panel VLAN switch: the dashboard card reads these keys. */
+	if (machine.vlan_switch_pin)
+		vlan_switch_json();
 
 	if (machine.n_sfp) {
 		str_code_to_html("\"," JSONQUOTE("sfp_slot_0") ":\"");

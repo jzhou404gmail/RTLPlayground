@@ -250,6 +250,15 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
             <thead><tr><th data-i18n="c_port">Port</th><th data-i18n="c_link">Link</th><th class="num" data-i18n="d_txpps">TX pps</th><th class="num" data-i18n="d_rxpps">RX pps</th><th class="num" data-i18n="d_txbad">TX bad</th><th class="num" data-i18n="d_rxbad">RX bad</th></tr></thead>
             <tbody></tbody></table></div>
         </div>
+        <div class="card" id="dash-vlan" hidden>
+          <h2 data-i18n="d_vlan">VLAN panel switch</h2>
+          <label class="row"><span class="lb" data-i18n="d_vlan_phys">VLAN panel switch</span>
+            <span class="switch"><input type="checkbox" id="vlanphys" disabled><i></i></span></label>
+          <p class="small mut" id="vlanphys_hint"></p>
+          <label class="row"><span class="lb" data-i18n="d_vlan_en">Use VLAN panel switch</span>
+            <span class="switch"><input type="checkbox" id="vlanen"><i></i></span></label>
+          <p class="small mut" id="vlanen_hint"></p>
+        </div>
       </div>
     </section>
 

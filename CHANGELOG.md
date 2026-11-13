@@ -4,6 +4,7 @@
 
 ## Added
 
+- The dashboard has the front-panel VLAN switch card back: it shows the physical switch position and lets the feature be switched on or off (`vlan switch on|off`). `/information.json` carries `model` and the switch fields again, and the System tab shows the retail model next to the PCB revision.
 - `/information.json` reports `uptime` (seconds since boot) and the dashboard shows it as days and hh:mm:ss in every language.
 - The web session idle timeout is 1 h instead of 200 s, so switching tabs no longer logs the operator out.
 - The image builder enforces region limits (`fileadder -l`), so an oversized HTML or configuration payload fails the build instead of overwriting the next region.

@@ -65,7 +65,7 @@ var LANG = {
         i_gw: "Gateway",
         i_mac: "MAC",
         i_fw: "Firmware",
-        i_built: "Built",
+        i_built: "Built", d_vlan: "VLAN panel switch settings", d_vlan_en: "Use VLAN panel switch", d_vlan_en_off: "The VLAN panel switch is ignored; set the LAN ports' VLAN function and state on the VLAN page", d_vlan_en_on: "The VLAN panel switch is in effect: the LAN ports are isolated", d_vlan_h: "panel", d_vlan_off: "All ports can talk to each other (no effect while \"Use VLAN panel switch\" below is off)", d_vlan_on: "LAN ports are isolated and can only reach the SFP+ cages (no effect while \"Use VLAN panel switch\" below is off)", d_vlan_phys: "VLAN panel switch", i_model: "Model",
         i_uptime: "Uptime",
         i_uptime_d: "{d} d {t}",
         i_hw: "Hardware",
@@ -449,7 +449,7 @@ var LANG = {
         i_gw: "ゲートウェイ",
         i_mac: "MAC",
         i_fw: "ファームウェア",
-        i_built: "ビルド日",
+        i_built: "ビルド日", d_vlan: "VLANパネルスイッチ設定", d_vlan_en: "VLANパネルスイッチを有効にする", d_vlan_en_off: "VLANパネルスイッチは無効です。VLAN設定ページでLANポートのVLAN機能を設定してください", d_vlan_en_on: "VLANパネルスイッチが有効です：LANポートは相互に分離されます", d_vlan_h: "パネル", d_vlan_off: "すべてのポートが相互に通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）", d_vlan_on: "LANポートは相互に分離され、SFP+ポートのみと通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）", d_vlan_phys: "VLANパネルスイッチ", i_model: "モデル",
         i_uptime: "稼働時間",
         i_uptime_d: "{d}日 {t}",
         i_hw: "ハードウェア",
@@ -758,7 +758,7 @@ var LANG = {
         i_gw: "网关",
         i_mac: "MAC",
         i_fw: "固件",
-        i_built: "构建日期",
+        i_built: "构建日期", d_vlan: "VLAN物理拨刀开关设置", d_vlan_en: "启用VLAN面板开关", d_vlan_en_off: "VLAN物理拨刀开关失效，请在VLAN设置页面设置LAN口的VLAN功能和状态", d_vlan_en_on: "VLAN物理拨刀开关生效，LAN口互相隔离", d_vlan_h: "面板", d_vlan_off: "所有端口可自由互通（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）", d_vlan_on: "LAN口互相隔离，只能访问SFP+光口（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）", d_vlan_phys: "VLAN面板开关", i_model: "型号",
         i_uptime: "运行时间",
         i_uptime_d: "{d}天 {t}",
         i_hw: "硬件",
@@ -2950,6 +2950,7 @@ function renderInfo() {
         ["i_mac", "mac_address"],
         ["i_fw", "sw_ver"],
         ["i_built", "build_date"],
+        ["i_model", "model"],
         ["i_uptime", "uptime"],
         ["i_hw", "hw_ver"],
         ["i_pcb", "pcb_ver"],
@@ -2979,7 +2980,30 @@ function renderInfo() {
         } catch (e) {}
     }
     if (S.info.sw_ver) $("fver").textContent = "RTLPlayground " + S.info.sw_ver;
+    renderVlan();
 }
+
+/* Dashboard card for the front-panel "VLAN" slide switch. Boards without one
+ * do not report vlan_switch and keep the card hidden. The disabled top switch
+ * shows the position of the physical switch; the bottom one enables the
+ * feature ("vlan switch on|off"). */
+function renderVlan() {
+    var i = S.info || {}, card = $("dash-vlan");
+    if (!card) return;
+    if (!i.vlan_switch) { card.hidden = true; return; }
+    card.hidden = false;
+    var physOn = (i.vlan_switch === "on"), enOn = (i.vlan_switch_en !== "off");
+    $("vlanphys").checked = physOn;
+    $("vlanen").checked = enOn;
+    $("vlanphys_hint").textContent = physOn ? t("d_vlan_on") : t("d_vlan_off");
+    $("vlanen_hint").textContent = enOn ? t("d_vlan_en_on") : t("d_vlan_en_off");
+}
+$("vlanen").addEventListener("change", function() {
+    var want = this.checked;
+    postCmd("vlan switch " + (want ? "on" : "off")).then(function() {
+        return pollInfo();
+    }).catch(function() {});
+});
 
 function pollInfo() {
     return getJSON("/information.json").then(function(j) {
