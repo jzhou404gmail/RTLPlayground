@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "rtl837x_common.h"
+#include "rtl837x_lacp.h"
 #include "rtl837x_port.h"
 #include "machine.h"
 #include "uip.h"
@@ -59,8 +60,6 @@ uint8_t *hex = (uint8_t *)hex_chars;
 const struct machine machine = {
 	.machine_name = "HOSTTEST",
 	.model_name = "HOSTTEST-MODEL",
-	.min_port = 0,
-	.max_port = 8,
 	.n_sfp = 0,
 	.log_to_phys_port = { 1, 2, 3, 4, 5, 6, 7, 8, 9 },
 	.phys_to_log_port = { 0, 1, 2, 3, 4, 5, 6, 7, 8 },
@@ -86,6 +85,18 @@ struct flash_region_t flash_region;
 struct syslog_state syslog_state;
 bool     stp_enabled;
 bool lldp_enabled;
+/* LACP runtime tables: empty, only the STP/LAG page renderers read them. */
+uint8_t  lacpEnabled;
+uint8_t  lacp_actor_state[10];
+uint8_t  lacp_partner_state[10];
+uint8_t  lacp_rx_state[10];
+uint8_t  lacp_partner_sys[10][MAC_ADDR_LEN];
+uint16_t lacp_rx_count[10];
+uint8_t  lacp_port_lag[10];
+uint16_t lacp_lag_ports[LACP_NUM_LAGS];
+uint8_t  lacp_agg_sys[LACP_NUM_LAGS][MAC_ADDR_LEN];
+uint8_t  lacp_agg_valid[LACP_NUM_LAGS];
+uint16_t lacp_members_last[LACP_NUM_LAGS];
 uint16_t lldp_logical_port_status;
 
 

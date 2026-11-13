@@ -107,14 +107,17 @@ void execute_commands(uint8_t *p) { (void)p; }
 void clear_command_history(void) { }
 void udp_callbacks(void) { }
 void tcpip_output(void) { }
+void send_lacp(void) { }
 void get_random_32(void) { }
 void read_timer(uint32_t *tmr) { *tmr = 0; }
 
 /* uip-conf.h asks uIP not to define the packet buffer: on the switch it lives
  * at a fixed XDATA address, so the bench provides the storage itself. */
-u8_t uip_buf[UIP_BUFSIZE + 2];
+u8_t uip_buf[UIP_CONF_BUFFER_ALLOC_SIZE];
 
 uint16_t strlen_x(const char *s) { return (uint16_t)strlen(s); }
+void print_string_no_syslog(const char *s) { (void)s; }
+void itoa_no_syslog(uint8_t v) { (void)v; }
 
 uint16_t strtox(uint8_t *dst, const char *s)
 {
