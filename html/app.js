@@ -5,27 +5,21 @@ nav_dash:"Dashboard",nav_ports:"Ports",nav_stp:"Spanning tree",nav_stats:"Statis
 nav_vlan:"VLANs",nav_l2:"MAC table",nav_mirror:"Mirroring",nav_isolate:"Isolation",nav_lag:"LAG",nav_eee:"EEE",
 nav_bw:"Bandwidth",nav_system:"System",nav_fw:"Firmware",nav_lldp:"LLDP",
 hdr_dirty:"unsaved changes",hdr_dirty_t:"Running config differs from startup config",
-hdr_save:"Save to flash",hdr_save_t:"Persist running configuration to flash",hdr_logout:"Log out",hdr_logout_t:"End the web session",
+hdr_save:"Save to flash",hdr_save_t:"Persist running configuration to flash",
 th_auto:"System",th_auto_sel:"System (Selenized)",sy_display:"Display",sy_theme:"Theme",sy_display_note:"Stored in this browser only.",th_light:"Light",th_dark:"Dark",
 th_sel_light:"Selenized Light",th_sel_dark:"Selenized Dark",
 c_port:"Port",c_name:"Name",c_link:"Link",c_apply:"Apply",c_cancel:"Cancel",c_confirm:"Confirm",
 c_close:"Close",c_refresh:"Refresh",c_off:"off",c_offc:"Off",c_down:"down",c_on:"On",c_auto:"Auto",c_delete:"Delete",
 c_type:"Type",c_state:"State",c_enabled:"Enabled",c_load:"Load",c_disable:"Disable",c_sfp:"SFP",
-c_full:"full",c_half:"half",c_devices:"devices",c_yes:"yes",c_no:"no",
-d_ports:"Ports",d_ports_h:"click a port for details",d_vlan:"VLAN panel switch settings",d_vlan_h:"panel",
-d_vlan_on:"LAN ports are isolated and can only reach the SFP+ cages (no effect while \"Use VLAN panel switch\" below is off)",d_vlan_off:"All ports can talk to each other (no effect while \"Use VLAN panel switch\" below is off)",
-d_vlan_phys:"VLAN panel switch",d_vlan_en:"Use VLAN panel switch",
-d_vlan_en_on:"The VLAN panel switch is in effect: the LAN ports are isolated",d_vlan_en_off:"The VLAN panel switch is ignored; set the LAN ports' VLAN function and state on the VLAN page",
-vlan_warn:"\"Use VLAN panel switch\" is on: the panel switch owns the LAN ports' VLANs and isolation. The settings below are read-only - turn the function off on the dashboard to configure VLANs here.",
-mirror_warn:"\"Use VLAN panel switch\" is on: the panel switch owns the LAN ports. The settings below are read-only - turn the function off on the dashboard to configure mirroring here.",
+c_full:"full",c_half:"half",c_yes:"yes",c_no:"no",
 d_system:"System",d_traffic:"Traffic",
 d_traffic_h:"packets/s, live",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX bad",d_rxbad:"RX bad",
 i_host:"Hostname",i_ip:"IP address",i_mask:"Netmask",i_gw:"Gateway",i_mac:"MAC",i_fw:"Firmware",
-i_built:"Built",i_model:"Model",i_hw:"Hardware",i_temp:"Temperature",i_flash:"Flash",i_syslog:"Syslog",
-p_state:"State",p_disabled:"disabled",p_up:"up",p_txgb:"TX good / bad",p_rxgb:"RX good / bad",
+i_built:"Built",i_hw:"Hardware",i_temp:"Temperature",i_flash:"Flash",i_syslog:"Syslog",
+p_state:"State",p_disabled:"disabled",p_up:"up",
 p_pkts:"pkts",p_module:"Module",p_temp:"Temperature",p_vcc:"Vcc",p_txbias:"TX bias",p_txpower:"TX power",
 p_rxpower:"RX power",p_txfault:"TX fault",p_txdis:"TX disabled",p_rxlos:"RX LOS",p_adv:"Advertising",
-pt_title:"Port configuration",pt_conn:"Connected",pt_speed:"Speed",pt_mtu:"MTU",
+pt_title:"Port configuration",pt_conn:"Devices learned",pt_speed:"Speed",pt_mtu:"MTU",
 pt_sfp_note:"SFP speed is set per slot and is not saved in the startup config.",
 pt_name_err:"Port name: 1-15 characters, no spaces",pt_mtu_err:"MTU must be 64-16383",
 stp_title:"Spanning tree",stp_h:"RSTP, 802.1w",stp_version:"Version",stp_v_stp:"STP compatible",
@@ -47,23 +41,27 @@ stp_en_d:"Ports start blocked and take up to twice the forward delay to reach fo
 stp_dis_q:"Disable spanning tree?",stp_dis_d:"All ports go straight to forwarding; loop protection is lost.",
 stp_cost_err:"Path cost must be 0-200000000",
 lldp_enabled: "LLDP Enabled",lldp_title:"Service Status",lldp_portname:"Name",lldp_enable:"Send Frames",
+stp_pcs:"Path cost",stp_pcs_long:"Long (32 bit)",stp_pcs_short:"Short (16 bit)",
+stp_bh:"BPDUs while disabled",stp_bh_flood:"Flood",stp_bh_filter:"Filter",
+stp_r4:"Backup",stp_times:"max age / forward delay",stp_proto:"Protocol",stp_nolink:"no link",stp_lasttc:"last",
+stp_mcheck:"Check",stp_mcheck_t:"Send RST BPDUs again to find out whether the neighbour still needs 802.1D",
+stp_cnt:"Counters",stp_crx:"BPDUs received",stp_ctx:"BPDUs sent",stp_ctrx:"TC received",stp_cttx:"TC sent",stp_cage:"Last BPDU [s]",
 st_title:"Port statistics",st_h:"totals since boot",st_txg:"TX good",st_txb:"TX bad",st_rxg:"RX good",
 st_rxb:"RX bad",st_details:"Details",st_counters:"MIB counters",st_nonzero:"non-zero only",
 st_autoref:"auto-refresh",st_counter:"Counter",st_value:"Value",st_fail:"failed to load counters",
-v_title:"VLANs",v_vid:"VID",v_members:"Members",v_tagged:"Tagged",v_untagged:"Untagged",v_pvid_on:"PVID on",
+v_title:"VLANs",v_vid:"VLAN ID",v_members:"Members",v_tagged:"Tagged",v_untagged:"Untagged",v_pvid_on:"PVID on",
 v_empty:"No VLANs configured.",v_mgmt:"Management VLAN",v_mgmt_none:"untagged",v_editor:"VLAN editor",
-v_optional:"optional",v_setmgmt:"Set as mgmt VLAN",v_setmgmt_t:"Make this the management VLAN",
-v_member:"Member",v_pvid:"PVID",
-v_legend:"U = untagged member, T = tagged member, - = not a member. PVID assigns this VLAN to untagged ingress traffic.",
-v_ingress:"Ingress filtering",v_ingress_h:"write-only: the state is not readable from the switch",
-v_accept:"Accept",v_ing_all:"All",v_ing_apply:"Apply ingress modes",v_del_t:"Delete VLAN",
+v_optional:"optional",v_setmgmt_q:"Set {n} as the management ID?",v_setmgmt_t:"Management VLAN",
+v_member:"Member",v_pvid:"PVID",v_add:"Add a new VLAN", v_mgmt_c:"WARNING: You must be able to access this VLAN to continue to manage the switch.",
+v_legend:"U = untagged member, T = tagged member, - = not a member. PVID is automatically assigned based on the untagged membership.",
+v_accept:"Accept",v_ing_all:"All",v_del_t:"Delete VLAN",v_rename:"Rename",v_rename_t:"Rename VLAN",
 v_del_q:"Delete VLAN {n}?",v_del_d:"Ports keep their PVID until reassigned.",
-v_vid_err:"Enter a VLAN ID (1-4094)",v_name_err:"Name must start with a letter (letters, digits, _)",
+v_vid_err:"Enter a VLAN ID (1-4094)",v_name_err:"Name must start with a letter (letters, digits, _) and cannot be just 'd' or 'mgmt'",
 v_loaded:"Loaded VLAN {n}",v_notfound:"VLAN {n} not found (a new one can still be created)",
-v_nomember:"Select at least one member port (or delete the VLAN instead)",
-v_ing_none:"Pick an ingress mode for at least one port",v_vid_first:"Enter a VLAN ID first",
-v_mgmt_q:"Set VLAN {n} as management VLAN?",
+v_nomember:"Select at least one member port (or delete the VLAN instead)",v_vid_first:"Enter a VLAN ID first",
+v_mgmt_q:"Set VLAN {n} as management VLAN?",v_vid_err:"VLAN ID already exists",
 v_mgmt_d:"The switch will start tagging its own traffic with that VLAN. If the port you are connected through does not carry it, this page becomes unreachable and the setting can only be undone over the console.",
+v_mgmt_tt:"The management VLAN cannot be deleted, you need to assign management to another VLAN first.",
 l2_title:"MAC address table",l2_filter:"filter...",l2_flush:"Flush learned entries",l2_static:"static",
 l2_learned:"learned",l2_loading:"loading...",l2_failed:"load failed",l2_entries:"entries",
 l2_del_t:"Delete entry",l2_flush_q:"Flush all learned MAC entries?",
@@ -73,6 +71,9 @@ iso_title:"Port isolation",iso_from:"From port",iso_to:"To port",iso_all:"Allow 
 iso_intro:"A frame entering a port may only leave through the ports ticked in its row. Isolation is decided before forwarding, so a port that is not ticked is unreachable directly, whatever the address table says.",
 iso_legend:"The cell of the port itself is always allowed. A port number in red marks a port that is not fully open.",
 lag_hash:"Hash:",lag_note:"A LAG needs at least one member to be saved in the startup config; applying an empty group clears it.",
+lacp_heading:"LACP (802.3ad)",lag_mode:"Mode",lag_static:"Static",lacp_neg:"negotiating",lacp_agg:"aggregator",
+lacp_members:"active members",lacp_hint:"LACP: select candidate ports and press Apply to start negotiation",
+lacp_actor:"Actor",lacp_partner:"Partner",lacp_rxstate:"RX state",lacp_rx:"LACPDUs received",lacp_psys:"Partner system",
 lag_clear_q:"Clear LAG {n}?",lag_clear_d:"All member ports return to normal operation.",
 e_title:"Energy Efficient Ethernet",e_adv:"Advertised",e_lp:"Link partner",e_active:"Active",e_enable:"Enable",
 e_note:"Advertised and link-partner flags per speed: 100M, 1G, 2.5G. SFP ports do not support EEE.",
@@ -103,20 +104,10 @@ sy_dst_us:"United States",sy_now:"Local time",
 sy_sync:"Last synchronisation",sy_ntpaddr:"Server address",sy_nosync:"not synchronised",sy_waiting:"waiting for the server",
 sy_ago:"{n} min ago",sy_ntp_err:"Enter the host name or IPv4 address of the NTP server",sy_ntpint_err:"Poll interval must be 1-1440",
 sy_time_note:"The switch has no battery backed clock: the time is lost at every restart and set again from the NTP server once the network is up. Save to flash to keep the settings.",
-sy_ntp_first:"waiting for the first answer",
-sy_ntp_nodns:"No DNS server is set, so {name} cannot be looked up. Set one in the Network card, or give the NTP server as an IPv4 address.",
-sy_ntp_resolve:"The DNS server did not answer for {name}. Check the DNS server and the gateway in the Network card.",
-sy_ntp_noans:"No usable answer from {ip}: the NTP server, or the way to it, is unreachable.",
-sy_httpport:"HTTP port",sy_httpport_err:"The HTTP port must be 1-65535",
-sy_httpport_q:"Change the HTTP port?",
-sy_httpport_d:"The web interface listens on port {port} from now on. This page stays open until it is closed; reopen it at http://{ip}:{port}/",
-sy_cmdref:"Command reference",
-sy_cmdref_text:"System and network\n  version                          firmware version and build date\n  hostname [name]                  show or set the switch name        hostname sw-1\n  ip [<addr>|dhcp]                 management address (dhcp: ask)     ip 192.168.32.203\n  netmask <mask>                   set the netmask                    netmask 255.255.255.0\n  gw <addr>                        set the default gateway            gw 192.168.32.254\n  dns server <ip> [<ip>]           DNS servers, 0.0.0.0 clears them   dns server 192.168.32.254\n  dns lookup <name>                resolve a name now                 dns lookup ntp.tencent.com\n  http port <1-65535>              web interface port (default 80)    http port 8000\n  passwd                           disable web management; set it in the Web UI\n  session <1-65535>                web session timeout in seconds     session 600\nServices\n  ntp [on|off]                     start or stop the time client      ntp on\n  ntp server <name|ip>             NTP server (ntp.tencent.com)       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            offset from UTC (default +08:00)   ntp timezone +08:00\n  ntp interval <1-1440>            minutes between syncs              ntp interval 60\n  ntp dst off|eu|us                daylight saving rule               ntp dst off\n  time                             local time and the last sync\n  syslog on|off|ip <ip>|port <n>   send the log to a syslog server    syslog ip 192.168.32.10\nSwitching\n  stat                             port state and counters\n  port <n> [show|on|off]           port state, speed, name, lldp      port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN membership, t = tagged        vlan 10 1 2 3t\n  vlan switch [on|off]             front-panel VLAN switch function   vlan switch off\n  pvid <port> <1-4094>             port VLAN ID                       pvid 1 10\n  l2 [forget]                      show the MAC table, or flush it\n  stp on|off|status ...            spanning tree                      stp on\n  igmp on|off|show                 IGMP snooping                      igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        show or set the management MAC\n  bw in|out|status <port> ...      bandwidth limits                   bw in 1 off\n  mirror <port> [port]...          port mirroring                     mirror 1 2\n  history                          the commands typed since the boot\n  defaults                         factory configuration, then reboot\n\nSettings apply at once. To keep them across a reboot, write the line into the\nstartup configuration.",
 sy_sysport_err:"Syslog port must be 1-65535",
-sy_pw_len:"Password: 6-20 characters",sy_pw_space:"Password cannot contain spaces",sy_pw_match:"Passwords do not match",
+sy_pw_len:"Password: 1-20 characters",sy_pw_space:"Password cannot contain spaces",sy_pw_match:"Passwords do not match",
 sy_pw_q:"Change admin password?",sy_pw_d:"Takes effect immediately for new logins. Save to flash to persist.",
 sy_reboot_q:"Reboot the switch?",sy_reboot_d:"There are UNSAVED changes and they will be lost. Save to flash first if you want to keep them.",
-sy_defaults:"Restore factory defaults",sy_defaults_q:"Restore the factory defaults?",sy_defaults_d:"The configuration built into the image replaces the startup configuration and the switch reboots. Its IP address becomes the image's default (192.168.10.12 on the XikeStor builds, otherwise the address in config.txt), so reconnect there.",sy_defaults_doing:"Restoring the factory defaults, the switch reboots",
 sy_rebooting:"Rebooting, reconnect in about 20 s",sy_bytes:"bytes",
 cw_title:"Write this startup configuration?",cw_save_title:"Save running configuration to flash?",
 cw_info:"{n} / 2048 bytes, replayed line by line on every boot",
@@ -149,27 +140,21 @@ nav_dash:"ダッシュボード",nav_ports:"ポート",nav_stp:"スパニング�
 nav_vlan:"VLAN",nav_l2:"MAC テーブル",nav_mirror:"ミラーリング",nav_lag:"LAG",nav_eee:"EEE",
 nav_bw:"帯域制限",nav_system:"システム",nav_fw:"ファームウェア",
 hdr_dirty:"未保存の変更",hdr_dirty_t:"実行中の設定が起動設定と異なります",
-hdr_save:"フラッシュに保存",hdr_save_t:"実行中の設定をフラッシュに書き込む",hdr_logout:"ログアウト",hdr_logout_t:"Web セッションを終了",
+hdr_save:"フラッシュに保存",hdr_save_t:"実行中の設定をフラッシュに書き込む",
 th_auto:"システム",th_auto_sel:"システム (Selenized)",sy_display:"表示",sy_theme:"テーマ",sy_display_note:"このブラウザーにのみ保存されます。",th_light:"ライト",th_dark:"ダーク",
 th_sel_light:"Selenized ライト",th_sel_dark:"Selenized ダーク",
 c_port:"ポート",c_name:"名前",c_link:"リンク",c_apply:"適用",c_cancel:"キャンセル",c_confirm:"確認",
 c_close:"閉じる",c_refresh:"更新",c_off:"オフ",c_offc:"オフ",c_down:"リンクダウン",c_on:"オン",c_auto:"自動",c_delete:"削除",
 c_type:"タイプ",c_state:"状態",c_enabled:"有効",c_load:"読み込み",c_disable:"無効化",c_sfp:"SFP",
-c_full:"全二重",c_half:"半二重",c_devices:"デバイス",c_yes:"はい",c_no:"いいえ",
-d_ports:"ポート",d_ports_h:"ポートをクリックすると詳細を表示",d_vlan:"VLANパネルスイッチ設定",d_vlan_h:"パネル",
-d_vlan_on:"LANポートは相互に分離され、SFP+ポートのみと通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）",d_vlan_off:"すべてのポートが相互に通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）",
-d_vlan_phys:"VLANパネルスイッチ",d_vlan_en:"VLANパネルスイッチを有効にする",
-d_vlan_en_on:"VLANパネルスイッチが有効です：LANポートは相互に分離されます",d_vlan_en_off:"VLANパネルスイッチは無効です。VLAN設定ページでLANポートのVLAN機能を設定してください",
-vlan_warn:"「VLANパネルスイッチを有効にする」がオンです：LANポートのVLANと分離はパネルのスイッチが担当します。以下の設定は参照のみです。ここでVLANを設定するにはダッシュボードで機能をオフにしてください。",
-mirror_warn:"「VLANパネルスイッチを有効にする」がオンです：LANポートはパネルのスイッチが担当します。以下の設定は参照のみです。ミラーを設定するにはダッシュボードで機能をオフにしてください。",
+c_full:"全二重",c_half:"半二重",c_yes:"はい",c_no:"いいえ",
 d_system:"システム",d_traffic:"トラフィック",
 d_traffic_h:"パケット/秒、リアルタイム",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 異常",d_rxbad:"RX 異常",
 i_host:"ホスト名",i_ip:"IP アドレス",i_mask:"ネットマスク",i_gw:"ゲートウェイ",i_mac:"MAC",i_fw:"ファームウェア",
-i_built:"ビルド日",i_model:"モデル",i_hw:"ハードウェア",i_temp:"温度",i_flash:"フラッシュ",i_syslog:"Syslog",
-p_state:"状態",p_disabled:"無効",p_up:"アップ",p_txgb:"TX 正常 / 異常",p_rxgb:"RX 正常 / 異常",
+i_built:"ビルド日",i_hw:"ハードウェア",i_temp:"温度",i_flash:"フラッシュ",i_syslog:"Syslog",
+p_state:"状態",p_disabled:"無効",p_up:"アップ",
 p_pkts:"pkts",p_module:"モジュール",p_temp:"温度",p_vcc:"電圧",p_txbias:"TX バイアス",p_txpower:"TX 電力",
 p_rxpower:"RX 電力",p_txfault:"TX 障害",p_txdis:"TX 無効",p_rxlos:"RX 信号ロス",p_adv:"アドバタイズ",
-pt_title:"ポート設定",pt_conn:"接続デバイス",pt_speed:"速度",pt_mtu:"MTU",
+pt_title:"ポート設定",pt_conn:"学習済みデバイス",pt_speed:"速度",pt_mtu:"MTU",
 pt_sfp_note:"SFP の速度はスロット単位で設定され、起動設定には保存されません。",
 pt_name_err:"ポート名: 1〜15 文字、空白不可",pt_mtu_err:"MTU は 64〜16383 の範囲で指定してください",
 stp_title:"スパニングツリー",stp_h:"RSTP, 802.1w",stp_version:"バージョン",stp_v_stp:"STP 互換",
@@ -198,14 +183,12 @@ v_empty:"VLAN は設定されていません。",v_mgmt:"管理 VLAN",v_mgmt_non
 v_optional:"任意",v_setmgmt:"管理 VLAN に設定",v_setmgmt_t:"この VLAN を管理 VLAN にする",
 v_member:"メンバー",v_pvid:"PVID",
 v_legend:"U = タグ無しメンバー、T = タグ付きメンバー、- = 非メンバー。PVID はタグ無し受信トラフィックをこの VLAN に割り当てます。",
-v_ingress:"受信フィルタ",v_ingress_h:"書き込み専用: 現在の状態はスイッチから読み取れません",
 v_accept:"受け入れ",v_ing_all:"すべて",v_ing_apply:"受信モードを適用",v_del_t:"VLAN を削除",
 v_del_q:"VLAN {n} を削除しますか?",v_del_d:"ポートの PVID は再割り当てされるまで維持されます。",
 v_vid_err:"VLAN ID (1〜4094) を入力してください",v_name_err:"名前は英字で始めてください (英字、数字、_)",
 v_loaded:"VLAN {n} を読み込みました",v_notfound:"VLAN {n} は存在しません (新規作成は可能です)",
 v_nomember:"メンバーポートを 1 つ以上選択してください (または VLAN を削除してください)",
-v_ing_none:"1 つ以上のポートの受信モードを選択してください",v_vid_first:"先に VLAN ID を入力してください",
-v_mgmt_q:"VLAN {n} を管理 VLAN に設定しますか?",
+v_vid_first:"先に VLAN ID を入力してください",v_mgmt_q:"VLAN {n} を管理 VLAN に設定しますか?",
 v_mgmt_d:"スイッチは自身のトラフィックにこの VLAN のタグを付けるようになります。接続中のポートがこの VLAN を通さない場合、このページにアクセスできなくなり、コンソールからしか元に戻せません。",
 l2_title:"MAC アドレステーブル",l2_filter:"フィルタ...",l2_flush:"学習エントリを消去",l2_static:"静的",
 l2_learned:"学習",l2_loading:"読み込み中...",l2_failed:"読み込み失敗",l2_entries:"エントリ",
@@ -234,10 +217,9 @@ sy_net_q:"ネットワーク設定を適用しますか?",sy_net_d:"管理 IP �
 sy_ip_changed:"IP を変更しました。http://{ip}/ に再接続してください",sy_dhcp_q:"DHCP に切り替えますか?",
 sy_dhcp_d:"スイッチは DHCP でアドレスを要求します。再接続するには新しい IP を確認する必要があります。",
 sy_sysip_err:"syslog サーバー IP が無効です",sy_sysport_err:"syslog ポートは 1〜65535 の範囲で指定してください",
-sy_pw_len:"パスワード: 6〜20 文字",sy_pw_space:"パスワードに空白は使えません",sy_pw_match:"パスワードが一致しません",
+sy_pw_len:"パスワード: 1〜20 文字",sy_pw_space:"パスワードに空白は使えません",sy_pw_match:"パスワードが一致しません",
 sy_pw_q:"管理者パスワードを変更しますか?",sy_pw_d:"新しいログインから即時に有効になります。保持するにはフラッシュに保存してください。",
 sy_reboot_q:"スイッチを再起動しますか?",sy_reboot_d:"未保存の変更があり、失われます。保持したい場合は先にフラッシュに保存してください。",
-sy_defaults:"工場出荷状態に戻す",sy_defaults_q:"工場出荷状態の設定に戻しますか?",sy_defaults_d:"イメージに組み込まれた設定が起動設定を置き換え、スイッチが再起動します。IP アドレスはイメージの既定値 (XikeStor ビルドでは 192.168.10.12、それ以外は config.txt の値) になるので、そのアドレスで再接続してください。",sy_defaults_doing:"工場出荷状態に戻しています。スイッチが再起動します",
 sy_rebooting:"再起動中です。約 20 秒後に再接続してください",sy_bytes:"バイト",
 cw_title:"この起動設定を書き込みますか?",cw_save_title:"実行中の設定をフラッシュに保存しますか?",
 cw_info:"{n} / 2048 バイト、起動のたびに 1 行ずつ実行されます",
@@ -269,27 +251,21 @@ nav_dash:"仪表盘",nav_ports:"端口",nav_stp:"生成树",nav_stats:"统计",
 nav_vlan:"VLAN",nav_l2:"MAC 表",nav_mirror:"端口镜像",nav_lag:"LAG",nav_eee:"EEE",
 nav_bw:"带宽限制",nav_system:"系统",nav_fw:"固件",
 hdr_dirty:"未保存的更改",hdr_dirty_t:"运行配置与启动配置不同",
-hdr_save:"保存到 Flash",hdr_save_t:"将运行配置写入 Flash",hdr_logout:"退出登录",hdr_logout_t:"结束当前 Web 会话",
+hdr_save:"保存到 Flash",hdr_save_t:"将运行配置写入 Flash",
 th_auto:"跟随系统",th_auto_sel:"跟随系统 (Selenized)",sy_display:"显示",sy_theme:"主题",sy_display_note:"仅保存在此浏览器中。",th_light:"浅色",th_dark:"深色",
 th_sel_light:"Selenized 浅色",th_sel_dark:"Selenized 深色",
 c_port:"端口",c_name:"名称",c_link:"链路",c_apply:"应用",c_cancel:"取消",c_confirm:"确认",
 c_close:"关闭",c_refresh:"刷新",c_off:"关",c_offc:"关",c_down:"未连接",c_on:"开",c_auto:"自动",c_delete:"删除",
 c_type:"类型",c_state:"状态",c_enabled:"启用",c_load:"读取",c_disable:"禁用",c_sfp:"SFP",
-c_full:"全双工",c_half:"半双工",c_devices:"台设备",c_yes:"是",c_no:"否",
-d_ports:"端口",d_ports_h:"点击端口查看详情",d_vlan:"VLAN物理拨刀开关设置",d_vlan_h:"面板",
-d_vlan_on:"LAN口互相隔离，只能访问SFP+光口（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）",d_vlan_off:"所有端口可自由互通（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）",
-d_vlan_phys:"VLAN面板开关",d_vlan_en:"启用VLAN面板开关",
-d_vlan_en_on:"VLAN物理拨刀开关生效，LAN口互相隔离",d_vlan_en_off:"VLAN物理拨刀开关失效，请在VLAN设置页面设置LAN口的VLAN功能和状态",
-vlan_warn:"「启用VLAN面板开关」已开启：LAN 口的 VLAN 与隔离由面板拨刀接管。以下设置只读、仅供查看；如需在网页中配置 VLAN，请先在仪表盘关闭该开关。",
-mirror_warn:"「启用VLAN面板开关」已开启：端口镜像由面板拨刀接管。以下设置只读、仅供查看；如需配置端口镜像，请先在仪表盘关闭该开关。",
+c_full:"全双工",c_half:"半双工",c_yes:"是",c_no:"否",
 d_system:"系统",d_traffic:"流量",
 d_traffic_h:"包/秒，实时",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 错误",d_rxbad:"RX 错误",
 i_host:"主机名",i_ip:"IP 地址",i_mask:"子网掩码",i_gw:"网关",i_mac:"MAC",i_fw:"固件",
-i_built:"构建日期",i_model:"型号",i_hw:"硬件",i_temp:"温度",i_flash:"Flash",i_syslog:"Syslog",
-p_state:"状态",p_disabled:"已禁用",p_up:"已连接",p_txgb:"TX 正常 / 错误",p_rxgb:"RX 正常 / 错误",
+i_built:"构建日期",i_hw:"硬件",i_temp:"温度",i_flash:"Flash",i_syslog:"Syslog",
+p_state:"状态",p_disabled:"已禁用",p_up:"已连接",
 p_pkts:"个包",p_module:"模块",p_temp:"温度",p_vcc:"供电电压",p_txbias:"TX 偏置电流",p_txpower:"TX 光功率",
 p_rxpower:"RX 光功率",p_txfault:"TX 故障",p_txdis:"TX 禁用",p_rxlos:"RX 信号丢失",p_adv:"通告能力",
-pt_title:"端口配置",pt_conn:"已连接设备",pt_speed:"速率",pt_mtu:"MTU",
+pt_title:"端口配置",pt_conn:"已学习设备",pt_speed:"速率",pt_mtu:"MTU",
 pt_sfp_note:"SFP 速率按插槽设置，不会保存到启动配置。",
 pt_name_err:"端口名称: 1-15 个字符，不能包含空格",pt_mtu_err:"MTU 范围为 64-16383",
 stp_title:"生成树",stp_h:"RSTP, 802.1w",stp_version:"版本",stp_v_stp:"STP 兼容",
@@ -318,14 +294,12 @@ v_empty:"尚未配置 VLAN。",v_mgmt:"管理 VLAN",v_mgmt_none:"untagged",v_edi
 v_optional:"可选",v_setmgmt:"设为管理 VLAN",v_setmgmt_t:"将此 VLAN 设为管理 VLAN",
 v_member:"成员",v_pvid:"PVID",
 v_legend:"U = untagged 成员，T = tagged 成员，- = 非成员。PVID 将入方向的未标记流量归入此 VLAN。",
-v_ingress:"入方向过滤",v_ingress_h:"只写: 当前状态无法从交换机读取",
 v_accept:"接受",v_ing_all:"全部",v_ing_apply:"应用入方向模式",v_del_t:"删除 VLAN",
 v_del_q:"删除 VLAN {n}?",v_del_d:"端口的 PVID 在重新分配前保持不变。",
 v_vid_err:"请输入 VLAN ID (1-4094)",v_name_err:"名称必须以字母开头 (字母、数字、_)",
 v_loaded:"已读取 VLAN {n}",v_notfound:"VLAN {n} 不存在 (仍可新建)",
 v_nomember:"请至少选择一个成员端口 (或改为删除该 VLAN)",
-v_ing_none:"请至少为一个端口选择入方向模式",v_vid_first:"请先输入 VLAN ID",
-v_mgmt_q:"将 VLAN {n} 设为管理 VLAN?",
+v_vid_first:"请先输入 VLAN ID",v_mgmt_q:"将 VLAN {n} 设为管理 VLAN?",
 v_mgmt_d:"交换机将开始为自身流量打上该 VLAN 标签。如果您所连接的端口不属于该 VLAN，本页面将无法访问，且只能通过控制台撤销此设置。",
 l2_title:"MAC 地址表",l2_filter:"筛选...",l2_flush:"清除学习条目",l2_static:"静态",
 l2_learned:"动态学习",l2_loading:"加载中...",l2_failed:"加载失败",l2_entries:"条",
@@ -344,20 +318,6 @@ sy_network:"网络",sy_dhcp:"使用 DHCP",sy_dhcp_t:"通过 DHCP 获取地址",s
 sy_igmp:"IGMP 侦听",sy_sysip:"服务器 IP",sy_server:"服务器",sy_port:"端口",
 sy_sesstmo:"会话超时（秒）",sy_sesstmo_err:"会话超时必须为 1-65535 秒",
 sy_services_note:"服务状态反映启动配置；运行时状态无法读取。",
-sy_time:"时间",sy_ntp:"NTP",sy_ntpsrv:"NTP 服务器",sy_ntpsrv_p:"主机名或 IPv4 地址",sy_ntpint:"同步间隔 [分钟]",
-sy_tz:"时区",sy_dst:"夏令时",sy_dst_eu:"欧洲",sy_dst_us:"美国",sy_now:"本地时间",
-sy_sync:"上次同步",sy_ntpaddr:"服务器地址",sy_nosync:"未同步",sy_waiting:"等待服务器",
-sy_ago:"{n} 分钟前",sy_ntp_err:"请输入 NTP 服务器的主机名或 IPv4 地址",sy_ntpint_err:"同步间隔必须为 1-1440",
-sy_time_note:"交换机没有带电池的时钟：每次重启都会丢失时间，网络连通后由 NTP 服务器重新对时。如需重启后保留请保存到 Flash。",
-sy_ntp_first:"等待第一次应答",
-sy_ntp_nodns:"没有配置 DNS 服务器，无法解析 {name}。请在上方「网络」卡片中设置 DNS，或把 NTP 服务器填成 IPv4 地址。",
-sy_ntp_resolve:"DNS 服务器没有应答 {name} 的查询。请检查「网络」卡片中的 DNS 服务器与网关。",
-sy_ntp_noans:"{ip} 没有返回可用的应答：NTP 服务器或到它的路径不可达。",
-sy_httpport:"HTTP 端口",sy_httpport_err:"HTTP 端口必须为 1-65535",
-sy_httpport_q:"修改 HTTP 端口?",
-sy_httpport_d:"管理界面从现在起监听 {port} 端口。当前页面在关闭前仍可用，之后请用 http://{ip}:{port}/ 打开。",
-sy_cmdref:"常用命令速查",
-sy_cmdref_text:"系统与网络\n  version                          固件版本与编译日期\n  hostname [name]                  查看/设置交换机名                      hostname sw-1\n  ip [<addr>|dhcp]                 管理地址（dhcp 为自动获取）            ip 192.168.32.203\n  netmask <mask>                   设置子网掩码                          netmask 255.255.255.0\n  gw <addr>                        设置默认网关                          gw 192.168.32.254\n  dns server <ip> [<ip>]           设置 DNS，0.0.0.0 表示清除             dns server 192.168.32.254\n  dns lookup <name>                立即解析一个域名                      dns lookup ntp.tencent.com\n  http port <1-65535>              管理界面端口（默认 80）               http port 8000\n  passwd                           禁用 Web 管理；口令在网页里修改\n  session <1-65535>                网页会话超时秒数                      session 600\n服务\n  ntp [on|off]                     开启/关闭时间同步                     ntp on\n  ntp server <name|ip>             设置 NTP 服务器                       ntp server ntp.tencent.com\n  ntp timezone <+hh:mm>            时区偏移（默认 +08:00）               ntp timezone +08:00\n  ntp interval <1-1440>            同步间隔（分钟）                      ntp interval 60\n  ntp dst off|eu|us                夏令时规则                            ntp dst off\n  time                             查看本地时间与上次同步\n  syslog on|off|ip <ip>|port <n>   日志发送到 syslog 服务器              syslog ip 192.168.32.10\n交换功能\n  stat                             端口状态与计数器\n  port <n> [show|on|off]           端口开关、速率、名称、lldp            port 1 off\n  vlan (<vid>|show) [port][t]...   VLAN 成员，t 表示 tagged              vlan 10 1 2 3t\n  vlan switch [on|off]             面板 VLAN 拨刀功能开关                vlan switch off\n  pvid <port> <1-4094>             端口 PVID                             pvid 1 10\n  l2 [forget]                      查看 MAC 表，forget 清空\n  stp on|off|status ...            生成树                                stp on\n  igmp on|off|show                 IGMP 侦听                             igmp on\n  mac [<aa:bb:cc:dd:ee:ff>]        查看/设置管理 MAC\n  bw in|out|status <port> ...      端口限速                              bw in 1 off\n  mirror <port> [port]...          端口镜像                              mirror 1 2\n  history                          本次启动以来输入过的命令\n  defaults                         恢复出厂配置并重启\n\n命令立即生效；如需重启后保留，请把该行写入上面的「启动配置」。",
 sy_password:"管理员密码",sy_newpw:"新密码",sy_repeat:"重复输入",sy_pwapply:"修改密码",
 sy_pw_note:"立即生效；如需重启后保留请保存到 Flash。",sy_console:"控制台",
 sy_cmd:"CLI 命令...",sy_send:"发送",sy_startup:"启动配置",sy_replayed:"每次启动时重新执行",
@@ -368,10 +328,9 @@ sy_net_q:"应用网络设置?",sy_net_d:"管理 IP 将变为 {ip}，需要使用
 sy_ip_changed:"IP 已更改，请访问 http://{ip}/ 重新连接",sy_dhcp_q:"切换到 DHCP?",
 sy_dhcp_d:"交换机将通过 DHCP 请求地址。您需要查到新的 IP 才能重新连接。",
 sy_sysip_err:"syslog 服务器 IP 无效",sy_sysport_err:"syslog 端口范围为 1-65535",
-sy_pw_len:"密码: 6-20 个字符",sy_pw_space:"密码不能包含空格",sy_pw_match:"两次输入的密码不一致",
+sy_pw_len:"密码: 1-20 个字符",sy_pw_space:"密码不能包含空格",sy_pw_match:"两次输入的密码不一致",
 sy_pw_q:"修改管理员密码?",sy_pw_d:"对新的登录立即生效。如需保留请保存到 Flash。",
 sy_reboot_q:"重启交换机?",sy_reboot_d:"存在未保存的更改，重启后将丢失。如需保留请先保存到 Flash。",
-sy_defaults:"恢复出厂设置",sy_defaults_q:"恢复出厂设置?",sy_defaults_d:"将用镜像内嵌的出厂配置替换当前启动配置，并重启交换机。IP 地址会变成镜像的默认值（XikeStor 构建为 192.168.10.12，其它构建为 config.txt 中的地址），请到该地址重新连接。",sy_defaults_doing:"正在恢复出厂设置，交换机重启中",
 sy_rebooting:"正在重启，约 20 秒后重新连接",sy_bytes:"字节",
 cw_title:"写入此启动配置?",cw_save_title:"将运行配置保存到 Flash?",
 cw_info:"{n} / 2048 字节，每次启动时逐行执行",
@@ -403,27 +362,21 @@ nav_dash:"Panel",nav_ports:"Puertos",nav_stp:"Árbol de expansión",nav_stats:"E
 nav_vlan:"VLAN",nav_l2:"Tabla MAC",nav_mirror:"Duplicación",nav_lag:"LAG",nav_eee:"EEE",
 nav_bw:"Ancho de banda",nav_system:"Sistema",nav_fw:"Firmware",
 hdr_dirty:"cambios sin guardar",hdr_dirty_t:"La configuración en ejecución difiere de la guardada",
-hdr_save:"Guardar en flash",hdr_save_t:"Persistir la configuración en ejecución a flash",hdr_logout:"Cerrar sesión",hdr_logout_t:"Finalizar la sesión web",
+hdr_save:"Guardar en flash",hdr_save_t:"Persistir la configuración en ejecución a flash",
 th_auto:"Sistema",th_auto_sel:"Sistema (Selenized)",sy_display:"Pantalla",sy_theme:"Tema",sy_display_note:"Se almacena solo en este navegador.",th_light:"Claro",th_dark:"Oscuro",
 th_sel_light:"Selenized claro",th_sel_dark:"Selenized oscuro",
 c_port:"Puerto",c_name:"Nombre",c_link:"Enlace",c_apply:"Aplicar",c_cancel:"Cancelar",c_confirm:"Confirmar",
 c_close:"Cerrar",c_refresh:"Actualizar",c_off:"apagado",c_offc:"Apagado",c_down:"caído",c_on:"Encendido",c_auto:"Auto",c_delete:"Eliminar",
 c_type:"Tipo",c_state:"Estado",c_enabled:"Habilitado",c_load:"Cargar",c_disable:"Deshabilitar",c_sfp:"SFP",
-c_full:"dúplex completo",c_half:"semidúplex",c_devices:"dispositivos",c_yes:"sí",c_no:"no",
-d_ports:"Puertos",d_ports_h:"pulsa un puerto para ver detalles",d_vlan:"Ajustes del interruptor VLAN del panel",d_vlan_h:"panel",
-d_vlan_on:"Los puertos LAN están aislados y solo alcanzan las jaulas SFP+ (sin efecto si el interruptor de abajo está desactivado)",d_vlan_off:"Todos los puertos pueden comunicarse (sin efecto si el interruptor de abajo está desactivado)",
-d_vlan_phys:"Interruptor VLAN del panel",d_vlan_en:"Usar el interruptor VLAN del panel",
-d_vlan_en_on:"El interruptor VLAN del panel está activo: los puertos LAN están aislados",d_vlan_en_off:"El interruptor VLAN del panel está desactivado; configure la VLAN de los puertos LAN en la página VLAN",
-vlan_warn:"«Usar el interruptor VLAN del panel» está activado: el interruptor del panel controla las VLAN y el aislamiento de los puertos LAN. Los ajustes de abajo son de solo lectura; desactive la función en el panel de control para configurar VLAN aquí.",
-mirror_warn:"«Usar el interruptor VLAN del panel» está activado: el interruptor del panel controla los puertos LAN. Los ajustes de abajo son de solo lectura; desactive la función en el panel de control para configurar el espejo aquí.",
+c_full:"dúplex completo",c_half:"semidúplex",c_yes:"sí",c_no:"no",
 d_system:"Sistema",d_traffic:"Tráfico",
 d_traffic_h:"paquetes/s, en vivo",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX erróneos",d_rxbad:"RX erróneos",
 i_host:"Nombre de host",i_ip:"Dirección IP",i_mask:"Máscara de red",i_gw:"Puerta de enlace",i_mac:"MAC",i_fw:"Firmware",
-i_built:"Compilado",i_model:"Modelo",i_hw:"Hardware",i_flash:"Flash",i_syslog:"Syslog",
-p_state:"Estado",p_disabled:"deshabilitado",p_up:"activo",p_txgb:"TX correctos / erróneos",p_rxgb:"RX correctos / erróneos",
+i_built:"Compilado",i_hw:"Hardware",i_flash:"Flash",i_syslog:"Syslog",
+p_state:"Estado",p_disabled:"deshabilitado",p_up:"activo",
 p_pkts:"paquetes",p_module:"Módulo",p_temp:"Temperatura",p_vcc:"Vcc",p_txbias:"Polarización TX",p_txpower:"Potencia TX",
 p_rxpower:"Potencia RX",p_txfault:"Fallo TX",p_txdis:"TX deshabilitado",p_rxlos:"Pérdida RX (LOS)",p_adv:"Anunciado",
-pt_title:"Configuración de puerto",pt_conn:"Conectado",pt_speed:"Velocidad",pt_mtu:"MTU",
+pt_title:"Configuración de puerto",pt_conn:"Dispositivos aprendidos",pt_speed:"Velocidad",pt_mtu:"MTU",
 pt_sfp_note:"La velocidad del SFP se ajusta por ranura y no se guarda en la configuración de inicio.",
 pt_name_err:"Nombre de puerto: 1-15 caracteres, sin espacios",pt_mtu_err:"El MTU debe estar entre 64 y 16383",
 stp_title:"Árbol de expansión",stp_h:"RSTP, 802.1w",stp_version:"Versión",stp_v_stp:"STP compatible",
@@ -452,14 +405,12 @@ v_empty:"No hay VLANs configuradas.",v_mgmt:"VLAN de gestión",v_mgmt_none:"sin 
 v_optional:"opcional",v_setmgmt:"Establecer como VLAN de gestión",v_setmgmt_t:"Hacer esta la VLAN de gestión",
 v_member:"Miembro",v_pvid:"PVID",
 v_legend:"U = miembro sin etiquetar, T = miembro etiquetado, - = no miembro. PVID asigna esta VLAN al tráfico entrante sin etiquetar.",
-v_ingress:"Filtrado de entrada",v_ingress_h:"solo escritura: el estado no se puede leer desde el switch",
 v_accept:"Aceptar",v_ing_all:"Todos",v_ing_apply:"Aplicar modos de entrada",v_del_t:"Eliminar VLAN",
 v_del_q:"¿Eliminar VLAN {n}?",v_del_d:"Los puertos conservan su PVID hasta que se reasignen.",
 v_vid_err:"Introduce un ID de VLAN (1-4094)",v_name_err:"El nombre debe empezar por una letra (letras, dígitos, _)",
 v_loaded:"VLAN {n} cargada",v_notfound:"VLAN {n} no encontrada (aún se puede crear una nueva)",
 v_nomember:"Selecciona al menos un puerto miembro (o elimina la VLAN)",
-v_ing_none:"Elige un modo de entrada para al menos un puerto",v_vid_first:"Introduce primero un ID de VLAN",
-v_mgmt_q:"¿Establecer VLAN {n} como VLAN de gestión?",
+v_vid_first:"Introduce primero un ID de VLAN",v_mgmt_q:"¿Establecer VLAN {n} como VLAN de gestión?",
 v_mgmt_d:"El switch empezará a etiquetar su propio tráfico con esa VLAN. Si el puerto por el que te conectas no la transporta, esta página dejará de ser accesible y el ajuste solo podrá deshacerse por la consola.",
 l2_title:"Tabla de direcciones MAC",l2_filter:"filtrar...",l2_flush:"Vaciar entradas aprendidas",l2_static:"estática",
 l2_learned:"aprendida",l2_loading:"cargando...",l2_failed:"error de carga",l2_entries:"entradas",
@@ -488,10 +439,9 @@ sy_net_q:"¿Aplicar ajustes de red?",sy_net_d:"La IP de gestión cambia a {ip}: 
 sy_ip_changed:"IP cambiada, reconecta en http://{ip}/",sy_dhcp_q:"¿Cambiar a DHCP?",
 sy_dhcp_d:"El switch solicita una dirección mediante DHCP. Deberás encontrar su nueva IP para reconectar.",
 sy_sysip_err:"IP del servidor syslog no válida",sy_sysport_err:"El puerto de syslog debe estar entre 1 y 65535",
-sy_pw_len:"Contraseña: 6-20 caracteres",sy_pw_space:"La contraseña no puede contener espacios",sy_pw_match:"Las contraseñas no coinciden",
+sy_pw_len:"Contraseña: 1-20 caracteres",sy_pw_space:"La contraseña no puede contener espacios",sy_pw_match:"Las contraseñas no coinciden",
 sy_pw_q:"¿Cambiar la contraseña de administrador?",sy_pw_d:"Toma efecto inmediatamente para los nuevos inicios de sesión. Guarda en flash para persistir.",
 sy_reboot_q:"¿Reiniciar el switch?",sy_reboot_d:"Hay cambios SIN GUARDAR y se perderán. Guarda en flash primero si quieres conservarlos.",
-sy_defaults:"Restaurar valores de fábrica",sy_defaults_q:"¿Restaurar los valores de fábrica?",sy_defaults_d:"La configuración incluida en la imagen sustituye a la configuración de arranque y el switch se reinicia. Su dirección IP pasa a ser la predeterminada de la imagen (192.168.10.12 en las compilaciones XikeStor, si no la de config.txt), así que vuelve a conectarte ahí.",sy_defaults_doing:"Restaurando los valores de fábrica, el switch se reinicia",
 sy_rebooting:"Reiniciando, reconecta en unos 20 s",sy_bytes:"bytes",
 cw_title:"¿Escribir esta configuración de inicio?",cw_save_title:"¿Guardar la configuración en ejecución en flash?",
 cw_info:"{n} / 2048 bytes, reaplicada línea a línea en cada arranque",
@@ -520,29 +470,23 @@ fw_timeout:"el switch no ha vuelto tras 150 s: comprueba la alimentación / cons
 fr:{
 nav_dash:"Tableau de bord",nav_ports:"Ports",nav_stp:"Arborescence",nav_stats:"Statistiques",
 nav_vlan:"LANs virtuels",nav_l2:"Table MAC",nav_mirror:"Mise en mirroir",nav_lag:"Aggrégation",nav_eee:"Energie",
-nav_bw:"Bande passante",nav_system:"Système",nav_fw:"Micro logiciel",
+nav_bw:"Bande passante",nav_system:"Système",nav_fw:"Micro logiciel",nav_lldp:"Couche de Liaison",
 hdr_dirty:"Changements non sauvegardés",hdr_dirty_t:"La configuration utilisée diffère de celle au démarrage",
-hdr_save:"Sauvegarder en flash",hdr_save_t:"Maintenir la configuration actuelle en flash",hdr_logout:"Déconnexion",hdr_logout_t:"Terminer la session web",
+hdr_save:"Sauvegarder en flash",hdr_save_t:"Maintenir la configuration actuelle en flash",
 th_auto:"Système",th_auto_sel:"Système (sélénisé)",sy_display:"Affichage",sy_theme:"Thème",sy_display_note:"Enregistré seulement dans ce navigateur.",th_light:"Clair",th_dark:"Sombre",
 th_sel_light:"Clair (sélénisé)",th_sel_dark:"Sombre (sélénisé)",
 c_port:"Port",c_name:"Nom",c_link:"Lien",c_apply:"Appliquer",c_cancel:"Annuler",c_confirm:"Confirmer",
 c_close:"Fermer",c_refresh:"Raffraichir",c_off:"arrêt",c_offc:"Arrêt",c_down:"arrêt",c_on:"Marche",c_auto:"Auto",c_delete:"Supprimer",
 c_type:"Type",c_state:"Etat",c_enabled:"Activé",c_load:"Charger",c_disable:"Désactivé",c_sfp:"SFP",
-c_full:"full",c_half:"half",c_devices:"Equipements",c_yes:"oui",c_no:"non",
-d_ports:"Ports",d_ports_h:"Cliquez ou survollez pour plus de détails",d_vlan:"Réglages du commutateur VLAN du panneau",d_vlan_h:"panneau",
-d_vlan_on:"Les ports LAN sont isolés et n'atteignent que les cages SFP+ (sans effet si le commutateur ci-dessous est désactivé)",d_vlan_off:"Tous les ports peuvent communiquer (sans effet si le commutateur ci-dessous est désactivé)",
-d_vlan_phys:"Commutateur VLAN du panneau",d_vlan_en:"Utiliser le commutateur VLAN du panneau",
-d_vlan_en_on:"Le commutateur VLAN du panneau est actif : les ports LAN sont isolés",d_vlan_en_off:"Le commutateur VLAN du panneau est ignoré ; configurez la VLAN des ports LAN dans la page VLAN",
-vlan_warn:"« Utiliser le commutateur VLAN du panneau » est actif : le commutateur du panneau gère les VLAN et l'isolation des ports LAN. Les réglages ci-dessous sont en lecture seule ; désactivez la fonction sur le tableau de bord pour configurer les VLAN ici.",
-mirror_warn:"« Utiliser le commutateur VLAN du panneau » est actif : le commutateur du panneau gère les ports LAN. Les réglages ci-dessous sont en lecture seule ; désactivez la fonction sur le tableau de bord pour configurer le miroir ici.",
+c_full:"full",c_half:"half",c_yes:"oui",c_no:"non",
 d_system:"Système",d_traffic:"Trafic",
 d_traffic_h:"paquets/s (en direct)",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX KO",d_rxbad:"RX KO",
 i_host:"Nom d'hote",i_ip:"Adresse IP",i_mask:"Masque réseau",i_gw:"Passerelle",i_mac:"Adresse MAC",i_fw:"Micro logiciel",
-i_built:"Compilé le",i_model:"Modèle",i_hw:"Matériel",i_temp:"Température",i_flash:"Taille Flash",i_syslog:"Journal système",
-p_state:"Etat",p_disabled:"Inactif",p_up:"Actif",p_txgb:"TX bon / mauvais",p_rxgb:"RX bon / mauvais",
+i_built:"Compilé le",i_hw:"Matériel",i_temp:"Température",i_flash:"Taille Flash",i_syslog:"Journal système",
+p_state:"Etat",p_disabled:"Inactif",p_up:"Actif",
 p_pkts:"paquets",p_module:"Module",p_temp:"Température",p_vcc:"Vcc",p_txbias:"TX biais",p_txpower:"TX puissance",
 p_rxpower:"RX puissance",p_txfault:"TX erreur",p_txdis:"TX désactivé",p_rxlos:"RX pertes de signaux",p_adv:"Capacités",
-pt_title:"Configuration du port",pt_conn:"Connecté à",pt_speed:"Vitesse",pt_mtu:"MTU",
+pt_title:"Configuration du port",pt_conn:"Appareils appris",pt_speed:"Vitesse",pt_mtu:"MTU",
 pt_sfp_note:"La vitesse SFP est paramétrée pour le port et n'est pas enregistrée dans la configuration de démarrage.",
 pt_name_err:"Nom du port: 1 à 15 caractères, sans espaces",pt_mtu_err:"MTU doit être comrpis entre 64 et 16383",
 stp_title:"Arborescence",stp_h:"RSTP, 802.1w",stp_version:"Protocole",stp_v_stp:"Compatible STP",
@@ -563,6 +507,7 @@ stp_en_q:"Activer l'arbrescence?",
 stp_en_d:"Les ports sont d'abord bloqués et cela prend deux fois le délai de retransmission pour atteindre l'état de retransmission; les ports en bordures recouvrent immédiatement leur état.",
 stp_dis_q:"Désactiver l'arborescence ?",stp_dis_d:"Tous les ports vont être retransmis; la protection de boucles est perdue.",
 stp_cost_err:"Le coût du chemin doit être compris entre 0 et 200000000",
+lldp_enabled: "Activer LLDP",lldp_title:"Protocole de découverte de la couche de liason (LLDP)",lldp_portname:"Nom",lldp_enable:"Envoi de trames",
 st_title:"Statiqtique du port",st_h:"cumul depuis le démarrage",st_txg:"TX OK",st_txb:"TX KO",st_rxg:"RX OK",
 st_rxb:"RX KO",st_details:"Détails",st_counters:"Compteur MIB",st_nonzero:"non-zero seulement",
 st_autoref:"rafraichissement automatique",st_counter:"Compteur",st_value:"Valeur",st_fail:"Erreur au chargement des compteurs",
@@ -571,14 +516,12 @@ v_empty:"Aucun VLANs configuré.",v_mgmt:"VLAN de management",v_mgmt_none:"déta
 v_optional:"optionel",v_setmgmt:"Mette en VLAN de management",v_setmgmt_t:"Mettre celui-ci en VLAN de management",
 v_member:"Membre",v_pvid:"PVID",
 v_legend:"U = Membre détagué (UnTagged), T = membre tagué (Tagged), - = non membre. PVID (Port VLan ID) assigne ce VLAN au trafic entrant non tagué.",
-v_ingress:"Filtrage entrant",v_ingress_h:"en ériture seule: cet état n'est pas lisible depuis le communtateur réseau",
 v_accept:"Accepté",v_ing_all:"Tous",v_ing_apply:"Appliquer les filtes",v_del_t:"Supprimer le VLAN",
 v_del_q:"Supprimer le VLAN {n}?",v_del_d:"Les ports conservent leur PVID tant qu'ils ne sont pas réassignés.",
 v_vid_err:"Entrez un identifiant VLAN (1-4094)",v_name_err:"Le nom doit commencer par une lettre (lettre, chiffres, _)",
 v_loaded:"VLAN chargés {n}",v_notfound:"VLAN {n} non trouvé (un nouveau peut toutefois être créé)",
 v_nomember:"Selectionnez au moins un port membre (ou supprimez le VLAN)",
-v_ing_none:"Sélectionnez le mode entrant pour au moins un port",v_vid_first:"Entrez un identifiant VLAN d'abord",
-v_mgmt_q:"Mettre ce VLAN {n} en tant que VLAN de management?",
+v_vid_first:"Entrez un identifiant VLAN d'abord",v_mgmt_q:"Mettre ce VLAN {n} en tant que VLAN de management?",
 v_mgmt_d:"Ce commutateur commencera par taguer son propre trafic avec ce VLAN. Si le port avec lequel vous êtes connecté ne le permet pas, cette page deviendra inaccessible et les paramètres ne pourront plus être changés que via la console.",
 l2_title:"Table des adresses MAC",l2_filter:"filtre...",l2_flush:"Effacer les entrées apprises",l2_static:"static",
 l2_learned:"appris",l2_loading:"chargement...",l2_failed:"chargement non réussi",l2_entries:"entrées",
@@ -596,6 +539,9 @@ e_idle:"Inactif",e_na:"N/A",
 bw_title:"Limitations de bande passante",bw_h:"Mbit/s, 0.016-10000",bw_in:"Limite entrante",bw_out:"Limite sortante",
 bw_exceed:"Lorsque dépassé",bw_fc:"Limiter",bw_drop:"Rejetter",
 bw_in_err:"La limite entrante doit être comprise entre 0.016 et 10000 Mbit/s",bw_out_err:"La limite sortante doit être comprise entre 0.016 et 10000 Mbit/s",
+sc_title:"Contrôle des tempêtes",sc_h:"par port et par type de diffusion (générale ou groupée), vide = inactif",sc_bcast:"Générale (Broadcast)",sc_mcast:"Groupée (Multicast)",
+sc_ucast:"Unicast inconnu",sc_umcast:"Multicast inconnu",sc_err:" La limite de tempête doit être comprise entre 1 à 1048575 pps ou 1 à 10000000 kbit/s",
+sc_note:"Les trames de chacun des types ci-dessus dépassant les limites sont abandonnées lorsqu'elles arrivent sur le communtateur.",
 sy_network:"Réseau",sy_dhcp:"Uiliser DHCP",sy_dhcp_t:"Aquérir l'adresse via le protocole DHCP",sy_services:"Services",
 sy_igmp:"Surveillance IGMP",sy_sysip:"IP du serveur...",sy_server:"Serveur",sy_port:"Port",
 sy_sesstmo:"Temps mort de session (s)",sy_sesstmo_err:"Le temps morts de session doit être compris en 1-65535 s",  
@@ -609,11 +555,17 @@ sy_ip_err:"Erreur d'IP / masque réseau / passerelle",sy_host_err:"Nom d'hôte :
 sy_net_q:"Appliquer les paramètres réseau?",sy_net_d:"L'adresse IP de  management va devenir {ip}: merci de réouvrir le page depuis cette adresse.",
 sy_ip_changed:"L'adresse IP a changée, reconnectez-vous à http://{ip}/",sy_dhcp_q:"Passer en DHCP?",
 sy_dhcp_d:"Le commutateur va demander une addresse via le DHCP. Vous devrez rechercher sa prochaine adresse IP pour vous reconnecter.",
-sy_sysip_err:"Adresse IP du serveur Syslog invalide",sy_sysport_err:"Le port Syslog doit être compris entre 1 et 65535",
-sy_pw_len:"Mot de passe : 6 à 20 caractères",sy_pw_space:"Le mot de passe ne doit pas contenir d'espaces",sy_pw_match:"Les mots de passe ne correspondent pas",
+sy_sysip_err:"Adresse IP du serveur Syslog invalide",sy_dns1:"DNS principal",sy_dns2:"DNS secondaire",sy_dns_err:"Adresse IP du DNS invalide",sy_dns_dhcp:"émis par le DHCP: {ip}",
+sy_time:"Temps",sy_ntp:"NTP",sy_ntpsrv:"Serveur NTP",sy_ntpsrv_p:"Nom d'hôte ou adresse IPv4",sy_ntpint:"intervalle de scrutation [min]",
+sy_tz:"Fuseau horaire",sy_dst:"Heure d'été",sy_dst_eu:"Europe",
+sy_dst_us:"Etats-Unis",sy_now:"Heure locale",
+sy_sync:"Dernière synchronisation",sy_ntpaddr:"Adresse du serveur",sy_nosync:"Désynchronisé",sy_waiting:"En attente du serveur",
+sy_ago:"depuis {n} minutes",sy_ntp_err:"Entrez le nom d'hôte ou l'adresse IPv4 du serveur NTP",sy_ntpint_err:"L'intervalle de scrutation doit être compris entre 1 et 1440",
+sy_time_note:"Le commutateur n'a pas d'horloge sauvegardée par batterie: L'heure est donc perdue à chaque redémarrage et doit être récupérée grâce au serveur NTP une fois le réseau fonctionnel. Sauvegardez en mémoire flash pour enregistrer les paramètres.",
+sy_sysport_err:"Le port Syslog doit être compris entre 1 et 65535",
+sy_pw_len:"Mot de passe : 1 à 20 caractères",sy_pw_space:"Le mot de passe ne doit pas contenir d'espaces",sy_pw_match:"Les mots de passe ne correspondent pas",
 sy_pw_q:"Changer le mot de passe d'administration?",sy_pw_d:"Cela prend effet immédiatement dès la prochaine connection. Enregistrez en Flash pour rendre la modification persistante.",
 sy_reboot_q:"Redémarrer le commutateur ?",sy_reboot_d:"Il y a des paramètres NON SAUVEGARDES qui vont être perdus. Sauvegardez-les au préalable en mémoire flash si vous souhaitez les conserver.",
-sy_defaults:"Rétablir les réglages d'usine",sy_defaults_q:"Rétablir les réglages d'usine ?",sy_defaults_d:"La configuration intégrée à l'image remplace la configuration de démarrage et le commutateur redémarre. Son adresse IP devient celle par défaut de l'image (192.168.10.12 pour les versions XikeStor, sinon celle de config.txt) : reconnectez-vous à cette adresse.",sy_defaults_doing:"Rétablissement des réglages d'usine, redémarrage du commutateur",
 sy_rebooting:"Redémarrage, reconnectez-vous d'ici 20s",sy_bytes:"bytes",
 cw_title:"Enregistrer cette configuration de démarrage?",cw_save_title:"Enregistrer la configuration active en mémoire flash?",
 cw_info:"{n} / 2048 bytes, qui seront rejouées ligne par ligne à chaque redémarrage",
@@ -643,30 +595,24 @@ fw_timeout:"Le commutateur n'est plus joignable depuis 150 s: verifiez l'aliment
 },
 de:{
 nav_dash:"Übersicht",nav_ports:"Ports",nav_stp:"Spanning Tree",nav_stats:"Statistik",
-nav_vlan:"VLANs",nav_l2:"MAC-Tabelle",nav_mirror:"Spiegelung",nav_lag:"LAG",nav_eee:"EEE",
+nav_vlan:"VLANs",nav_l2:"MAC-Tabelle",nav_mirror:"Spiegelung",nav_isolate:"Isolation",nav_lag:"LAG",nav_eee:"EEE",
 nav_bw:"Bandbreite",nav_system:"System",nav_fw:"Firmware",
 hdr_dirty:"ungespeicherte Änderungen",hdr_dirty_t:"Laufende Konfiguration weicht von der Startkonfiguration ab",
-hdr_save:"Im Flash speichern",hdr_save_t:"Laufende Konfiguration dauerhaft im Flash speichern",hdr_logout:"Abmelden",hdr_logout_t:"Web-Sitzung beenden",
+hdr_save:"Im Flash speichern",hdr_save_t:"Laufende Konfiguration dauerhaft im Flash speichern",
 th_auto:"System",th_auto_sel:"System (Selenized)",sy_display:"Anzeige",sy_theme:"Farbschema",sy_display_note:"Wird nur in diesem Browser gespeichert.",th_light:"Hell",th_dark:"Dunkel",
 th_sel_light:"Selenized Hell",th_sel_dark:"Selenized Dunkel",
 c_port:"Port",c_name:"Name",c_link:"Link",c_apply:"Übernehmen",c_cancel:"Abbrechen",c_confirm:"Bestätigen",
 c_close:"Schliessen",c_refresh:"Aktualisieren",c_off:"aus",c_offc:"Aus",c_down:"getrennt",c_on:"Ein",c_auto:"Auto",c_delete:"Löschen",
 c_type:"Typ",c_state:"Zustand",c_enabled:"Aktiviert",c_load:"Laden",c_disable:"Deaktivieren",c_sfp:"SFP",
-c_full:"voll",c_half:"halb",c_devices:"Geräte",c_yes:"ja",c_no:"nein",
-d_ports:"Ports",d_ports_h:"Port anklicken für Details",d_vlan:"VLAN-Panel-Schalter",d_vlan_h:"Frontblende",
-d_vlan_on:"LAN-Ports sind getrennt und erreichen nur die SFP+-Schächte (ohne Wirkung, solange der Schalter unten aus ist)",d_vlan_off:"Alle Ports können miteinander sprechen (ohne Wirkung, solange der Schalter unten aus ist)",
-d_vlan_phys:"VLAN-Panel-Schalter",d_vlan_en:"VLAN-Panel-Schalter verwenden",
-d_vlan_en_on:"Der VLAN-Panel-Schalter ist aktiv: die LAN-Ports sind getrennt",d_vlan_en_off:"Der VLAN-Panel-Schalter ist aus; VLANs der LAN-Ports auf der VLAN-Seite einstellen",
-vlan_warn:"\"VLAN-Panel-Schalter verwenden\" ist an: der Panel-Schalter übernimmt VLANs und Isolation der LAN-Ports. Die Einstellungen unten sind schreibgeschützt; schalten Sie die Funktion im Dashboard aus, um VLANs hier zu setzen.",
-mirror_warn:"\"VLAN-Panel-Schalter verwenden\" ist an: der Panel-Schalter übernimmt die LAN-Ports. Die Einstellungen unten sind schreibgeschützt; schalten Sie die Funktion im Dashboard aus, um die Spiegelung hier einzurichten.",
+c_full:"voll",c_half:"halb",c_yes:"ja",c_no:"nein",
 d_system:"System",d_traffic:"Datenverkehr",
 d_traffic_h:"Pakete/s, live",d_txpps:"TX Pakete/s",d_rxpps:"RX Pakete/s",d_txbad:"TX fehlerhaft",d_rxbad:"RX fehlerhaft",
 i_host:"Hostname",i_ip:"IP-Adresse",i_mask:"Netzmaske",i_gw:"Gateway",i_mac:"MAC",i_fw:"Firmware",
-i_built:"Erstellt",i_model:"Modell",i_hw:"Hardware",i_temp:"Temperatur",i_flash:"Flash",i_syslog:"Syslog",
-p_state:"Zustand",p_disabled:"deaktiviert",p_up:"verbunden",p_txgb:"TX gut / fehlerhaft",p_rxgb:"RX gut / fehlerhaft",
+i_built:"Erstellt",i_hw:"Hardware",i_temp:"Temperatur",i_flash:"Flash",i_syslog:"Syslog",
+p_state:"Zustand",p_disabled:"deaktiviert",p_up:"verbunden",
 p_pkts:"Pakete",p_module:"Modul",p_temp:"Temperatur",p_vcc:"Vcc",p_txbias:"TX-Bias",p_txpower:"Sendeleistung",
 p_rxpower:"Empfangsleistung",p_txfault:"TX-Fehler",p_txdis:"TX deaktiviert",p_rxlos:"RX LOS",p_adv:"Angeboten",
-pt_title:"Port-Konfiguration",pt_conn:"Verbunden",pt_speed:"Geschwindigkeit",pt_mtu:"MTU",
+pt_title:"Port-Konfiguration",pt_conn:"Gelernte Geräte",pt_speed:"Geschwindigkeit",pt_mtu:"MTU",
 pt_sfp_note:"Die SFP-Geschwindigkeit wird pro Steckplatz gesetzt und nicht in der Startkonfiguration gespeichert.",
 pt_name_err:"Port-Name: 1-15 Zeichen, keine Leerzeichen",pt_mtu_err:"MTU muss zwischen 64 und 16383 liegen",
 stp_title:"Spanning Tree",stp_h:"RSTP, 802.1w",stp_version:"Version",stp_v_stp:"STP-kompatibel",
@@ -687,30 +633,36 @@ stp_en_q:"Spanning Tree aktivieren?",
 stp_en_d:"Die Ports starten blockiert und brauchen bis zum doppelten Forward Delay, bis sie weiterleiten; Edge-Ports sind sofort wieder aktiv.",
 stp_dis_q:"Spanning Tree deaktivieren?",stp_dis_d:"Alle Ports leiten sofort weiter; der Schutz vor Netzwerkschleifen entfällt.",
 stp_cost_err:"Pfadkosten müssen zwischen 0 und 200000000 liegen",
+nav_lldp:"LLDP",lldp_enabled:"LLDP aktiv",lldp_title:"Dienststatus",lldp_portname:"Name",lldp_enable:"Pakete senden",
 st_title:"Port-Statistik",st_h:"Summen seit dem Start",st_txg:"TX gut",st_txb:"TX fehlerhaft",st_rxg:"RX gut",
 st_rxb:"RX fehlerhaft",st_details:"Details",st_counters:"MIB-Zähler",st_nonzero:"nur ungleich null",
 st_autoref:"automatisch aktualisieren",st_counter:"Zähler",st_value:"Wert",st_fail:"Zähler konnten nicht geladen werden",
 v_title:"VLANs",v_vid:"VID",v_members:"Mitglieder",v_tagged:"Tagged",v_untagged:"Untagged",v_pvid_on:"PVID auf",
 v_empty:"Keine VLANs konfiguriert.",v_mgmt:"Management-VLAN",v_mgmt_none:"untagged",v_editor:"VLAN-Editor",
 v_optional:"optional",v_setmgmt:"Als Management-VLAN",v_setmgmt_t:"Dieses VLAN zum Management-VLAN machen",
+v_setmgmt_q:"{n} als Management-VLAN setzen?",v_add:"Neues VLAN hinzufügen",
+v_mgmt_c:"WARNUNG: Du musst dieses VLAN erreichen können, um den Switch weiter verwalten zu können.",
 v_member:"Mitglied",v_pvid:"PVID",
 v_legend:"U = Mitglied untagged, T = Mitglied tagged, - = kein Mitglied. PVID ordnet eingehenden Verkehr ohne Tag diesem VLAN zu.",
-v_ingress:"Ingress-Filter",v_ingress_h:"nur schreibbar: der Zustand lässt sich vom Switch nicht auslesen",
-v_accept:"Annehmen",v_ing_all:"Alle",v_ing_apply:"Ingress-Modi übernehmen",v_del_t:"VLAN löschen",
+v_accept:"Annehmen",v_ing_all:"Alle",v_ing_apply:"Ingress-Modi übernehmen",v_del_t:"VLAN löschen",v_rename:"Umbenennen",v_rename_t:"VLAN umbenennen",
 v_del_q:"VLAN {n} löschen?",v_del_d:"Die Ports behalten ihre PVID, bis sie neu zugewiesen wird.",
 v_vid_err:"VLAN-ID eingeben (1-4094)",v_name_err:"Der Name muss mit einem Buchstaben beginnen (Buchstaben, Ziffern, _)",
 v_loaded:"VLAN {n} geladen",v_notfound:"VLAN {n} nicht gefunden (es kann neu angelegt werden)",
 v_nomember:"Mindestens einen Mitglieds-Port wählen (oder das VLAN stattdessen löschen)",
-v_ing_none:"Für mindestens einen Port einen Ingress-Modus wählen",v_vid_first:"Zuerst eine VLAN-ID eingeben",
-v_mgmt_q:"VLAN {n} als Management-VLAN setzen?",
+v_vid_first:"Zuerst eine VLAN-ID eingeben",v_mgmt_q:"VLAN {n} als Management-VLAN setzen?",
 v_mgmt_d:"Der Switch versieht dann seinen eigenen Verkehr mit diesem VLAN-Tag. Führt der Port, über den du verbunden bist, dieses VLAN nicht, ist diese Seite nicht mehr erreichbar und die Einstellung lässt sich nur noch über die serielle Konsole zurücknehmen.",
+v_mgmt_tt:"Das Management-VLAN lässt sich nicht löschen. Lege zuerst ein anderes VLAN als Management-VLAN fest.",
 l2_title:"MAC-Adresstabelle",l2_filter:"filtern...",l2_flush:"Gelernte Einträge löschen",l2_static:"statisch",
 l2_learned:"gelernt",l2_loading:"lädt...",l2_failed:"Laden fehlgeschlagen",l2_entries:"Einträge",
 l2_del_t:"Eintrag löschen",l2_flush_q:"Alle gelernten MAC-Einträge löschen?",
 m_title:"Port-Spiegelung",m_active:"aktiv",m_monitor:"Monitor-Port",m_mirror:"Spiegeln",m_both:"Beide",
 m_note:"Beide = RX und TX des Ports auf den Monitor-Port spiegeln.",m_none:"Mindestens einen zu spiegelnden Port wählen",
+iso_title:"Port-Isolation",iso_from:"Von Port",iso_to:"Zu Port",iso_all:"Alle erlauben",
+iso_intro:"Ein Paket, das über einen Port hereinkommt, darf den Switch nur über die Ports verlassen, die in seiner Zeile angehakt sind. Die Isolation wirkt vor der Weiterleitung: Ein nicht angehakter Port ist direkt nicht erreichbar, egal was in der MAC-Tabelle steht.",
+iso_legend:"Das Feld des Ports selbst ist immer erlaubt. Eine rote Portnummer markiert einen Port, der nicht ganz offen ist.",
 lag_hash:"Hash:",lag_note:"Eine LAG braucht mindestens ein Mitglied, um in der Startkonfiguration gespeichert zu werden; eine leere Gruppe zu übernehmen löscht sie.",
 lag_clear_q:"LAG {n} auflösen?",lag_clear_d:"Alle Mitglieds-Ports kehren in den Normalbetrieb zurück.",
+lacp_heading:"LACP (802.3ad)",lag_mode:"Modus",lag_static:"Statisch",lacp_neg:"wird ausgehandelt",lacp_agg:"Aggregator",lacp_members:"aktive Mitglieder",lacp_hint:"LACP: Ports auswählen und Übernehmen drücken, um die Aushandlung zu starten",lacp_actor:"Lokal",lacp_partner:"Partner",lacp_rxstate:"Empfangsstatus",lacp_rx:"Empfangene LACPDUs",lacp_psys:"Partner-System",
 e_title:"Energy Efficient Ethernet",e_adv:"Angeboten",e_lp:"Gegenstelle",e_active:"Aktiv",e_enable:"Aktivieren",
 e_note:"Angebotene und von der Gegenstelle unterstützte Stufen je Geschwindigkeit: 100M, 1G, 2.5G. SFP-Ports unterstützen kein EEE.",
 e_idle:"inaktiv",e_na:"k. A.",
@@ -733,11 +685,11 @@ sy_ip_err:"Ungültige IP / Netzmaske / Gateway",sy_host_err:"Hostname: 1-23 druc
 sy_net_q:"Netzwerkeinstellungen übernehmen?",sy_net_d:"Die Management-IP ändert sich auf {ip}: Diese Seite muss dort neu geöffnet werden.",
 sy_ip_changed:"IP geändert, neu verbinden unter http://{ip}/",sy_dhcp_q:"Auf DHCP umstellen?",
 sy_dhcp_d:"Der Switch bezieht seine Adresse per DHCP. Du musst seine neue IP herausfinden, um dich wieder zu verbinden.",
-sy_sysip_err:"Ungültige IP des Syslog-Servers",sy_sysport_err:"Syslog-Port muss zwischen 1 und 65535 liegen",
-sy_pw_len:"Passwort: 6-20 Zeichen",sy_pw_space:"Das Passwort darf keine Leerzeichen enthalten",sy_pw_match:"Die Passwörter stimmen nicht überein",
+sy_sysip_err:"Ungültige IP des Syslog-Servers",sy_dns1:"DNS-Server",sy_dns2:"Zweiter DNS-Server",sy_dns_err:"Ungültige IP des DNS-Servers",sy_dns_dhcp:"von DHCP: {ip}",sy_sysport_err:"Syslog-Port muss zwischen 1 und 65535 liegen",
+sy_time:"Uhrzeit",sy_ntp:"NTP",sy_ntpsrv:"NTP-Server",sy_ntpsrv_p:"Hostname oder IPv4-Adresse",sy_ntpint:"Abfrageintervall [min]",sy_tz:"Zeitzone",sy_dst:"Sommerzeit",sy_dst_eu:"Europa",sy_dst_us:"USA",sy_now:"Lokale Zeit",sy_sync:"Letzte Synchronisation",sy_ntpaddr:"Server-Adresse",sy_nosync:"nicht synchronisiert",sy_waiting:"warte auf den Server",sy_ago:"vor {n} min",sy_ntp_err:"Hostname oder IPv4-Adresse des NTP-Servers eingeben",sy_ntpint_err:"Abfrageintervall muss zwischen 1 und 1440 liegen",sy_time_note:"Der Switch hat keine batteriegepufferte Uhr: Die Zeit geht bei jedem Neustart verloren und wird neu vom NTP-Server bezogen, sobald das Netzwerk bereit ist. Im Flash speichern, damit die Einstellungen erhalten bleiben.",
+sy_pw_len:"Passwort: 1-20 Zeichen",sy_pw_space:"Das Passwort darf keine Leerzeichen enthalten",sy_pw_match:"Die Passwörter stimmen nicht überein",
 sy_pw_q:"Admin-Passwort ändern?",sy_pw_d:"Gilt sofort für neue Anmeldungen. Im Flash speichern, damit es erhalten bleibt.",
 sy_reboot_q:"Switch neu starten?",sy_reboot_d:"Es gibt UNGESPEICHERTE Änderungen, sie gehen verloren. Zuerst im Flash speichern, wenn du sie behalten willst.",
-sy_defaults:"Werkseinstellungen wiederherstellen",sy_defaults_q:"Werkseinstellungen wiederherstellen?",sy_defaults_d:"Die im Image eingebaute Konfiguration ersetzt die Startkonfiguration und der Switch startet neu. Seine IP-Adresse wird die des Images (192.168.10.12 bei den XikeStor-Builds, sonst die aus config.txt) - dort neu verbinden.",sy_defaults_doing:"Werkseinstellungen werden wiederhergestellt, der Switch startet neu",
 sy_rebooting:"Neustart läuft, in etwa 20 s neu verbinden",sy_bytes:"Bytes",
 cw_title:"Diese Startkonfiguration schreiben?",cw_save_title:"Laufende Konfiguration im Flash speichern?",
 cw_info:"{n} / 2048 Bytes, wird bei jedem Start Zeile für Zeile ausgeführt",
@@ -839,7 +791,8 @@ function api(path,opts){
   return new Promise(function(resolve,reject){
     _q=_q.then(function(){
       opts=opts||{};
-      opts.headers=Object.assign({"X-RTLP":"1"},opts.headers||{});
+      /* The firmware rejects a state-changing POST without this header. */
+      if(opts.method==="POST"){opts.headers=opts.headers||{};opts.headers["X-RTLP"]="1";}
       var ctl=("AbortController"in window)?new AbortController():null;
       if(ctl)opts.signal=ctl.signal;
       var to=setTimeout(function(){if(ctl)ctl.abort()},10000);
@@ -856,6 +809,62 @@ function api(path,opts){
 function getJSON(p){return api(p).then(function(r){if(!r.ok)throw new Error(p+" "+r.status);return JSON.parse(r.body)})}
 function getText(p){return api(p).then(function(r){if(!r.ok)throw new Error(p+" "+r.status);return r.body})}
 
+var CONF_CMDS=[
+  /^ip\s+(\d{1,3}\.){3}\d{1,3}$/,
+  /^ip\s+dhcp$/,
+  /^gw\s+(\d{1,3}\.){3}\d{1,3}$/,
+  /^netmask\s+(\d{1,3}\.){3}\d{1,3}$/,
+  /^syslog\s+(on|off)$/,
+  /^syslog\s+ip\s+(\d{1,3}\.){3}\d{1,3}$/,
+  /^syslog\s+port\s+\d{1,5}$/,
+  /^session\s+\d{1,5}$/,
+  /^dns\s+server\s+(\d{1,3}\.){3}\d{1,3}(\s+(\d{1,3}\.){3}\d{1,3})?$/,
+  /^ntp\s+(on|off)$/,
+  /^ntp\s+server\s+[A-Za-z0-9.-]{1,47}$/,
+  /^ntp\s+interval\s+\d{1,4}$/,
+  /^ntp\s+timezone\s+[+-]?\d{1,2}(:\d{2})?$/,
+  /^ntp\s+dst\s+(off|eu|us)$/,
+  /^passwd\s+\S+$/,/^hostname\s+\S{1,23}$/,
+  /^vlan\s+\d+\s+(d|mgmt)$/m,
+  /^vlan\s+\d+(\s+[a-zA-Z]\w*)?(\s+\d+t?)*$/m,
+  /^pvid\s+\d+\s+\d+$/m,
+  /^ingress(\s+\d+[tua])+$/,/^ingress\s+[tua]$/,
+  /^port\s+\d+\s+(10m|100m|1g|2g5|5g|10g|auto|on|off)(\s+(half|full))?$/,
+  /^port\s+\d+\s+name\s+\S+$/,
+  /^port\s+\d+\s+lldp\s+(permit|block)+$/,
+  /^eee\s+(on|off)(\s+\d+)?(\s+(100m|1g|2g5))?$/,
+  /^mirror(\s+\d+)(\s+\d+[tr]?)+$/,/^mirror\s+off$/,
+  /^lag\s+[1-4](\s+\d+)+$/,/^lag\s+[1-4]\s+d$/,
+  /^lag\s+[1-4]\s+lacp(\s+\d+)+$/,
+  /^lag\s+[1-4]\s+lacp\s+off$/,
+  /^laghash\s+[1-4](\s+\w+)+$/,
+  /^isolate\s+\d+(\s+(off|\d+))+$/,
+  /^stp\s+(on|off)$/,/^stp\s+(prio|hello|maxage|fwd|txhold)\s+\d+$/,
+  /^stp\s+version\s+(rstp|stp)$/,
+  /^stp\s+pathcost\s+(long|short)$/,
+  /^stp\s+bpdu\s+(filter|flood)$/,
+  /^stp\s+(port\s+\d+|lag\s+[1-4])\s+(on|off)$/,
+  /^stp\s+(port\s+\d+|lag\s+[1-4])\s+edge\s+(on|off|auto)$/,
+  /^stp\s+(port\s+\d+|lag\s+[1-4])\s+cost\s+\d+$/,
+  /^stp\s+(port\s+\d+|lag\s+[1-4])\s+prio\s+\d+$/,
+  /^stp\s+(port\s+\d+|lag\s+[1-4])\s+guard\s+(none|bpdu|root)$/,
+  /^stp\s+(port\s+\d+|lag\s+[1-4])\s+filter\s+(on|off)$/,
+  /^stp\s+(port\s+\d=|lag\s+[1-4])\s+p2p\s+(auto|on|off)$/,
+  /^igmp\s+(on|off)$/,
+  /^mtu\s+\d+\s+\d+$/,
+  /^lldp\s+(on|off)$/,
+  /^bw\s+(in|out)\s+\d+\s+\S+$/,
+  /^storm\s+\d+\s+(bcast|mcast|ucast|umcast)\s+(off|\d+\s+(pps|kbps))$/,
+];
+function isConfCmd(line){
+  for(var i=0;i<CONF_CMDS.length;i++)if(CONF_CMDS[i].test(line))return true;
+  return false;
+}
+function setDirty(d){
+  S.dirty=d;
+  $("dirty").classList.toggle("show",d);
+  $("saveBtn").classList.toggle("pri",d);
+}
 function sha256Hex(bytes){
   var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
   var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
@@ -890,46 +899,21 @@ function sha256Hex(bytes){
   return out;
 }
 function hexToBytes(h){var a=new Uint8Array(h.length/2);for(var i=0;i<a.length;i++)a[i]=parseInt(h.substr(i*2,2),16);return a;}
-function bytesToHex(b){var s="";for(var i=0;i<b.length;i++)s+=("0"+b[i].toString(16)).slice(-2);return s;}
+function bytesToHex(b){
+  var s="";for(var i=0;i<b.length;i++)s+=(b[i]<16?"0":"")+b[i].toString(16);
+  return s;
+}
+/* /auth.json gives the salt; the digest is SHA-256(salt || password). */
+function pwHash(pw){
+  return fetch("/auth.json",{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){
+    if(!j.set||!j.salt)throw new Error("no salt");
+    var salt=hexToBytes(j.salt), p=new TextEncoder().encode(pw);
+    var all=new Uint8Array(salt.length+p.length);
+    all.set(salt);all.set(p,salt.length);
+    return {salt:j.salt,digest:bytesToHex(sha256Hex(all))};
+  });
+}
 
-var CONF_CMDS=[
-  /^ip\s+(\d{1,3}\.){3}\d{1,3}$/,/^ip\s+dhcp$/,
-  /^gw\s+(\d{1,3}\.){3}\d{1,3}$/,/^netmask\s+(\d{1,3}\.){3}\d{1,3}$/,
-  /^syslog\s+(on|off)$/,/^syslog\s+ip\s+(\d{1,3}\.){3}\d{1,3}$/,/^syslog\s+port\s+\d{1,5}$/,
-  /^session\s+\d{1,5}$/,/^http\s+port\s+\d{1,5}$/,/^http\s+tls\s+(on|off)$/,
-  /^dns\s+server\s+(\d{1,3}\.){3}\d{1,3}(\s+(\d{1,3}\.){3}\d{1,3})?$/,
-  /^ntp\s+(on|off)$/,/^ntp\s+server\s+[A-Za-z0-9.-]{1,47}$/,/^ntp\s+interval\s+\d{1,4}$/,
-  /^ntp\s+timezone\s+[+-]?\d{1,2}(:\d{2})?$/,/^ntp\s+dst\s+(off|eu|us)$/,
-  /^passwd\s+\S+$/,/^passwd_hash\s+[0-9a-f]{32}\s+[0-9a-f]{64}$/,/^hostname\s+\S{1,23}$/,
-  /^vlan\s+\d{1,4}\s+d$/,/^vlan\s+\d{1,4}\s+mgmt$/,/^vlan\s+switch\s+(on|off)$/,
-  /^vlan\s+\d{1,4}(\s+[a-zA-Z]\w*)?(\s+\d{1,2}t?)+$/,
-  /^pvid\s+\d{1,2}\s+\d{1,4}$/,
-  /^ingress(\s+\d{1,2}[tua])+$/,/^ingress\s+[tua]$/,
-  /^port\s+\d{1,2}\s+(10m|100m|1g|2g5|5g|10g|auto|on|off)(\s+(half|full))?$/,
-  /^port\s+\d{1,2}\s+name\s+\S+$/,
-  /^port\s+\d{1,2}\s+lldp\s+(permit|block)+$/,
-  /^eee\s+(on|off)(\s+\d{1,2})?(\s+(100m|1g|2g5))?$/,
-  /^mirror(\s+\d{1,2})(\s+\d{1,2}[tr]?)+$/,/^mirror\s+off$/,
-  /^lag\s+[1-4](\s+\d{1,2})+$/,/^lag\s+[1-4]\s+d$/,/^laghash\s+[1-4](\s+\w+)+$/,
-  /^isolate\s+\d{1,2}(\s+(off|\d{1,2}))+$/,
-  /^stp\s+(on|off)$/,/^stp\s+(prio|hello|maxage|fwd|txhold)\s+\d{1,2}$/,
-  /^stp\s+version\s+(rstp|stp)$/,
-  /^stp\s+(port\s+\d{1,2}|lag\s+[1-4])\s+(on|off)$/,/^stp\s+(port\s+\d{1,2}|lag\s+[1-4])\s+edge\s+(on|off|auto)$/,
-  /^stp\s+(port\s+\d{1,2}|lag\s+[1-4])\s+cost\s+\d{1,9}$/,/^stp\s+(port\s+\d{1,2}|lag\s+[1-4])\s+prio\s+\d{1,3}$/,
-  /^stp\s+(port\s+\d{1,2}|lag\s+[1-4])\s+guard\s+(none|bpdu|root)$/,/^stp\s+(port\s+\d{1,2}|lag\s+[1-4])\s+filter\s+(on|off)$/,
-  /^stp\s+(port\s+\d{1,2}|lag\s+[1-4])\s+p2p\s+(auto|on|off)$/,
-  /^igmp\s+(on|off)$/,/^mtu\s+\d{1,2}\s+\d+$/,/^lldp\s+(on|off)$/,
-  /^bw\s+(in|out)\s+\d{1,2}\s+\S+$/,
-  /^storm\s+\d{1,2}\s+(bcast|mcast|ucast|umcast)\s+(off|\d{1,8}\s+(pps|kbps))$/,
-];
-function isConfCmd(line){
-  for(var i=0;i<CONF_CMDS.length;i++)if(CONF_CMDS[i].test(line))return true;
-  return false;
-}
-function setDirty(d){
-  S.dirty=d;
-  $("dirty").classList.toggle("show",d);
-}
 function postCmd(cmd,quiet){
   return api("/cmd",{method:"POST",body:cmd}).then(function(r){
     if(!r.ok)throw new Error(((r.body||"").split("\n")[0])||t("t_rejected",{c:cmd}));
@@ -943,7 +927,6 @@ function postCmds(list){
   list.forEach(function(c){p=p.then(function(){return postCmd(c,true)})});
   return p.then(function(){toast(t("t_cmds",{n:list.length}),"ok")});
 }
-
 function toast(msg,cls){
   var el=h("div",{class:"toast "+(cls||""),text:msg});
   $("toasts").appendChild(el);
@@ -1029,6 +1012,7 @@ function byPort(a){return a.sort(function(x,y){return x.portNum-y.portNum})}
 function pollStatus(){
   return getJSON("/status.json").then(function(s){
     byPort(s);
+    S.ports=s;
     var now=Date.now();
     if(!S.n){
       S.n=s.length;
@@ -1050,13 +1034,14 @@ function pollStatus(){
         };
       });
     }
-    S.prev=s;S.prevT=now;S.ports=s;
+    S.prev=s;S.prevT=now;
     updateStrip();
     var hk=tabHooks[curTab];
     if(hk&&hk.status)hk.status();
   });
 }
 var statusPoller=new Poller(pollStatus,2500);
+statusPoller.start();
 function needPorts(fn){
   if(S.n)return fn();
   pollStatus().then(fn).catch(function(){});
@@ -1116,8 +1101,10 @@ function portRows(p){
   var rows=[[t("c_port"),String(p.portNum)],[t("c_type"),p.isSFP?"SFP":"RJ45"]];
   if(p.name)rows.push([t("c_name"),p.name]);
   rows.push([t("p_state"),!p.enabled?t("p_disabled"):(p.link>0?t("p_up")+" "+LINKS[p.link]:t("c_down"))]);
-  rows.push([t("p_txgb"),BigInt(p.txG)+" / "+BigInt(p.txB)+" "+t("p_pkts")]);
-  rows.push([t("p_rxgb"),BigInt(p.rxG)+" / "+BigInt(p.rxB)+" "+t("p_pkts")]);
+  rows.push([t("st_txg"),BigInt(p.txG)+" "+t("p_pkts")]);
+  rows.push([t("st_txb"),BigInt(p.txB)+" "+t("p_pkts")]);
+  rows.push([t("st_rxg"),BigInt(p.rxG)+" "+t("p_pkts")]);
+  rows.push([t("st_rxb"),BigInt(p.rxB)+" "+t("p_pkts")]);
   if(p.isSFP){
     if(p.sfp_vendor)rows.push([t("p_module"),[p.sfp_vendor,p.sfp_model,p.sfp_serial].filter(Boolean).join(" / ")]);
     var ext=p.sfp_options&0x40;
@@ -1159,110 +1146,23 @@ function portDetail(i){
   S.detail=i;
 }
 
-/* The name this switch is known by. Several switches are usually open at once
- * and a tab called "Switch" tells them apart as badly as no title at all, so
- * the tab and the nav bar carry the hostname - the name the user gave the
- * switch. Until that is known (the head script of index.html has only the
- * browser's memory to go by, and an image or a request may report no hostname
- * at all), the name this browser saw at this address last, the model, and
- * finally the address keep the tabs distinguishable. */
-function switchName(){
-  var i=S.info||{};
-  if(i.hostname)return i.hostname;
-  var seen=null;
-  try{seen=localStorage.getItem("rtl_host");}catch(e){}
-  return seen||i.model||location.hostname||"Switch";
-}
-function nameTab(){
-  var n=switchName();
-  document.title=n;
-  $("brandname").textContent=$("brandname").title=n;
-  if(S.info&&S.info.hostname){
-    // Remembered per switch (each has its own origin) for the login page tab
-    try{localStorage.setItem("rtl_host",S.info.hostname);}catch(e){}
-  }
-}
-
 function renderInfo(){
   var m=[["i_host","hostname"],["i_ip","ip_address"],["i_mask","ip_netmask"],
     ["i_gw","ip_gateway"],["i_mac","mac_address"],["i_fw","sw_ver"],["i_built","build_date"],
-    ["i_model","model"],["i_hw","hw_ver"],["i_temp","chip_temp"],["i_flash","flash_size"],["i_syslog","syslog_server"]];
+    ["i_hw","hw_ver"],["i_temp","chip_temp"],["i_flash","flash_size"],["i_syslog","syslog_server"]];
   var tb=$("sysinfo");tb.innerHTML="";
-  var clock=h("tr",null,[h("td",{class:"mut",text:t("sy_now")}),
-    h("td",{class:"mono",id:"dash-time",text:ntpClock()})]);
-  var at=0,seen=0;
   m.forEach(function(r){
     var v=S.info[r[1]];
     if(v==null||v==="")return;
     tb.appendChild(h("tr",null,[h("td",{class:"mut",text:t(r[0])}),h("td",{class:"mono",text:String(v)})]));
-    seen++;
-    if(r[1]==="hostname")at=seen;		/* the clock goes directly below the name */
   });
-  tb.insertBefore(clock,tb.rows[at]||null);
-  nameTab();
-  renderVlan();
-  updateVlanWarning();
+  if(S.info.hostname){
+    $("brandname").textContent=$("brandname").title=document.title=S.info.hostname;
+    // Remembered per switch (each has its own origin) for the login page tab
+    try{localStorage.setItem("rtl_host",S.info.hostname);}catch(e){}
+  }
   if(S.info.sw_ver)$("fver").textContent="RTLPlayground "+S.info.sw_ver;
 }
-/* Yellow notice on the VLAN and Isolation tabs: while the panel switch is in
- * effect and isolating the RJ45 ports, VLAN forwarding cannot work between
- * them, so say so instead of letting the VLAN page look broken. */
-function updateVlanWarning(){
-  var i=S.info||{};
-  /* Mutually exclusive with the panel switch function: as long as "Use VLAN
-   * panel switch" is on, the panel switch owns VLANs/isolation/mirroring, no
-   * matter where the physical switch stands. */
-  var on=(i.vlan_switch!=null&&i.vlan_switch!=="")&&(i.vlan_switch_en!=="off");
-  ["vlan-warn","iso-warn","mirror-warn"].forEach(function(id){
-    var el=$(id);
-    if(el)el.hidden=!on;
-  });
-  /* Grey the settings out and make them read-only while the notice is up.
-   * The class does the pointer blocking (it also covers rows rebuilt by a
-   * refresh); disabling the controls additionally keeps the keyboard out. */
-  ["tab-vlan","tab-isolate","tab-mirror"].forEach(function(id){
-    var sec=$(id);
-    if(!sec)return;
-    sec.classList.toggle("locked",on);
-    sec.querySelectorAll("input,select,button,textarea").forEach(function(el){
-      if(on){
-        if(el.dataset.lock===undefined)el.dataset.lock=el.disabled?"1":"0";
-        el.disabled=true;
-      }else if(el.dataset.lock!==undefined){
-        el.disabled=el.dataset.lock==="1";
-        delete el.dataset.lock;
-      }
-    });
-  });
-}
-
-/* Dashboard card for the front-panel "VLAN" slide switch. Only boards that
- * have one report vlan_switch in /information.json; on the others the card
- * stays hidden and the port strip keeps the full width. The top switch shows
- * the position of the physical switch (read-only), the bottom one switches
- * the feature on or off ("vlan switch on|off"). */
-function renderVlan(){
-  var card=$("dash-vlan"),g=$("dashgrid");
-  if(!card||!g)return;
-  var i=S.info||{};
-  if(i.vlan_switch==null||i.vlan_switch===""){
-    card.hidden=true;
-    g.classList.add("no-vlan");
-    return;
-  }
-  card.hidden=false;
-  g.classList.remove("no-vlan");
-  var physOn=(i.vlan_switch==="on"||i.vlan_switch==="1"||i.vlan_switch===1);
-  var enOn=(i.vlan_switch_en!=="off");
-  $("vlanphys").checked=physOn;
-  $("vlanen").checked=enOn;
-  $("vlanphys_hint").textContent=physOn?t("d_vlan_on"):t("d_vlan_off");
-  $("vlanen_hint").textContent=enOn?t("d_vlan_en_on"):t("d_vlan_en_off");
-}
-$("vlanen").addEventListener("change",function(){
-  var el=this,cmd="vlan switch "+(el.checked?"on":"off");
-  postCmd(cmd).then(pollInfo).catch(function(){el.checked=!el.checked});
-});
 function pollInfo(){
   return getJSON("/information.json").then(function(j){S.info=j;renderInfo()});
 }
@@ -1288,12 +1188,7 @@ function dashStatus(){
   });
 }
 tabHooks.dash={
-  enter:function(){
-    statusPoller.start();pollInfo().catch(function(){});
-    ntpLoad().catch(function(){});		/* the local time comes from the NTP client */
-    clearInterval(dashTimer);dashTimer=setInterval(dashClock,1000);dashClock();
-  },
-  leave:function(){statusPoller.stop();clearInterval(dashTimer)},
+  enter:function(){pollInfo().catch(function(){})},
   status:dashStatus,
 };
 
@@ -1337,31 +1232,12 @@ function loadMtu(){
     });
   });
 }
-/* One learned MAC is the attached device; several means a switch or AP
- * sits behind the port, so only the count is shown. */
-function portsMacs(){
-  l2Load().then(function(all){
-    var by={};
-    all.forEach(function(e){
-      if(e.pport==="CPU")return;
-      var l=by[e.pport]=by[e.pport]||[];
-      if(l.indexOf(e.mac)<0)l.push(e.mac);
-    });
-    S.ports.forEach(function(p){
-      var el=$("pmac"+(p.portNum-1));
-      if(!el)return;
-      var m=by[p.portNum]||[];
-      el.textContent=!m.length?"-":(m.length===1?m[0]:m.length+" "+t("c_devices"));
-      el.title=m.join("\n");
-    });
-  }).catch(function(){});
-}
-var _macTick=0;
 function portsStatus(){
   buildPorts();
-  if(++_macTick%10===0)portsMacs();
   S.ports.forEach(function(p){
     var i=p.portNum-1,el=$("plink"+i);
+    var mc=$("pmac"+i);
+    if(mc)mc.textContent=parseInt(p.macs,16)&0x1fff;
     if(el)el.innerHTML=linkBadge(p);
     var sel=$("pspd"+i),v=p.isSFP?0:ADVSEL[parseInt(p.adv,2)];
     if(sel&&v&&document.activeElement!==sel)sel.value=v;
@@ -1389,8 +1265,7 @@ function applyPort(i){
   postCmds(cmds).then(loadMtu).catch(function(){});
 }
 tabHooks.ports={
-  enter:function(){statusPoller.start();needPorts(function(){buildPorts();portsMacs()})},
-  leave:function(){statusPoller.stop();l2Gen++},
+  enter:function(){needPorts(buildPorts)},
   status:portsStatus,
 };
 
@@ -1406,12 +1281,14 @@ function fmtBridge(hex){
   if(!hex||hex.length<16)return"-";
   return parseInt(hex.slice(0,4),16)+" / "+hex.slice(4).replace(/(..)(?=.)/g,"$1:");
 }
+function stpEnt(pt){pt.lag=pt.p>100?pt.p-100:0}
 function stpKey(pt){return pt.lag?"L"+pt.lag:String(pt.p)}
-function stpName(pt){return pt.lag?"LAG"+pt.lag+" ("+maskToPorts(pt.mbr).join(",")+")":String(pt.p)}
+function stpName(pt){return pt.lag?"LAG"+pt.lag:String(pt.p)}
+function stpDhms(x){return Math.floor(x/86400)+"d "+Math.floor(x/3600)%24+"h "+Math.floor(x/60)%60+"m "+x%60+"s"}
 function stpPre(k){return k.charAt(0)==="L"?"stp lag "+k.slice(1)+" ":"stp port "+k+" "}
 function stpBuild(ports){
-  var tb=$("stpcfg").tBodies[0],st=$("stpstat").tBodies[0];
-  tb.innerHTML="";st.innerHTML="";
+  var tb=$("stpcfg").tBodies[0],st=$("stpstat").tBodies[0],ct=$("stpcnt").tBodies[0];
+  tb.innerHTML="";st.innerHTML="";ct.innerHTML="";
   ports.forEach(function(pt){
     var p=stpKey(pt);
     var tr=tb.insertRow();
@@ -1429,7 +1306,12 @@ function stpBuild(ports){
     tr.insertCell().appendChild(h("button",{class:"ctl",text:t("c_apply"),onclick:function(){stpApplyPort(p)}}));
     var sr=st.insertRow();
     sr.insertCell().textContent=stpName(pt);
-    ["ro","st","db","dp","dc","oe","op"].forEach(function(k){sr.insertCell().id="st"+k+p});
+    ["ro","st","db","dp","dc","oe","op","pv"].forEach(function(k){sr.insertCell().id="st"+k+p});
+    sr.insertCell().appendChild(h("button",{class:"ctl",id:"stmc"+p,text:t("stp_mcheck"),title:t("stp_mcheck_t"),
+      onclick:function(){postCmd(stpPre(p)+"mcheck").then(stpLoad).catch(function(){})}}));
+    var cr=ct.insertRow();
+    cr.insertCell().textContent=stpName(pt);
+    ["rx","tx","trx","ttx","age"].forEach(function(k){cr.insertCell().id="sc"+k+p});
   });
 }
 function stpPortVals(pt){
@@ -1443,10 +1325,21 @@ function stpPortVals(pt){
     p2p:["auto","on","off"][pt.p2]||"auto",
   };
 }
+function stpCnt(c){
+  c.ports.forEach(function(pt){
+    stpEnt(pt);
+    var p=stpKey(pt);
+    if(!$("scrx"+p))return;
+    var v=[0,1,2,3].map(function(k){return parseInt(pt.c.slice(8*k,8*k+8),16)}),age=parseInt(pt.c.slice(32,36),16);
+    ["rx","tx","trx","ttx"].forEach(function(k,i){$("sc"+k+p).textContent=v[i]});
+    $("scage"+p).textContent=!v[0]?"-":(age===0xffff?">":"")+Math.floor(age/c.hz);
+  });
+}
 function stpLoad(){
   return getJSON("/stp.json").then(function(s){
-    s.ports.sort(function(a,b){return((a.lag||0)-(b.lag||0))||(a.p-b.p)});
-    var sig=s.ports.map(function(pt){return stpKey(pt)+":"+(pt.mbr||0)}).join();
+    s.ports.forEach(stpEnt);
+    s.ports.sort(function(a,b){return(a.lag-b.lag)||(a.p-b.p)});
+    var sig=s.ports.map(stpKey).join();
     if(sig!==stpSig){stpSig=sig;stpBuild(s.ports);}
     stpCur=s;
     var en=$("stpen");
@@ -1454,16 +1347,19 @@ function stpLoad(){
     var msg;
     if(!s.on)msg=t("stp_off_msg");
     else{
-      var me=(s.prio*4096).toString(16).padStart(4,"0")+s.myMac;
+      var me=(s.prio*4096).toString(16).padStart(4,"0")+s.myMac,tc=parseInt(s.tc,16),rp="-";
+      s.ports.forEach(function(pt){if(pt.role===1)rp=stpName(pt)});
       msg=t("stp_bridge")+" "+fmtBridge(me)+(s.weRoot
         ?" ("+t("stp_root_self")+")"
-        :"; "+t("stp_root")+" "+fmtBridge(s.rootPrio+s.rootMac)+" "+t("stp_via")+" "+s.rootPort+", "+t("stp_cost")+" "+parseInt(s.cost,16))
-        +"; "+t("stp_tc")+": "+parseInt(s.tc,16);
+        :"; "+t("stp_root")+" "+fmtBridge(s.rootPrio+s.rootMac)+" "+t("stp_via")+" "+rp+", "+t("stp_cost")+" "+parseInt(s.cost,16))
+        +"; "+t("stp_tc")+": "+tc+(tc?" ("+t("stp_lasttc")+" "+stpDhms(parseInt(s.tcs,16))+")":"")
+        +"; "+t("stp_times")+" "+s.rMaxage+" / "+s.rFwd+" s";
     }
     $("stpids").textContent=msg;
     var bc=$("stpbridge");
     if(!bc.dataset.dirty){
       $("stpver").value=s.rstp?"rstp":"stp";
+      $("stppcs").value=s.pcs?"short":"long";$("stpbh").value=s.bh?"filter":"flood";
       $("stpprio").value=String(s.prio);
       $("stphello").value=s.hello;$("stpmaxage").value=s.maxage;
       $("stpfwd").value=s.fwd;$("stptxhold").value=s.txhold;
@@ -1472,18 +1368,21 @@ function stpLoad(){
       var p=stpKey(pt);
       var trip=(pt.f&STP_PF.TRIP)?" "+badge(t("stp_trip"),"bad"):"";
       $("stro"+p).textContent=s.on&&pt.role?t("stp_r"+pt.role):"-";
-      $("stst"+p).innerHTML=s.on?badge(t("stp_s"+pt.st),pt.st===3?"ok":"")+trip:"-";
+      $("stst"+p).innerHTML=s.on?(pt.lk?badge(t("stp_s"+pt.st),pt.st===3?"ok":""):badge(t("stp_nolink")))+trip:"-";
       $("stdb"+p).textContent=s.on?fmtBridge(pt.db):"-";
       $("stdp"+p).textContent=s.on?parseInt(pt.dp.slice(0,2),16)+"."+parseInt(pt.dp.slice(2),16):"-";
       $("stdc"+p).textContent=s.on?parseInt(pt.dc,16):"-";
       $("stoe"+p).textContent=s.on?t((pt.f&STP_PF.OPEREDGE)?"c_yes":"c_no"):"-";
       $("stop"+p).textContent=s.on?t(pt.p2===2?"c_no":"c_yes"):"-";
+      $("stpv"+p).textContent=s.on&&pt.role?(s.rstp&&!pt.lg?"RSTP":"STP"):"-";
+      $("stmc"+p).disabled=!(s.on&&pt.role&&s.rstp);
       var row=$("sten"+p).closest("tr");
       if(row.dataset.dirty)return;
       var v=stpPortVals(pt);
       $("sten"+p).checked=v.en;$("sted"+p).value=v.edge;$("stco"+p).value=v.cost;
       $("stpr"+p).value=v.prio;$("stgu"+p).value=v.guard;$("stfi"+p).value=v.filter;$("stpp"+p).value=v.p2p;
     });
+    if($("stpcntd").open)return getJSON("/stpcnt.json").then(stpCnt);
   }).catch(function(){});
 }
 function stpApplyPort(p){
@@ -1511,6 +1410,8 @@ $("stpbapply").addEventListener("click",function(){
   var ver=$("stpver").value,prio=$("stpprio").value;
   if(ver!==(s.rstp?"rstp":"stp"))cmds.push("stp version "+ver);
   if(prio!==String(s.prio))cmds.push("stp prio "+prio);
+  if($("stppcs").value!==(s.pcs?"short":"long"))cmds.push("stp pathcost "+$("stppcs").value);
+  if($("stpbh").value!==(s.bh?"filter":"flood"))cmds.push("stp bpdu "+$("stpbh").value);
   [["stphello","hello"],["stpmaxage","maxage"],["stpfwd","fwd"],["stptxhold","txhold"]].forEach(function(f){
     var v=$(f[0]).value;
     if(String(v)!==String(s[f[1]]))cmds.push("stp "+f[1]+" "+v);
@@ -1529,6 +1430,7 @@ $("stpen").addEventListener("change",function(){
   var sel=$("stpprio");
   for(var i=0;i<16;i++)sel.appendChild(h("option",{value:String(i),text:i+" ("+(i*4096)+")"}));
 })();
+$("stpcntd").addEventListener("toggle",function(){if(this.open)stpLoad()});
 var stpPoller=new Poller(stpLoad,3000);
 tabHooks.stp={enter:function(){stpPoller.start()},leave:function(){stpPoller.stop()}};
 
@@ -1646,8 +1548,7 @@ function statsStatus(){
   });
 }
 tabHooks.stats={
-  enter:function(){statusPoller.start()},
-  leave:function(){statusPoller.stop();if(ctrPoll)ctrPoll.stop()},
+  leave:function(){if(ctrPoll)ctrPoll.stop()},
   status:statsStatus,
 };
 
@@ -1666,133 +1567,282 @@ function rangeStr(list){
   }
   return parts.join(", ");
 }
-function vlanRefresh(){
-  var tb=$("vtable").tBodies[0];
-  return getJSON("/vlanlist").then(function(d){
-    var vl=d.vlan||[];
-    $("vmgmtcur").textContent=d.mgmt?String(d.mgmt):t("v_mgmt_none");
-    $("vempty").style.display=vl.length?"none":"";
-    tb.innerHTML="";
-    var p=Promise.resolve();
-    vl.forEach(function(v){
-      p=p.then(function(){return getJSON("/vlan.json?vid="+v.id).catch(function(){return null})}).then(function(d){
-        var tr=tb.insertRow();
-        tr.insertCell().appendChild(h("a",{href:"#vlan",text:String(v.id),onclick:function(e){
-          e.preventDefault();$("vvid").value=v.id;vlanLoad();
-        }}));
-        tr.insertCell().textContent=v.name||"";
-        if(!d){for(var c=0;c<4;c++)tr.insertCell().textContent="?";}
-        else{
-          var m=parseInt(d.members,16),mem=m&0x3ff,unt=((m>>10)&0x3ff)&mem;
-          var pv=parseInt(d.pvid,16)&0x3ff;
-          tr.insertCell().textContent=rangeStr(maskToPorts(mem));
-          tr.insertCell().textContent=rangeStr(maskToPorts(mem&~unt));
-          tr.insertCell().textContent=rangeStr(maskToPorts(unt));
-          tr.insertCell().textContent=rangeStr(maskToPorts(pv));
+
+function vlanRefresh() {
+  var tb = $("vtable").tBodies[0];
+  tb.style="cursor:pointer;"
+  return getJSON("/vlanlist").then(function(d) {
+    var vl = d.vlan || [];
+    $("vmgmtcur").dataset.id = d.mgmt;
+    $("vempty").style.display = vl.length ? "none" : "";
+    tb.innerHTML = "";
+    var p = Promise.resolve();
+    vl.forEach(function(v) {
+      p = p.then(function() {
+        return getJSON("/vlan.json?vid=" + v.id).catch(function() {
+          return null
+        })
+      }).then(function(d) {
+        var tr = tb.insertRow();
+        tr.onclick = function(e) {
+            e.preventDefault();
+            vlanLoad(v.id);
+        };
+        var l = h("a", {
+          href: "#vlan",
+          text: String(v.id) + ($("vmgmtcur").dataset.id == v.id ? " ("+t("v_mgmt")+")":""),
+          "data-id": v.id,
+          "data-name": v.name
+        });
+        tr.insertCell().appendChild(l);
+        tr.insertCell().textContent = v.name || "";
+        if (!d) {
+          for (var c = 0; c < 4; c++) tr.insertCell().textContent = "?";
+        } else {
+          var m = parseInt(d.members, 16),
+            mem = m & 0x3ff,
+            unt = ((m >> 10) & 0x3ff) & mem,
+            tag = mem & ~unt;
+          var pv = parseInt(d.pvid, 16) & 0x3ff;
+          tr.insertCell().textContent = rangeStr(maskToPorts(mem));
+          tr.insertCell().textContent = rangeStr(maskToPorts(tag));
+          tr.insertCell().textContent = rangeStr(maskToPorts(unt));
+          tr.insertCell().textContent = rangeStr(maskToPorts(pv));
+          l.dataset.t = maskToPorts(tag);
+          l.dataset.u = maskToPorts(unt);
         }
-        var del=tr.insertCell();
-        if(v.id!==1)del.appendChild(h("button",{class:"ctl",text:"\u2715",title:t("v_del_t"),onclick:function(){
-          confirmModal(t("v_del_q",{n:v.id}),t("v_del_d"),function(){
-            postCmd("vlan "+v.id+" d").then(vlanRefresh).catch(function(){});
-          });
-        }}));
-      }).catch(function(){});
+        var act = tr.insertCell();
+        act.onclick=function(e){e.stopPropagation()};
+        act.appendChild(h("button", {
+            class: "ctl",
+            text: t("v_rename"),
+            title: t("v_rename_t"),
+            onclick: function() {
+              var body = h("div");
+              body.appendChild(h("p", null, [
+                h("label", {class: "row"}, [
+                  h("span",{class:"lb", "data-i18n":"c_name"},[document.createTextNode(t("c_name"))]),
+                  h("input", {id: "nvlrename", class: "in", size: "12", maxlength: "15", "data-i18n-p": "v_optional", value:(v.name||"")})
+                ])
+              ]));
+              modal("Rename VLAN "+v.id, body, [h("button", {
+                class: "ctl pri", text: t("v_rename_t"),
+                onclick: function(){
+                  if(!validVlanName($("nvlrename").value)) return;
+                  postCmd(vlan2str(v.id,$("nvlrename").value,mySplit(l.dataset.t),mySplit(l.dataset.u))).then(function(){closeModal();vlanRefresh()});
+                }
+              })]);
+            },
+          }));
+        if (v.id == $("vmgmtcur").dataset.id) {
+          act.appendChild(h("span",{class:"ctl", title:t("v_mgmt_tt"), class:"hint", style:"color: var(--fg2); font-size: 150%; padding-left: 10px;"},[document.createTextNode("\u{1F6C8}")]));
+        } else {
+          act.appendChild(h("button", {
+            class: "ctl",
+            text: "\u2715",
+            title: t("v_del_t"),
+            style: "margin-left: 5px;",
+            onclick: function() {
+              confirmModal(t("v_del_q", { n: v.id }), t("v_del_d"), function() {
+                postCmd("vlan " + v.id + " d").then(vlanRefresh).catch(function() {});
+              });
+            }
+          }));
+        }
+      }).catch(function() {});
     });
     return p;
   });
 }
-function buildVlanEdit(){
-  var tb=$("vedit").tBodies[0];
-  if(tb.rows.length||!S.n)return;
-  var hd=tb.insertRow();hd.insertCell().className="mut";
-  var rM=tb.insertRow();rM.insertCell().textContent=t("v_member");
-  var rP=tb.insertRow();rP.insertCell().textContent=t("v_pvid");
-  for(var p=1;p<=S.n;p++)(function(p){
-    hd.insertCell().innerHTML='<b>'+p+'</b>';
-    var seg=h("span",{class:"seg",id:"vm"+p});
-    ["-","U","T"].forEach(function(s,ix){
-      seg.appendChild(h("button",{text:s,"data-v":ix,onclick:function(){
-        seg.querySelectorAll("button").forEach(function(b){b.classList.remove("on")});
-        this.classList.add("on");
-      }}));
+
+function buildVlanEdit() {
+  var tb = $("vedit").tBodies[0];
+  if (tb.rows.length || !S.n) return;
+  var hd = tb.insertRow();
+  hd.insertCell().className = "mut";
+  var rN = tb.insertRow();
+  rN.insertCell().textContent = t("c_name");
+  var rM = tb.insertRow();
+  rM.insertCell().textContent = t("v_member");
+  var rP = tb.insertRow();
+  rP.insertCell().textContent = t("v_pvid");
+  for (var p = 1; p <= S.n; p++)(function(p) {
+    hd.insertCell().innerHTML = '<b>' + p + '</b>';
+    var seg = h("span", { class: "seg", id: "vm" + p });
+    ["-", "U", "T"].forEach(function(s, ix) {
+      seg.appendChild(h("button", {
+        text: s,
+        "data-v": ix,
+        onclick: function() {
+          seg.querySelectorAll("button").forEach(function(b) { b.classList.remove("on") });
+          this.classList.add("on");
+        }
+      }));
     });
     seg.children[0].classList.add("on");
+    rN.insertCell().appendChild(document.createTextNode((S.ports.filter(x=>x.portNum==p)[0]).name));
     rM.insertCell().appendChild(seg);
-    rP.insertCell().appendChild(h("input",{type:"checkbox",id:"vp"+p}));
+    rP.insertCell().appendChild(h("span", { id: "vp" + p }));
   })(p);
-  var it=$("ingress").tBodies[0];
-  var ih=it.insertRow();ih.insertCell().className="mut";
-  var ir=it.insertRow();ir.insertCell().textContent=t("v_accept");
-  for(var q=1;q<=S.n;q++)(function(q){
-    ih.insertCell().innerHTML='<b>'+q+'</b>';
-    var sel=h("select",{class:"in",id:"ing"+q});
-    [["","-"],["a",t("v_ing_all")],["u",t("v_untagged")],["t",t("v_tagged")]].forEach(function(o){
-      sel.appendChild(h("option",{value:o[0],text:o[1]}));
-    });
-    ir.insertCell().appendChild(sel);
-  })(q);
 }
-function segVal(p){
-  return Number($("vm"+p).querySelector("button.on").getAttribute("data-v"));
-}
-function segSet(p,v){
-  $("vm"+p).querySelectorAll("button").forEach(function(b,i){b.classList.toggle("on",i===v)});
-}
-function vlanLoad(){
-  var vid=parseInt($("vvid").value,10);
-  if(!vid||vid<1||vid>4094){toast(t("v_vid_err"),"err");return;}
-  getJSON("/vlan.json?vid="+vid).then(function(d){
-    $("vname").value=d.name||"";
-    var m=parseInt(d.members,16),mem=m&0x3ff,unt=((m>>10)&0x3ff)&mem;
-    var pv=parseInt(d.pvid,16)&0x3ff;
-    for(var p=1;p<=S.n;p++){
-      var bit=S.physToLog[p-1];
-      segSet(p,(mem>>bit)&1?(((unt>>bit)&1)?1:2):0);
-      $("vp"+p).checked=!!((pv>>bit)&1);
-    }
-    toast(t("v_loaded",{n:vid}),"ok");
-  }).catch(function(){toast(t("v_notfound",{n:vid}),"err")});
-}
-function vlanApply(){
-  var vid=parseInt($("vvid").value,10);
-  if(!vid||vid<1||vid>4094){toast(t("v_vid_err"),"err");return;}
-  var name=$("vname").value.trim();
-  if(name&&!/^[a-zA-Z]\w*$/.test(name)){toast(t("v_name_err"),"err");return;}
-  var cmd="vlan "+vid+(name?" "+name:""),members=0;
-  for(var p=1;p<=S.n;p++){
-    var v=segVal(p);
-    if(v===1){cmd+=" "+p;members++;}
-    else if(v===2){cmd+=" "+p+"t";members++;}
-  }
-  if(!members){toast(t("v_nomember"),"err");return;}
-  var cmds=[cmd];
-  for(var q=1;q<=S.n;q++)if($("vp"+q).checked)cmds.push("pvid "+q+" "+vid);
-  postCmds(cmds).then(vlanRefresh).catch(function(){});
-}
-function ingressApply(){
-  var cmd="ingress",any=false;
-  for(var p=1;p<=S.n;p++){
-    var v=$("ing"+p).value;
-    if(v){cmd+=" "+p+v;any=true;}
-  }
-  if(!any){toast(t("v_ing_none"),"err");return;}
-  postCmd(cmd).catch(function(){});
-}
-$("vload").addEventListener("click",vlanLoad);
-$("vapply").addEventListener("click",vlanApply);
-$("ingapply").addEventListener("click",ingressApply);
-$("vmgmt").addEventListener("click",function(){
-  var vid=parseInt($("vvid").value,10);
-  if(!vid){toast(t("v_vid_first"),"err");return;}
-  confirmModal(t("v_mgmt_q",{n:vid}),t("v_mgmt_d"),
-    function(){postCmd("vlan "+vid+" mgmt").then(vlanRefresh).catch(function(){})});
-});
-var infoPoller=new Poller(pollInfo,5000);
-tabHooks.vlan={
-  enter:function(){needPorts(function(){buildVlanEdit();vlanRefresh().catch(function(){})});pollInfo().catch(function(){});infoPoller.start()},
-  leave:function(){infoPoller.stop()},
-};
 
+function segVal(p) {
+  return Number($("vm" + p).querySelector("button.on").getAttribute("data-v"));
+}
+
+function segSet(p, v) {
+  $("vm" + p).querySelectorAll("button").forEach(function(b, i) { b.classList.toggle("on", i === v) });
+}
+
+function vlanLoad(vid) {
+  if (!vid || vid < 1 || vid > 4094) {
+    toast(t("v_vid_err"), "err");
+    return;
+  }
+  getJSON("/vlan.json?vid=" + vid).then(function(d) {
+    $("vtitle").innerText = "VLAN " + vid + (d.name ? " (" + (d.name) + ")" : "");
+    $("vtitle").dataset.id = vid;
+    $("vtitle").dataset.name = d.name;
+    var m = parseInt(d.members, 16),
+      mem = m & 0x3ff,
+      unt = ((m >> 10) & 0x3ff) & mem;
+    var pv = parseInt(d.pvid, 16) & 0x3ff;
+    for (var p = 1; p <= S.n; p++) {
+      var bit = S.physToLog[p - 1];
+      segSet(p, (mem >> bit) & 1 ? (((unt >> bit) & 1) ? 1 : 2) : 0);
+      $("vp" + p).innerText = (!!((pv >> bit) & 1))?"Y":"N";
+    }
+    $("vmgmtpromote").checked = ($("vmgmtcur").dataset.id == vid);
+    toast(t("v_loaded", {n: vid}), "ok");
+    for(const vlanRow of $("vtable").tBodies[0].rows) {
+      vlanRow.className=vlanRow.firstChild.firstChild.dataset.id == vid ? "sel":"";
+    }
+  }).catch(function() {toast(t("v_notfound", {n: vid}), "err")});
+}
+
+function vlan2str(i, n, t, u){
+  return ("vlan " + i + (n ? " " + n : "") + " " + t.map((x)=>x+"t").concat(u).join(" ")).trim();
+}
+function pvidcmd(i, p){
+  return "pvid " + p + " " + i;
+}
+function mySplit(a){
+  if(a.trim()=="") return [];
+  return a.trim().split(",");
+}
+function vlanApply() {
+  var vid = $("vtitle").dataset.id;
+  var vname = $("vtitle").dataset.name;
+  if (!vid || vid < 1 || vid > 4094) {
+    toast(t("v_vid_err"), "err");
+    return;
+  }
+  var top_cmds = [], tail_cmds = [], vlansPerPort=[], thisVlanInStructure={id:vid, tagged:[], untagged:[]};
+  for (var p = 1; p <= S.n; p++) {
+    var v = segVal(p);
+    vlansPerPort[p]={t:[],u:[]};
+    if (v === 1) {
+      thisVlanInStructure.untagged.push(p);
+      vlansPerPort[p].u.push(vid);
+    } else if (v === 2) {
+      thisVlanInStructure.tagged.push(p);
+      vlansPerPort[p].t.push(vid);
+    }
+  }
+  if (thisVlanInStructure.tagged.length + thisVlanInStructure.untagged.length == 0) {
+    toast(t("v_nomember"), "err");
+    return;
+  }
+  for(const vlanRow of $("vtable").tBodies[0].rows){
+    var rowData = vlanRow.firstChild.firstChild.dataset,
+      rowUntagged = mySplit(rowData.u),
+      rowTagged = mySplit(rowData.t);
+    if(rowData.id == vid) continue;
+    for(const newVlanPort of thisVlanInStructure.untagged) {
+      if(rowUntagged.includes(""+newVlanPort)) rowUntagged.splice(rowUntagged.indexOf(""+newVlanPort),1);
+    }
+    for(const rut of rowUntagged) {
+      vlansPerPort[rut].u.push(rowData.id);
+    }
+    for(const rt of rowTagged) {
+      vlansPerPort[rt].t.push(rowData.id)
+    }
+    top_cmds.push(vlan2str(rowData.id,rowData.name,rowTagged,rowUntagged));
+  }
+  tail_cmds.push(vlan2str(vid, vname, thisVlanInStructure.tagged, thisVlanInStructure.untagged));
+
+  for (p in vlansPerPort){/*park all ports with only tagged membership*/
+    if (vlansPerPort[p].u.length == 0 && vlansPerPort[p].t.length > 0) {
+      tail_cmds.push(pvidcmd(0, p));
+    }
+  }
+  for(const up of thisVlanInStructure.untagged){
+    tail_cmds.push(pvidcmd(vid,up));
+  }
+  if($("vmgmtpromote").checked){/*must be the last command*/
+    tail_cmds.push("vlan " + vid + " mgmt");
+  }
+  var cmd = top_cmds.concat(tail_cmds);
+  postCmd(cmd.join("\n"),true).then(function(){toast(t("t_cmds",{n:cmd.length}),"ok")}).then(vlanRefresh).catch(function() {}).then(function() {
+    vlanLoad(vid)
+  });
+}
+$("vapply").addEventListener("click", vlanApply);
+$("vlan_add").addEventListener("click", function() {
+  var body = h("div");
+  body.appendChild(h("p", null, [
+    h("label", {class: "row"}, [
+      h("span",{class:"lb", "data-i18n":"v_vid"},[document.createTextNode(t("v_vid"))]),
+      h("input", {id: "nvlid", class: "in sm", type: "number", min: "1", max: "4094"})
+    ])
+  ]));
+  body.appendChild(h("p", null, [
+    h("label", {class: "row"}, [
+      h("span",{class:"lb", "data-i18n":"c_name"},[document.createTextNode(t("c_name"))]),
+      h("input", {id: "nvlname", class: "in", size: "12", maxlength: "15", "data-i18n-p": "v_optional"})
+    ])
+  ]));
+  modal("Add VLAN", body, [h("button", {
+    class: "ctl pri", text: t("v_add"),
+    onclick: addVlan
+  })]);
+});
+function validVlanName(n){
+  if (n && (!/^[a-zA-Z]\w*$/.test(n) || n == "d" || n == "mgmt")) {
+    toast(t("v_name_err"), "err");
+    return false;
+  }
+  return true;
+}
+function addVlan() {
+  var vid = parseInt($("nvlid").value, 10);
+  for (const r of $("vtable").tBodies[0].rows) {
+    if (r.firstChild.firstChild.dataset.id == vid) {
+      toast(t("v_vid_err"), "err");
+      return;
+    }
+  }
+  var name = $("nvlname").value;
+  if(!validVlanName(name)) return false;
+  var cmd = "vlan " + vid + (name ? " " + name : "");
+  postCmd(cmd).then(function() {
+    closeModal();
+    vlanRefresh().then(function(){vlanLoad(vid)});
+  }).catch(function() {});
+}
+tabHooks.vlan = {
+  enter: function() {
+    needPorts(function() {
+      buildVlanEdit();
+      vlanRefresh().catch(function() {}).then(function() {
+        VlanInit();
+      })
+    })
+  },
+};
+function VlanInit() {
+  vlanLoad($("vtable").tBodies[0].firstChild.firstChild.firstChild.dataset.id)
+};
 var l2Rows=[],l2SortCol="pport",l2SortDir=1,l2Gen=0;
 function l2Load(){
   var seen={},all=[],idx=0,guard=0,gen=++l2Gen;
@@ -1930,10 +1980,7 @@ $("mapply").addEventListener("click",function(){
 $("moff").addEventListener("click",function(){
   postCmd("mirror off").then(mirrorLoad).catch(function(){});
 });
-tabHooks.mirror={
-  enter:function(){needPorts(function(){buildMirror();mirrorLoad().catch(function(){})});pollInfo().catch(function(){});infoPoller.start()},
-  leave:function(){infoPoller.stop()},
-};
+tabHooks.mirror={enter:function(){needPorts(function(){buildMirror();mirrorLoad().catch(function(){})})}};
 
 var isoAllow=[];
 function isoBox(r,c){return $("iso"+r+"_"+c)}
@@ -2003,10 +2050,7 @@ $("isoall").addEventListener("click",function(){
   for(var r=1;r<=S.n;r++)for(var c=1;c<=S.n+1;c++){var b=isoBox(r,c);if(b)b.checked=true;}
   isoTouch();
 });
-tabHooks.isolate={
-  enter:function(){needPorts(function(){buildIso();isoLoad().catch(function(){})});pollInfo().catch(function(){});infoPoller.start()},
-  leave:function(){infoPoller.stop()},
-};
+tabHooks.isolate={enter:function(){needPorts(function(){buildIso();isoLoad().catch(function(){})})}};
 
 var HASHF=["spa","smac","dmac","sip","dip","sport","dport"];
 function buildLag(){
@@ -2015,6 +2059,15 @@ function buildLag(){
   for(var g=1;g<=4;g++)(function(g){
     var card=h("div",{class:"card"});
     card.appendChild(h("h2",{text:"LAG "+g}));
+    var mr=h("div",{style:"display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px",class:"small"});
+    mr.appendChild(h("span",{class:"mut",text:t("lag_mode")}));
+    var ms=h("select",{class:"in",id:"lgm"+g});
+    ms.appendChild(h("option",{value:"static",text:t("lag_static")}));
+    ms.appendChild(h("option",{value:"lacp",text:"LACP"}));
+    ms.addEventListener("change",function(){$("lgs"+g).textContent=ms.value==="lacp"?t("lacp_hint"):""});
+    mr.appendChild(ms);
+    card.appendChild(mr);
+    card.appendChild(h("p",{class:"small mono",id:"lgs"+g,style:"margin-bottom:10px"}));
     var pr=h("div",{style:"display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px"});
     for(var p=1;p<=S.n;p++)pr.appendChild(h("label",null,[
       h("input",{type:"checkbox",id:"lg"+g+"p"+p}),document.createTextNode(" "+p+" "),
@@ -2027,14 +2080,34 @@ function buildLag(){
     });
     card.appendChild(hr);
     card.appendChild(h("button",{class:"ctl pri",text:t("c_apply"),onclick:function(){lagApply(g)}}));
+    card.addEventListener("change",function(){card.dataset.dirty="1"});
     w.appendChild(card);
   })(g);
 }
+var lacpCfg=[0,0,0,0,0];
+function maskPorts(m){var r=[];for(var p=1;p<=S.n;p++)if((m>>S.physToLog[p-1])&1)r.push(p);return r.length?r.join(" "):"-"}
 function lagLoad(){
-  return getJSON("/lag.json").then(function(s){
+  return getJSON("/lacp.json").then(function(c){
+    var tb=$("lacptbl").tBodies[0];
+    tb.innerHTML="";
+    c.lags.forEach(function(lg,i){
+      var g=i+1;
+      lacpCfg[g]=parseInt(lg.cfg,16);
+      if($("lgm"+g).closest(".card").dataset.dirty)return;
+      $("lgm"+g).value=lacpCfg[g]?"lacp":"static";
+      $("lgs"+g).textContent=lacpCfg[g]?"LACP: "+t("lacp_agg")+" "+(lg.aggValid?lg.agg:"("+t("lacp_neg")+")")+", "+t("lacp_members")+" "+maskPorts(parseInt(lg.members,16)):"";
+    });
+    if(c.on)c.ports.forEach(function(p){
+      if(p.lag===255)return;
+      var tr=tb.insertRow();
+      [p.p,p.lag+1,p.a,p.pt,p.rs,parseInt(p.rx,16),p.psys].forEach(function(v){tr.insertCell().textContent=v});
+    });
+    return getJSON("/lag.json");
+  }).then(function(s){
     s.forEach(function(l){
       var g=l.lagNum+1;
-      var members=parseInt(l.members,2);
+      if($("lgm"+g).closest(".card").dataset.dirty)return;
+      var members=lacpCfg[g]||parseInt(l.members,2);
       for(var p=1;p<=S.n;p++)
         $("lg"+g+"p"+p).checked=!!((members>>S.physToLog[p-1])&1);
       var hash=parseInt(l.hash,16);
@@ -2043,21 +2116,25 @@ function lagLoad(){
   });
 }
 function lagApply(g){
-  var cmd="lag "+g,n=0;
+  var lacp=$("lgm"+g).value==="lacp",cmd="lag "+g+(lacp?" lacp":""),n=0,pre=[];
+  delete $("lgm"+g).closest(".card").dataset.dirty;
   for(var p=1;p<=S.n;p++)if($("lg"+g+"p"+p).checked){cmd+=" "+p;n++;}
-  if(!n){
+  if(!lacp&&lacpCfg[g])pre.push("lag "+g+" lacp off");
+  if(lacp&&!n)cmd="lag "+g+" lacp off";
+  if(!n&&!lacp){
     confirmModal(t("lag_clear_q",{n:g}),t("lag_clear_d"),function(){
-      postCmd("lag "+g+" d").then(lagLoad).catch(function(){});
+      postCmds(pre.concat(["lag "+g+" d"])).then(lagLoad).catch(function(){});
     });
     return;
   }
   var hcmd="laghash "+g,nh=0;
   HASHF.forEach(function(f){if($("lg"+g+"h"+f).checked){hcmd+=" "+f;nh++;}});
-  var cmds=[cmd];
+  var cmds=pre.concat([cmd]);
   if(nh)cmds.push(hcmd);
   postCmds(cmds).then(lagLoad).catch(function(){});
 }
-tabHooks.lag={enter:function(){needPorts(function(){buildLag();lagLoad().catch(function(){})})}};
+var lagPoller=new Poller(function(){return lagLoad().catch(function(){})},3000);
+tabHooks.lag={enter:function(){needPorts(function(){buildLag();lagPoller.start()})},leave:function(){lagPoller.stop()}};
 
 
 function lldpLoad(){
@@ -2241,9 +2318,6 @@ function sysLoad(){
     if(sl[0]&&sl[0]!=="0.0.0.0")$("sy-sysip").value=sl[0];
     if(sl[1])$("sy-sysport").value=sl[1];
     if(S.info.session_timeout)$("sy-sesstmo").value=S.info.session_timeout;
-    /* fall back to the port this page was fetched over, for a firmware that
-     * does not report it */
-    $("sy-httpport").value=S.info.http_port||location.port||80;
   }).catch(function(){});
   cfgReload();
   dnsLoad();
@@ -2274,8 +2348,6 @@ $("sy-apply").addEventListener("click",function(){
   if(!okIp(ip)||!okIp(mask)||!okIp(gw)){toast(t("sy_ip_err"),"err");return;}
   var d1=$("sy-dns1").value.trim(),d2=$("sy-dns2").value.trim();
   if((d1&&!okIp(d1))||(d2&&!okIp(d2))){toast(t("sy_dns_err"),"err");return;}
-  var hport=$("sy-httpport").value.trim();
-  if(!(+hport>=1&&+hport<=65535&&/^\d+$/.test(hport))){toast(t("sy_httpport_err"),"err");return;}
   var cmds=[];
   var hn=$("sy-host").value.trim();
   if(hn&&hn!==S.info.hostname){
@@ -2284,23 +2356,9 @@ $("sy-apply").addEventListener("click",function(){
   }
   cmds.push("ip "+ip+"\nnetmask "+mask+"\ngw "+gw+"\ndns server "+(d1||"0.0.0.0")+(d2?" "+d2:""));
   var changingIp=ip!==S.info.ip_address;
-  var changingPort=+hport!==+(S.info.http_port||80);
-  /* last: the listener moves while this batch is still being answered */
-  if(changingPort)cmds.push("http port "+hport);
-  var note=changingIp?t("sy_net_d",{ip:ip}):"";
-  if(changingPort)note+=(note?" ":"")+t("sy_httpport_d",{ip:ip,port:hport});
-  confirmModal(t("sy_net_q"),note,function(){
+  confirmModal(t("sy_net_q"),changingIp?t("sy_net_d",{ip:ip}):"",function(){
     postCmds(cmds).then(function(){
-      if(changingPort){
-        /* the answer just came back on the old port; from the next request
-         * on the page has to be fetched on the new one */
-        toast(t("sy_httpport_d",{ip:ip,port:hport}),"ok");
-        setTimeout(function(){
-          location.href=location.protocol+"//"+location.hostname+":"+hport+"/";
-        },2000);
-        return;
-      }
-      if(changingIp)toast(t("sy_ip_changed",{ip:ip+(+hport===80?"":":"+hport)}),"ok");
+      if(changingIp)toast(t("sy_ip_changed",{ip:ip}),"ok");
       else sysLoad();
     }).catch(function(){});
   });
@@ -2331,24 +2389,19 @@ $("sy-sesstmo").addEventListener("change",function(){
 });
 $("sy-pwapply").addEventListener("click",function(){
   var a=$("sy-pw1").value,b=$("sy-pw2").value;
-  if(a.length<6||a.length>20){toast(t("sy_pw_len"),"err");return;}
+  if(a.length<1||a.length>20){toast(t("sy_pw_len"),"err");return;}
   if(/\s/.test(a)){toast(t("sy_pw_space"),"err");return;}
   if(a!==b){toast(t("sy_pw_match"),"err");return;}
   confirmModal(t("sy_pw_q"),t("sy_pw_d"),function(){
-    var salt=new Uint8Array(16);
-    crypto.getRandomValues(salt);
-    var pwd=new TextEncoder().encode(a);
-    var buf=new Uint8Array(salt.length+pwd.length);
-    buf.set(salt,0);buf.set(pwd,salt.length);
-    postCmd("passwd_hash "+bytesToHex(salt)+" "+sha256Hex(buf)).then(function(){
+    pwHash(a).then(function(h){
+      return postCmd("passwd_hash "+h.salt+" "+h.digest,true);
+    }).then(function(){
       $("sy-pw1").value=$("sy-pw2").value="";
-      toast("Password changed; log in again","ok");
+      toast(t("sy_pwapply"),"ok");
+      /* the password change ends every session */
       setTimeout(function(){location.href="/login.html";},900);
     }).catch(function(){});
   });
-});
-$("logoutBtn").addEventListener("click",function(){
-  api("/logout",{method:"POST",body:"1"}).then(function(){location.href="/login.html";},function(){location.href="/login.html";});
 });
 $("sy-send").addEventListener("click",sysConsole);
 $("sy-cmd").addEventListener("keydown",function(e){if(e.key==="Enter")sysConsole()});
@@ -2371,15 +2424,6 @@ $("sy-reboot").addEventListener("click",function(){
   confirmModal(t("sy_reboot_q"),S.dirty?t("sy_reboot_d"):"",function(){
     api("/reset").catch(function(){});
     toast(t("sy_rebooting"),"ok");
-  });
-});
-$("sy-defaults").addEventListener("click",function(){
-  confirmModal(t("sy_defaults_q"),t("sy_defaults_d"),function(){
-    /* "defaults" replaces the startup configuration with the one built into the
-     * image and reboots, so the connection drops just as it does for a reboot -
-     * hence the catch() and the "the switch is restarting" toast. */
-    api("/cmd",{method:"POST",body:"defaults"}).catch(function(){});
-    toast(t("sy_defaults_doing"),"ok");
   });
 });
 function cfgReload(){
@@ -2407,36 +2451,8 @@ $("cfgreload").addEventListener("click",cfgReload);
 $("cfgwrite").addEventListener("click",function(){
   writeConfig($("cfgedit").value,t("cw_title"));
 });
-var ntpBase=null,ntpTimer=null,dashTimer=null;
+var ntpBase=null,ntpTimer=null;
 function tzText(m){var a=Math.abs(m);return(m<0?"-":"+")+String(Math.floor(a/60)).padStart(2,"0")+":"+String(a%60).padStart(2,"0")}
-/* "+08:00" -> "+8", "-05:30" -> "-5:30", for the GMT label of the local time */
-function gmtText(tz){
-  var m=/^([+-])(\d\d):(\d\d)$/.exec(tz||"");
-  if(!m)return tz||"";
-  return m[1]+String(+m[2])+(+m[3]?":"+m[3]:"");
-}
-/* Local time of the switch, taken from the last NTP answer, in the format
- * "2026年10月14日 GMT+8 16:24:42". Without a synchronised clock there is no
- * time to show: the switch has no battery backed clock of its own. */
-function ntpClock(){
-  if(!ntpBase)return t("sy_nosync");
-  var d=new Date(ntpBase.ms+(Date.now()-ntpBase.at));
-  function p(n){return String(n).padStart(2,"0")}
-  return d.getUTCFullYear()+"年"+(d.getUTCMonth()+1)+"月"+d.getUTCDate()+"日 GMT"+ntpBase.gmt
-    +" "+p(d.getUTCHours())+":"+p(d.getUTCMinutes())+":"+p(d.getUTCSeconds());
-}
-var dashInfoTick=0;
-function dashClock(){
-  var el=$("dash-time");
-  if(el)el.textContent=ntpClock();
-  /* The VLAN switch is a physical control, so re-read the info (and with it
-   * the switch state) every few seconds while the dashboard is open. Boards
-   * without such a switch keep the one-shot load. */
-  if(S.info&&S.info.vlan_switch!=null&&++dashInfoTick>=5){
-    dashInfoTick=0;
-    pollInfo().catch(function(){});
-  }
-}
 function ntpTick(){
   if(!ntpBase)return;
   var d=new Date(ntpBase.ms+(Date.now()-ntpBase.at));
@@ -2445,28 +2461,15 @@ function ntpTick(){
   $("sy-now").textContent=d.getUTCFullYear()+"-"+p(d.getUTCMonth()+1)+"-"+p(d.getUTCDate())+" "
     +p(d.getUTCHours())+":"+p(d.getUTCMinutes())+":"+p(d.getUTCSeconds())+" UTC"+ntpBase.tz;
 }
-function ntpWhy(s){
-  var m;
-  if(!s||s==="NTP is off")return "";
-  if(m=s.match(/^no DNS server for (.+)$/))return t("sy_ntp_nodns",{name:m[1]});
-  if(m=s.match(/^cannot resolve (.+)$/))return t("sy_ntp_resolve",{name:m[1]});
-  if(m=s.match(/^no usable answer from (.+)$/))return t("sy_ntp_noans",{ip:m[1]});
-  return t("sy_ntp_first");
-}
 function ntpLoad(){
   return api("/cmd",{method:"POST",body:"ntp"}).then(function(r){
     var m=r.body.match(/NTP (on|off), server (\S*), address ([\d.]+), interval (\d+) min, timezone ([+-]\d\d:\d\d), dst (\w+)/);
     if(!m)return;
     var x=r.body.match(/Time (\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d) UTC([+-]\d\d:\d\d)( DST)?, synchronised (\d+) min ago/);
-    var w=r.body.match(/Time not synchronised, ([^\n]+)/);
     $("sy-ntpaddr").textContent=m[3]==="0.0.0.0"?"-":m[3];
-    var why=x||m[1]==="off"?"":ntpWhy(w?w[1]:"");
-    $("sy-ntpwhy").textContent=why;
-    $("sy-ntpwhy").hidden=!why;
     if(x){
-      ntpBase={at:Date.now(),ms:Date.UTC(+x[1],+x[2]-1,+x[3],+x[4],+x[5],+x[6]),tz:x[7]+(x[8]?" DST":""),
-        gmt:gmtText(x[7]),sync:+x[9]};
-      ntpTick();dashClock();
+      ntpBase={at:Date.now(),ms:Date.UTC(+x[1],+x[2]-1,+x[3],+x[4],+x[5],+x[6]),tz:x[7]+(x[8]?" DST":""),sync:+x[9]};
+      ntpTick();
     }else{
       ntpBase=null;
       $("sy-now").textContent=t("sy_nosync");
@@ -2498,18 +2501,18 @@ tabHooks.system={
 
 var CONF_OVERWRITE=[
   /^ip\b/,/^gw\b/,/^netmask\b/,/^hostname\b/,
-  /^syslog\s+ip\b/,/^syslog\s+port\b/,/^dns\s+server\b/,/^passwd\b/,/^session\b/,/^http\s+port\b/,
+  /^syslog\s+ip\b/,/^syslog\s+port\b/,/^dns\s+server\b/,/^passwd\b/,/^session\b/,
   /^ntp\s+server\b/,/^ntp\s+interval\b/,/^ntp\s+timezone\b/,/^ntp\s+dst\b/,
   /^vlan\s+\d{1,4}\s+mgmt$/,/^vlan\s+\d{1,4}(?!\s+mgmt\b)/,
   /^pvid\s+\d{1,2}\b/,
-  /^port\s+\d{1,2}(?!\s+name\b)/,/^port\s+\d{1,2}\s+name\b/,
+  /^port\s+\d{1,2}(?!\s+(name|lldp)\b)/,/^port\s+\d{1,2}\s+name\b/,
   /^mirror\b/,
   /^lag\s+\d\b/,/^laghash\s+\d\b/,/^isolate\s+\d{1,2}\b/,
   /^stp\s+(prio|hello|maxage|fwd|txhold|version)\b/,
   /^stp\s+(port\s+\d{1,2}|lag\s+[1-4])\s+(edge|cost|prio|guard|filter|p2p)\b/,
   /^igmp\b/,/^mtu\s+\d{1,2}\b/,/^storm\s+\d{1,2}\s+(bcast|mcast|ucast|umcast)\b/,
 ];
-var CONF_TOGGLE=[/^(vlan\s+switch)\s+(on|off)$/,/^(syslog)\s+(on|off)$/,/^(ntp)\s+(on|off)$/,/^(stp)\s+(on|off)$/,/^(stp\s+(port\s+\d{1,2}|lag\s+[1-4]))\s+(on|off)$/];
+var CONF_TOGGLE=[/^(syslog)\s+(on|off)$/,/^(ntp)\s+(on|off)$/,/^(stp)\s+(on|off)$/,/^(lldp)\s+(on|off)$/,/^(stp\s+(port\s+\d{1,2}|lag\s+[1-4]))\s+(on|off)$/];
 function mergeConf(base,texts){
   var conf=base.slice();
   function drop(rx){conf=conf.filter(function(c){return!rx.test(c)})}
@@ -2525,7 +2528,9 @@ function mergeConf(base,texts){
         else drop(/^eee /);
         conf.push(line);return;
       }
+      if((m=line.match(/^lag (\d) lacp off$/))){drop(new RegExp("^lag "+m[1]+" lacp( |$)"));return;}
       if(line==="mirror off"){drop(/^mirror /);return;}
+      if((m=line.match(/^(port \d{1,2} lldp) (permit|block)$/))){drop(new RegExp("^"+m[1]+" (permit|block)$"));conf.push(line);return;}
       if(!isConfCmd(line))return;
       if((m=line.match(/^ingress (.+)$/))){
         if(/^[tua]$/.test(m[1])){drop(/^ingress /);conf.push(line);return;}
@@ -2558,7 +2563,7 @@ function mergeConf(base,texts){
           var key=line.match(rx)[0];
           conf=conf.filter(function(item){
             return!(item===key||(item.indexOf(key+" ")===0
-              &&!/\smgmt$/.test(item)&&item.indexOf(key+" name ")!==0));
+              &&!/\smgmt$/.test(item)&&item.indexOf(key+" name ")!==0&&item.indexOf(key+" lldp ")!==0));
           });
           break;
         }
@@ -2711,7 +2716,6 @@ $("fwup").addEventListener("click",function(){
       fwSettle(st,false);
     })};
     xhr.open("POST","/upload");
-    xhr.setRequestHeader("X-RTLP","1");
     xhr.send(form);
   });
 });
@@ -2762,10 +2766,6 @@ window.addEventListener("hashchange",function(){
 (function(){
   var id=location.hash.slice(1);
   if(!TABS.some(function(tb){return tb.id===id}))id="dash";
-  // Name the tab and the nav bar before the first answer arrives: the head
-  // script of index.html could only set the title, and a switch whose hostname
-  // arrives late (or never) must not sit there as "Switch".
-  nameTab();
   pollInfo().catch(function(){});
   getText("/cmd_log").then(function(x){
     x=x.replace(/\0[\s\S]*$/,"").trim();
