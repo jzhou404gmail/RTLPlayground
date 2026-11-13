@@ -79,7 +79,7 @@ endif
 # gateway and netmask a freshly flashed board comes up with, plus - if it has
 # such a line - a "passwd" line that replaces the built-in default password.
 # Targets whose vendor default differs get their own file.
-XIKESTOR_TARGETS := SKS3200M_4GPY2XF SKS3200M_5GPY1XF SKS3200M_8GPY1XF
+XIKESTOR_TARGETS := SKS3200M_4GPY2XF SKS3200M_5GPY1XF XIKESTOR_SKS3200M_8GPY1XF XIKESTOR_SKS3200_8E1X
 DEFAULT_CONFIG := config.txt
 ifneq ($(filter $(XIKESTOR_TARGETS),$(MACHINE)),)
 DEFAULT_CONFIG := config-xikestor.txt

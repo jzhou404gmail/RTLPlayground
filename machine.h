@@ -25,7 +25,11 @@
  * names share a PCB; here the model string in machine/<NAME>.h is the PCB
  * revision, so it doubles as the info value unless a header overrides it. */
 #ifndef MACHINE_PCB_INFO
+#ifdef MACHINE_PCB_NAME
+#define MACHINE_PCB_INFO MACHINE_STR(MACHINE_PCB_NAME)
+#else
 #define MACHINE_PCB_INFO "unknown"
+#endif
 #endif
 
 
