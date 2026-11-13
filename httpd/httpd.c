@@ -40,7 +40,13 @@ static __xdata uint32_t login_lock_until;
 static __xdata uint8_t host_ok;
 static __xdata uint8_t csrf_ok;
 static __xdata uint8_t host_ip[4];
-static __xdata uint8_t *host_hdr;
+static __xdata uint8_t * __xdata host_hdr;
+/* scan_header()/host_is_ip() scratch, in xdata: internal RAM is full and these
+ * are only used while one request is parsed. */
+static __xdata uint8_t * __xdata host_scan;
+static __xdata uint8_t * __xdata hip_h;
+static __xdata uint16_t hip_v;
+static __xdata uint8_t hip_i, hip_d;
 
 #define CMARK_S 6
 
@@ -344,42 +350,40 @@ void send_ok(void)
  * the switch, but its Host header still says evil.example.com. */
 static uint8_t host_is_ip(void)
 {
-	__xdata uint8_t *h = host_hdr;
-	uint16_t v;
-	uint8_t i, d;
+	hip_h = host_hdr;
 
-	for (i = 0; i < 4; i++) {
-		v = 0;
-		d = 0;
-		while (*h >= '0' && *h <= '9') {
-			if (d == 3)
+	for (hip_i = 0; hip_i < 4; hip_i++) {
+		hip_v = 0;
+		hip_d = 0;
+		while (*hip_h >= '0' && *hip_h <= '9') {
+			if (hip_d == 3)
 				return 0;
-			v = v * 10 + (*h - '0');
-			h++;
-			d++;
-			if (v > 255)
+			hip_v = hip_v * 10 + (*hip_h - '0');
+			hip_h++;
+			hip_d++;
+			if (hip_v > 255)
 				return 0;
 		}
-		if (!d)
+		if (!hip_d)
 			return 0;
-		host_ip[i] = (uint8_t)v;
-		if (i < 3) {
-			if (*h != '.')
+		host_ip[hip_i] = (uint8_t)hip_v;
+		if (hip_i < 3) {
+			if (*hip_h != '.')
 				return 0;
-			h++;
+			hip_h++;
 		}
 	}
-	if (*h == ':') {
-		h++;
-		d = 0;
-		while (*h >= '0' && *h <= '9') {
-			h++;
-			d++;
+	if (*hip_h == ':') {
+		hip_h++;
+		hip_d = 0;
+		while (*hip_h >= '0' && *hip_h <= '9') {
+			hip_h++;
+			hip_d++;
 		}
-		if (!d)
+		if (!hip_d)
 			return 0;
 	}
-	if (*h != 0 && *h != '\r' && *h != '\n')
+	if (*hip_h != 0 && *hip_h != '\r' && *hip_h != '\n')
 		return 0;
 
 	return host_ip[0] == (uip_hostaddr[0] & 0xff)
@@ -415,7 +419,8 @@ static uint8_t host_is_name(void)
 __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 {
 	__xdata uint8_t *v;
-	__xdata uint8_t *host = 0;
+
+	host_scan = 0;
 
 	content_type = 0;
 	content_length = 0;
@@ -435,7 +440,7 @@ __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 			parse_short(v);
 			content_length = short_parsed;
 		} else if ((v = header_value(p, "\nhost:"))) {
-			host = v;
+			host_scan = v;
 		} else if ((v = header_value(p, "\nx-rtlp:"))) {
 			csrf_ok = (*v && *v != '\r' && *v != '\n');
 		} else if ((v = header_value(p, "\ncookie:"))) {
@@ -469,8 +474,8 @@ __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 		boundary[i + 4] = 0;
 	}
 
-	if (host) {
-		host_hdr = host;
+	if (host_scan) {
+		host_hdr = host_scan;
 		host_ok = host_is_ip() || host_is_name();
 	}
 
@@ -1279,6 +1284,10 @@ void httpd_appcall(void)
 				send_lag();
 			} else if (is_word(q, "/stp.json")) {
 				send_stp();
+			} else if (is_word(q, "/stpcnt.json")) {
+				send_stp_counters();
+			} else if (is_word(q, "/lacp.json")) {
+				send_lacp();
 			} else if (is_word(q, "/lldp.json")) {
 				send_lldp();
 			} else if (is_word(q, "/vlanlist")) {

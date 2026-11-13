@@ -13,6 +13,7 @@ BANKS = {
     "BANK1": 0x14000,
     "BANK2": 0x24000,
     "BANK3": 0x34000,
+    "BANK4": 0x44000,
 }
 SIZE = 0xC000  # 48 KiB per bank
 HOME_START, HOME_SIZE = 0x00000, 0x14000
