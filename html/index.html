@@ -81,8 +81,16 @@ section.tab.act{display:block}
 }
 .card h2{font-size:14px;font-weight:650;margin-bottom:12px;color:var(--fg)}
 .card h2 .hint{font-weight:400;font-size:12px;color:var(--fg2);margin-left:8px}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;align-items:start}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;align-items:stretch}
 .grid2 .card{margin-bottom:0}
+/* Right column: VLAN panel switch above the traffic table, both together as
+   tall as the System card on the left. The switch card keeps its natural
+   height, the traffic card takes the rest and scrolls inside. */
+.gridcol{display:flex;flex-direction:column;gap:16px;min-width:0;min-height:0}
+.gridcol>.card{min-height:0;display:flex;flex-direction:column}
+.gridcol>#dash-vlan{flex:0 0 auto}
+.gridcol>#dash-traffic{flex:1 1 auto}
+.gridcol>.card .scrollx{overflow:auto;min-height:0}
 table.t{width:100%;border-collapse:collapse;font-size:13px}
 table.t th{
   text-align:left;font-weight:600;color:var(--fg2);font-size:12px;
@@ -245,19 +253,21 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
     <section class="tab act" id="tab-dash">
       <div class="grid2">
         <div class="card"><h2 data-i18n="d_system">System</h2><table class="t" id="sysinfo"></table></div>
-        <div class="card"><h2><span data-i18n="d_traffic">Traffic</span> <span class="hint" data-i18n="d_traffic_h">packets/s, live</span></h2>
-          <div class="scrollx"><table class="t" id="traffic">
-            <thead><tr><th data-i18n="c_port">Port</th><th data-i18n="c_link">Link</th><th class="num" data-i18n="d_txpps">TX pps</th><th class="num" data-i18n="d_rxpps">RX pps</th><th class="num" data-i18n="d_txbad">TX bad</th><th class="num" data-i18n="d_rxbad">RX bad</th></tr></thead>
-            <tbody></tbody></table></div>
-        </div>
-        <div class="card" id="dash-vlan" hidden>
-          <h2 data-i18n="d_vlan">VLAN panel switch</h2>
-          <label class="row"><span class="lb" data-i18n="d_vlan_phys">VLAN panel switch</span>
-            <span class="switch"><input type="checkbox" id="vlanphys" disabled><i></i></span></label>
-          <p class="small mut" id="vlanphys_hint"></p>
-          <label class="row"><span class="lb" data-i18n="d_vlan_en">Use VLAN panel switch</span>
-            <span class="switch"><input type="checkbox" id="vlanen"><i></i></span></label>
-          <p class="small mut" id="vlanen_hint"></p>
+        <div class="gridcol">
+          <div class="card" id="dash-vlan" hidden>
+            <h2 data-i18n="d_vlan">VLAN panel switch</h2>
+            <label class="row"><span class="lb" data-i18n="d_vlan_phys">VLAN panel switch</span>
+              <span class="switch"><input type="checkbox" id="vlanphys" disabled><i></i></span></label>
+            <p class="small mut" id="vlanphys_hint"></p>
+            <label class="row"><span class="lb" data-i18n="d_vlan_en">Use VLAN panel switch</span>
+              <span class="switch"><input type="checkbox" id="vlanen"><i></i></span></label>
+            <p class="small mut" id="vlanen_hint"></p>
+          </div>
+          <div class="card" id="dash-traffic"><h2><span data-i18n="d_traffic">Traffic</span> <span class="hint" data-i18n="d_traffic_h">packets/s, live</span></h2>
+            <div class="scrollx"><table class="t" id="traffic">
+              <thead><tr><th data-i18n="c_port">Port</th><th data-i18n="c_link">Link</th><th class="num" data-i18n="d_txpps">TX pps</th><th class="num" data-i18n="d_rxpps">RX pps</th><th class="num" data-i18n="d_txbad">TX bad</th><th class="num" data-i18n="d_rxbad">RX bad</th></tr></thead>
+              <tbody></tbody></table></div>
+          </div>
         </div>
       </div>
     </section>
