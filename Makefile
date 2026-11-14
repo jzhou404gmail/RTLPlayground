@@ -25,6 +25,13 @@ else
 	CC_FLAGS += -DMACHINE_NAME=$(MACHINE)
 endif
 
+# Boards that share one PCB symlink their machine/<NAME>.c at machine/pcb/<PCB>.c;
+# the symlink target names the PCB revision shown as pcb_ver.
+MACHINE_LINK_TARGET := $(shell readlink machine/$(MACHINE).c 2>/dev/null)
+ifneq ($(MACHINE_LINK_TARGET),)
+	CC_FLAGS += -DMACHINE_PCB_NAME=$(basename $(notdir $(MACHINE_LINK_TARGET)))
+endif
+
 # Goals that make sense without a machine selection.
 MACHINE_FREE_GOALS = clean distclean tools tools/clean machine_check
 # A bare "make" has no goals but builds $(all), which does need a machine.
