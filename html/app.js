@@ -65,7 +65,7 @@ var LANG = {
         i_gw: "Gateway",
         i_mac: "MAC",
         i_fw: "Firmware",
-        i_built: "Built", d_vlan: "VLAN panel switch settings", d_vlan_en: "Use VLAN panel switch", d_vlan_en_off: "The VLAN panel switch is ignored; set the LAN ports' VLAN function and state on the VLAN page", d_vlan_en_on: "The VLAN panel switch is in effect: the LAN ports are isolated", d_vlan_h: "panel", d_vlan_off: "All ports can talk to each other (no effect while \"Use VLAN panel switch\" below is off)", d_vlan_on: "LAN ports are isolated and can only reach the SFP+ cages (no effect while \"Use VLAN panel switch\" below is off)", d_vlan_phys: "VLAN panel switch", i_model: "Model",
+        i_built: "Built", vlan_warn: "\"Use VLAN panel switch\" is on: the panel switch owns the LAN ports' VLANs and isolation. The settings below are read-only - turn the function off on the dashboard to configure VLANs here.", mirror_warn: "\"Use VLAN panel switch\" is on: the panel switch owns the LAN ports. The settings below are read-only - turn the function off on the dashboard to configure mirroring here.", d_vlan: "VLAN panel switch settings", d_vlan_en: "Use VLAN panel switch", d_vlan_en_off: "The VLAN panel switch is ignored; set the LAN ports' VLAN function and state on the VLAN page", d_vlan_en_on: "The VLAN panel switch is in effect: the LAN ports are isolated", d_vlan_h: "panel", d_vlan_off: "All ports can talk to each other (no effect while \"Use VLAN panel switch\" below is off)", d_vlan_on: "LAN ports are isolated and can only reach the SFP+ cages (no effect while \"Use VLAN panel switch\" below is off)", d_vlan_phys: "VLAN panel switch", i_model: "Model",
         i_uptime: "Uptime",
         i_uptime_d: "{d} d {t}",
         i_hw: "Hardware",
@@ -449,7 +449,7 @@ var LANG = {
         i_gw: "ゲートウェイ",
         i_mac: "MAC",
         i_fw: "ファームウェア",
-        i_built: "ビルド日", d_vlan: "VLANパネルスイッチ設定", d_vlan_en: "VLANパネルスイッチを有効にする", d_vlan_en_off: "VLANパネルスイッチは無効です。VLAN設定ページでLANポートのVLAN機能を設定してください", d_vlan_en_on: "VLANパネルスイッチが有効です：LANポートは相互に分離されます", d_vlan_h: "パネル", d_vlan_off: "すべてのポートが相互に通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）", d_vlan_on: "LANポートは相互に分離され、SFP+ポートのみと通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）", d_vlan_phys: "VLANパネルスイッチ", i_model: "モデル",
+        i_built: "ビルド日", vlan_warn: "「VLANパネルスイッチを有効にする」がオンです：LANポートのVLANと分離はパネルのスイッチが担当します。以下の設定は参照のみです。ここでVLANを設定するにはダッシュボードで機能をオフにしてください。", mirror_warn: "「VLANパネルスイッチを有効にする」がオンです：LANポートはパネルのスイッチが担当します。以下の設定は参照のみです。ミラーを設定するにはダッシュボードで機能をオフにしてください。", d_vlan: "VLANパネルスイッチ設定", d_vlan_en: "VLANパネルスイッチを有効にする", d_vlan_en_off: "VLANパネルスイッチは無効です。VLAN設定ページでLANポートのVLAN機能を設定してください", d_vlan_en_on: "VLANパネルスイッチが有効です：LANポートは相互に分離されます", d_vlan_h: "パネル", d_vlan_off: "すべてのポートが相互に通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）", d_vlan_on: "LANポートは相互に分離され、SFP+ポートのみと通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）", d_vlan_phys: "VLANパネルスイッチ", i_model: "モデル",
         i_uptime: "稼働時間",
         i_uptime_d: "{d}日 {t}",
         i_hw: "ハードウェア",
@@ -758,7 +758,7 @@ var LANG = {
         i_gw: "网关",
         i_mac: "MAC",
         i_fw: "固件",
-        i_built: "构建日期", d_vlan: "VLAN物理拨刀开关设置", d_vlan_en: "启用VLAN面板开关", d_vlan_en_off: "VLAN物理拨刀开关失效，请在VLAN设置页面设置LAN口的VLAN功能和状态", d_vlan_en_on: "VLAN物理拨刀开关生效，LAN口互相隔离", d_vlan_h: "面板", d_vlan_off: "所有端口可自由互通（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）", d_vlan_on: "LAN口互相隔离，只能访问SFP+光口（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）", d_vlan_phys: "VLAN面板开关", i_model: "型号",
+        i_built: "构建日期", vlan_warn: "「启用VLAN面板开关」已开启：LAN 口的 VLAN 与隔离由面板拨刀接管。以下设置只读、仅供查看；如需在网页中配置 VLAN，请先在仪表盘关闭该开关。", mirror_warn: "「启用VLAN面板开关」已开启：端口镜像由面板拨刀接管。以下设置只读、仅供查看；如需配置端口镜像，请先在仪表盘关闭该开关。", d_vlan: "VLAN物理拨刀开关设置", d_vlan_en: "启用VLAN面板开关", d_vlan_en_off: "VLAN物理拨刀开关失效，请在VLAN设置页面设置LAN口的VLAN功能和状态", d_vlan_en_on: "VLAN物理拨刀开关生效，LAN口互相隔离", d_vlan_h: "面板", d_vlan_off: "所有端口可自由互通（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）", d_vlan_on: "LAN口互相隔离，只能访问SFP+光口（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）", d_vlan_phys: "VLAN面板开关", i_model: "型号",
         i_uptime: "运行时间",
         i_uptime_d: "{d}天 {t}",
         i_hw: "硬件",
@@ -1141,7 +1141,7 @@ var LANG = {
         i_gw: "Puerta de enlace",
         i_mac: "MAC",
         i_fw: "Firmware",
-        i_built: "Compilado",
+        i_built: "Compilado", vlan_warn: "«Usar el interruptor VLAN del panel» está activado: el interruptor del panel controla las VLAN y el aislamiento de los puertos LAN. Los ajustes de abajo son de solo lectura; desactive la función en el panel de control para configurar VLAN aquí.", mirror_warn: "«Usar el interruptor VLAN del panel» está activado: el interruptor del panel controla los puertos LAN. Los ajustes de abajo son de solo lectura; desactive la función en el panel de control para configurar el espejo aquí.",
         i_uptime: "Tiempo en marcha",
         i_uptime_d: "{d} d {t}",
         i_hw: "Hardware",
@@ -1529,7 +1529,7 @@ var LANG = {
         i_gw: "Passerelle",
         i_mac: "Adresse MAC",
         i_fw: "Micro logiciel",
-        i_built: "Compilé le",
+        i_built: "Compilé le", vlan_warn: "« Utiliser le commutateur VLAN du panneau » est actif : le commutateur du panneau gère les VLAN et l'isolation des ports LAN. Les réglages ci-dessous sont en lecture seule ; désactivez la fonction sur le tableau de bord pour configurer les VLAN ici.", mirror_warn: "« Utiliser le commutateur VLAN du panneau » est actif : le commutateur du panneau gère les ports LAN. Les réglages ci-dessous sont en lecture seule ; désactivez la fonction sur le tableau de bord pour configurer le miroir ici.",
         i_uptime: "Temps de fonctionnement",
         i_uptime_d: "{d} j {t}",
         i_hw: "Matériel",
@@ -1878,7 +1878,7 @@ var LANG = {
         i_gw: "Gateway",
         i_mac: "MAC",
         i_fw: "Firmware",
-        i_built: "Erstellt",
+        i_built: "Erstellt", vlan_warn: "\"VLAN-Panel-Schalter verwenden\" ist an: der Panel-Schalter übernimmt VLANs und Isolation der LAN-Ports. Die Einstellungen unten sind schreibgeschützt; schalten Sie die Funktion im Dashboard aus, um VLANs hier zu setzen.", mirror_warn: "\"VLAN-Panel-Schalter verwenden\" ist an: der Panel-Schalter übernimmt die LAN-Ports. Die Einstellungen unten sind schreibgeschützt; schalten Sie die Funktion im Dashboard aus, um die Spiegelung hier einzurichten.",
         i_uptime: "Betriebszeit",
         i_uptime_d: "{d} T {t}",
         i_hw: "Hardware",
@@ -2941,6 +2941,33 @@ function fmtUptime(hex) {
     }) : t3;
 }
 
+
+/* While "Use VLAN panel switch" is on, the panel switch owns VLANs,
+ * isolation and mirroring: show the notice on those tabs, grey the cards out
+ * and make the controls read-only (the pointer block also covers rows that a
+ * refresh rebuilds). */
+function updateVlanWarning() {
+    var i = S.info || {};
+    var on = (i.vlan_switch != null && i.vlan_switch !== "") && (i.vlan_switch_en !== "off");
+    ["vlan-warn", "iso-warn", "mirror-warn"].forEach(function(id) {
+        var el = $(id);
+        if (el) el.hidden = !on;
+    });
+    ["tab-vlan", "tab-isolate", "tab-mirror"].forEach(function(id) {
+        var sec = $(id);
+        if (!sec) return;
+        sec.classList.toggle("locked", on);
+        sec.querySelectorAll("input,select,button,textarea").forEach(function(el) {
+            if (on) {
+                if (el.dataset.lock === undefined) el.dataset.lock = el.disabled ? "1" : "0";
+                el.disabled = true;
+            } else if (el.dataset.lock !== undefined) {
+                el.disabled = el.dataset.lock === "1";
+                delete el.dataset.lock;
+            }
+        });
+    });
+}
 function renderInfo() {
     var m = [
         ["i_host", "hostname"],
@@ -2981,6 +3008,7 @@ function renderInfo() {
     }
     if (S.info.sw_ver) $("fver").textContent = "RTLPlayground " + S.info.sw_ver;
     renderVlan();
+    updateVlanWarning();
 }
 
 /* Dashboard card for the front-panel "VLAN" slide switch. Boards without one

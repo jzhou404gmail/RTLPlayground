@@ -91,6 +91,19 @@ section.tab.act{display:block}
 .gridcol>#dash-vlan{flex:0 0 auto}
 .gridcol>#dash-traffic{flex:1 1 auto}
 .gridcol>.card .scrollx{overflow:auto;min-height:0}
+/* Yellow notice on the VLAN, isolation and mirroring tabs while the panel
+   switch owns those settings. The same rule greys the cards out and blocks
+   pointer interaction, keeping the values readable. */
+.warnbar{display:flex;gap:9px;align-items:flex-start;font-size:13px;
+  background:color-mix(in srgb,var(--warn) 12%,var(--panel));
+  border:1px solid var(--warn);border-left:4px solid var(--warn);
+  border-radius:8px;padding:9px 12px;margin-bottom:16px}
+.warnbar[hidden]{display:none}
+.warnbar .wi{color:var(--warn);font-size:15px;line-height:1.25}
+.tab.locked .card{opacity:.55;filter:grayscale(.5)}
+.tab.locked .card input,.tab.locked .card select,.tab.locked .card button,
+.tab.locked .card textarea,.tab.locked .card [onclick]{pointer-events:none;cursor:not-allowed}
+#dash-vlan label.row span.lb{width:130px}
 table.t{width:100%;border-collapse:collapse;font-size:13px}
 table.t th{
   text-align:left;font-weight:600;color:var(--fg2);font-size:12px;
@@ -326,6 +339,7 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
     </section>
 
     <section class="tab" id="tab-vlan">
+      <div class="warnbar" id="vlan-warn" hidden><span class="wi">⚠</span><span data-i18n="vlan_warn"></span></div>
       <div class="card"><h2><span data-i18n="v_title">VLANs</span><span id="vmgmtcur"></span></h2>
         <div class="scrollx"><table class="t" id="vtable">
           <thead><tr><th data-i18n="v_vid">VID</th><th data-i18n="c_name">Name</th><th data-i18n="v_members">Members</th><th data-i18n="v_tagged">Tagged</th><th data-i18n="v_untagged">Untagged</th><th data-i18n="v_pvid_on">PVID on</th><th></th></tr></thead>
@@ -358,6 +372,7 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
     </section>
 
     <section class="tab" id="tab-mirror">
+      <div class="warnbar" id="mirror-warn" hidden><span class="wi">⚠</span><span data-i18n="mirror_warn"></span></div>
       <div class="card"><h2 data-i18n="m_title">Port mirroring</h2>
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
           <span class="badge" id="mstate">off</span>
@@ -382,6 +397,7 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
     </section>
 
     <section class="tab" id="tab-isolate">
+      <div class="warnbar" id="iso-warn" hidden><span class="wi">⚠</span><span data-i18n="vlan_warn"></span></div>
       <div class="card"><h2 data-i18n="iso_title">Port isolation</h2>
         <p class="small mut" style="margin-bottom:10px" data-i18n="iso_intro">A frame entering a port may only leave through the ports ticked in its row.</p>
         <div class="scrollx"><table class="t" id="isotbl" style="width:auto"><thead></thead><tbody></tbody></table></div>
