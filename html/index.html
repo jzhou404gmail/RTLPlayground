@@ -269,12 +269,9 @@ button.danger{background:var(--bad);color:#fff;border-color:transparent}
         <div class="gridcol">
           <div class="card" id="dash-vlan" hidden>
             <h2 data-i18n="d_vlan">VLAN panel switch</h2>
-            <label class="row"><span class="lb" data-i18n="d_vlan_phys">VLAN panel switch</span>
-              <span class="switch"><input type="checkbox" id="vlanphys" disabled><i></i></span></label>
-            <p class="small mut" id="vlanphys_hint"></p>
-            <label class="row"><span class="lb" data-i18n="d_vlan_en">Use VLAN panel switch</span>
+            <label class="row"><span class="lb" data-i18n="d_vlan_en">VLAN panel physical toggle switch</span>
               <span class="switch"><input type="checkbox" id="vlanen"><i></i></span></label>
-            <p class="small mut" id="vlanen_hint"></p>
+            <p class="small mut" id="vlanen_hint" style="margin-top:2px"></p>
           </div>
           <div class="card" id="dash-traffic"><h2><span data-i18n="d_traffic">Traffic</span> <span class="hint" data-i18n="d_traffic_h">packets/s, live</span></h2>
             <div class="scrollx"><table class="t" id="traffic">
