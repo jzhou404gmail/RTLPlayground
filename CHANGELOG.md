@@ -163,6 +163,7 @@
 
 ## Fixed
 
+- SFP ports are reported as enabled with a separate `module` flag instead of using `enabled` for "module inserted", so an empty cage shows as *not connected* rather than *disabled*; the port details name the missing module.
 - `send_l2()` counted 76 bytes for a worst-case entry but the entry can reach 96, and the closing bracket was written without checking the buffer; the host test caught the overrun.
 - Firefox no longer fills a saved login into the new-password fields of the System tab.
 - NTP
