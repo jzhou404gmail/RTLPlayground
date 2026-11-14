@@ -17,3 +17,23 @@ test/build/
 
 # local flash dumps / working images
 /backup_*.bin
+
+# --- local-only: 自有设备与实验室相关内容，一律只留本地，永不提交 ---
+# 原则：凡与自有硬件、固件镜像、上板记录、凭据、本机环境相关的，都不进仓库。
+# 上板验证记录（含设备 IP / MAC / 口令）
+doc/*-verification-*.md
+doc/security-hardening-plan-*.md
+# 刷机与实验脚本、固件镜像、日志
+upgrade/
+new device/
+*.bin
+worktmp/
+# 上游 PR 抓取与对比的临时产物
+.sync-patches/
+pr[0-9]*.json
+runs[0-9]*.json
+sha[0-9]*
+# 本机自有环境脚本（NAS / Samba 等）
+create_public.sh
+# 本地私有记录归档
+.local-records/
