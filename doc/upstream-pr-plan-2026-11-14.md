@@ -9,11 +9,15 @@
 |---|---|---|---|---|
 | 1 | `pr/sfp-module-flag` | SFP 空笼子语义：`enabled` 恒 true，新增 `module` 字段；UI 由链路状态决定 badge，端口详情显示「No module」 | page_impl + app.js + CHANGELOG，约 40 行 | 上游 main 上 `make MACHINE=STEAMEMO_IG204_V1` 构建通过；`make -C test` 全过 |
 | 2 | `pr/login-password-toggle` | 登录页密码框内嵌「显示/隐藏」眼睛按钮（aria、6 语言标签、class 化样式） | login.html + CHANGELOG，约 60 行 | 构建通过 |
+| 3 | `pr/session-hardening` | Cookie 加 `Path=/; HttpOnly`、`POST /logout`（只清当前浏览器会话）、8 h 绝对上限、Header 退出按钮 | sessions.c/h + httpd.c + index.html + app.js，约 90 行 | 构建通过；`make -C test` 全过 |
+| 4 | `pr/security-headers` | 静态资源 `X-Frame-Options: DENY`、`nosniff`、CSP `frame-ancestors 'none'`、去掉 `ACAO: *`；JSON/TXT/401 加 `Cache-Control: no-store` + `nosniff`；附带 `send_l2` 越界修复 | httpd.c + html_out.c + page_impl.c + CHANGELOG | 构建通过；测试全过。**L2 修复建议单列**（见下） |
 
 开 PR 链接（点开即 compare 页面）：
 
 - https://github.com/logicog/RTLPlayground/compare/main...jzhou404gmail:RTLPlayground:pr/sfp-module-flag?expand=1
 - https://github.com/logicog/RTLPlayground/compare/main...jzhou404gmail:RTLPlayground:pr/login-password-toggle?expand=1
+- https://github.com/logicog/RTLPlayground/compare/main...jzhou404gmail:RTLPlayground:pr/session-hardening?expand=1
+- https://github.com/logicog/RTLPlayground/compare/main...jzhou404gmail:RTLPlayground:pr/security-headers?expand=1
 
 ## 二、建议后续提交的 PR（按依赖与风险排序）
 
