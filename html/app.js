@@ -65,7 +65,7 @@ var LANG = {
         i_gw: "Gateway",
         i_mac: "MAC",
         i_fw: "Firmware",
-        i_built: "Built", vlan_warn: "\"Use VLAN panel switch\" is on: the panel switch owns the LAN ports' VLANs and isolation. The settings below are read-only - turn the function off on the dashboard to configure VLANs here.", mirror_warn: "\"Use VLAN panel switch\" is on: the panel switch owns the LAN ports. The settings below are read-only - turn the function off on the dashboard to configure mirroring here.", d_vlan: "Panel physical VLAN toggle switch settings", d_vlan_en: "Toggle switch", d_vlan_en_off: "The toggle switch is off; LAN port settings are made in the management UI.", d_vlan_en_on: "Switch is active. ON: the four LAN ports are isolated from each other; OFF: LAN port isolation is off.", d_vlan_h: "panel", d_vlan_off: "All ports can talk to each other (no effect while \"Use VLAN panel switch\" below is off)", d_vlan_on: "LAN ports are isolated and can only reach the SFP+ cages (no effect while \"Use VLAN panel switch\" below is off)", d_vlan_phys: "VLAN panel switch", i_model: "Model",
+        i_built: "Built", lag_warn: "The panel toggle switch is on: it owns the LAN ports, so link aggregation is read-only here. Turn the function off on the dashboard to configure LAGs.", vlan_warn: "The panel toggle switch is on: the panel switch owns the LAN ports' VLANs and isolation. The settings below are read-only - turn the function off on the dashboard to configure VLANs here.", mirror_warn: "The panel toggle switch is on: the panel switch owns the LAN ports. The settings below are read-only - turn the function off on the dashboard to configure mirroring here.", d_vlan: "Panel physical VLAN toggle switch settings", d_vlan_en: "Toggle switch", d_vlan_en_off: "The toggle switch is off; LAN port settings are made in the management UI.", d_vlan_en_on: "Switch is active. ON: the four LAN ports are isolated from each other; OFF: LAN port isolation is off.", d_vlan_h: "panel", d_vlan_off: "All ports can talk to each other (no effect while \"Use VLAN panel switch\" below is off)", d_vlan_on: "LAN ports are isolated and can only reach the SFP+ cages (no effect while \"Use VLAN panel switch\" below is off)", d_vlan_phys: "VLAN panel switch", i_model: "Model",
         i_uptime: "Uptime",
         i_uptime_d: "{d} d {t}",
         i_hw: "Hardware",
@@ -449,7 +449,7 @@ var LANG = {
         i_gw: "ゲートウェイ",
         i_mac: "MAC",
         i_fw: "ファームウェア",
-        i_built: "ビルド日", vlan_warn: "「VLANパネルスイッチを有効にする」がオンです：LANポートのVLANと分離はパネルのスイッチが担当します。以下の設定は参照のみです。ここでVLANを設定するにはダッシュボードで機能をオフにしてください。", mirror_warn: "「VLANパネルスイッチを有効にする」がオンです：LANポートはパネルのスイッチが担当します。以下の設定は参照のみです。ミラーを設定するにはダッシュボードで機能をオフにしてください。", d_vlan: "パネル物理VLANスイッチ設定", d_vlan_en: "スイッチ", d_vlan_en_off: "スイッチはオフです。LANポートの設定は管理画面で行います。", d_vlan_en_on: "スイッチ有効。ON: 4つのLANポートは相互に分離されます。OFF: LANポートの分離は解除されます。", d_vlan_h: "パネル", d_vlan_off: "すべてのポートが相互に通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）", d_vlan_on: "LANポートは相互に分離され、SFP+ポートのみと通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）", d_vlan_phys: "VLANパネルスイッチ", i_model: "モデル",
+        i_built: "ビルド日", lag_warn: "パネルの物理スイッチが有効です：LANポートはパネルのスイッチが担当するため、リンクアグリゲーションは参照のみです。LAGを設定するにはダッシュボードで機能をオフにしてください。", vlan_warn: "パネルの物理スイッチが有効です：LANポートのVLANと分離はパネルのスイッチが担当します。以下の設定は参照のみです。ここでVLANを設定するにはダッシュボードで機能をオフにしてください。", mirror_warn: "パネルの物理スイッチが有効です：LANポートはパネルのスイッチが担当します。以下の設定は参照のみです。ミラーを設定するにはダッシュボードで機能をオフにしてください。", d_vlan: "パネル物理VLANスイッチ設定", d_vlan_en: "スイッチ", d_vlan_en_off: "スイッチはオフです。LANポートの設定は管理画面で行います。", d_vlan_en_on: "スイッチ有効。ON: 4つのLANポートは相互に分離されます。OFF: LANポートの分離は解除されます。", d_vlan_h: "パネル", d_vlan_off: "すべてのポートが相互に通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）", d_vlan_on: "LANポートは相互に分離され、SFP+ポートのみと通信できます（下の「VLANパネルスイッチを有効にする」がオフのときは無効）", d_vlan_phys: "VLANパネルスイッチ", i_model: "モデル",
         i_uptime: "稼働時間",
         i_uptime_d: "{d}日 {t}",
         i_hw: "ハードウェア",
@@ -758,7 +758,7 @@ var LANG = {
         i_gw: "网关",
         i_mac: "MAC",
         i_fw: "固件",
-        i_built: "构建日期", vlan_warn: "「启用VLAN面板开关」已开启：LAN 口的 VLAN 与隔离由面板拨刀接管。以下设置只读、仅供查看；如需在网页中配置 VLAN，请先在仪表盘关闭该开关。", mirror_warn: "「启用VLAN面板开关」已开启：端口镜像由面板拨刀接管。以下设置只读、仅供查看；如需配置端口镜像，请先在仪表盘关闭该开关。", d_vlan: "面板物理VLAN拨刀开关设置", d_vlan_en: "拨刀开关", d_vlan_en_off: "拨刀开关关闭，LAN口设置转由管理界面设置", d_vlan_en_on: "开关生效，ON位置: 四个LAN口互相隔离；OFF位置: LAN口隔离关闭", d_vlan_h: "面板", d_vlan_off: "所有端口可自由互通（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）", d_vlan_on: "LAN口互相隔离，只能访问SFP+光口（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）", d_vlan_phys: "VLAN面板开关", i_model: "型号",
+        i_built: "构建日期", lag_warn: "拨刀开关生效：LAN 口由面板拨刀开关接管，链路聚合设置只读。如需配置 LAG，请先在仪表盘关闭该功能。", vlan_warn: "拨刀开关生效：LAN 口的 VLAN 与隔离由面板拨刀接管。以下设置只读、仅供查看；如需在网页中配置 VLAN，请先在仪表盘关闭该开关。", mirror_warn: "拨刀开关生效：端口镜像由面板拨刀接管。以下设置只读、仅供查看；如需配置端口镜像，请先在仪表盘关闭该开关。", d_vlan: "面板物理VLAN拨刀开关设置", d_vlan_en: "拨刀开关", d_vlan_en_off: "拨刀开关关闭，LAN口设置转由管理界面设置", d_vlan_en_on: "开关生效，ON位置: 四个LAN口互相隔离；OFF位置: LAN口隔离关闭", d_vlan_h: "面板", d_vlan_off: "所有端口可自由互通（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）", d_vlan_on: "LAN口互相隔离，只能访问SFP+光口（如以下启用VLAN面板开关功能选择关闭，那么当前开关位置设置无效）", d_vlan_phys: "VLAN面板开关", i_model: "型号",
         i_uptime: "运行时间",
         i_uptime_d: "{d}天 {t}",
         i_hw: "硬件",
@@ -1141,7 +1141,7 @@ var LANG = {
         i_gw: "Puerta de enlace",
         i_mac: "MAC",
         i_fw: "Firmware",
-        i_built: "Compilado", d_vlan: "Ajustes del interruptor físico VLAN del panel", d_vlan_en: "Interruptor", d_vlan_en_on: "Interruptor activo. ON: los cuatro puertos LAN están aislados entre sí; OFF: el aislamiento de los puertos LAN está desactivado.", d_vlan_en_off: "El interruptor está desactivado; los ajustes de los puertos LAN se hacen en la interfaz de gestión.", vlan_warn: "«Usar el interruptor VLAN del panel» está activado: el interruptor del panel controla las VLAN y el aislamiento de los puertos LAN. Los ajustes de abajo son de solo lectura; desactive la función en el panel de control para configurar VLAN aquí.", mirror_warn: "«Usar el interruptor VLAN del panel» está activado: el interruptor del panel controla los puertos LAN. Los ajustes de abajo son de solo lectura; desactive la función en el panel de control para configurar el espejo aquí.",
+        i_built: "Compilado", lag_warn: "El interruptor físico del panel está activo: controla los puertos LAN, por lo que la agregación de enlaces es de solo lectura. Desactive la función en el panel de control para configurar LAG.", d_vlan: "Ajustes del interruptor físico VLAN del panel", d_vlan_en: "Interruptor", d_vlan_en_on: "Interruptor activo. ON: los cuatro puertos LAN están aislados entre sí; OFF: el aislamiento de los puertos LAN está desactivado.", d_vlan_en_off: "El interruptor está desactivado; los ajustes de los puertos LAN se hacen en la interfaz de gestión.", vlan_warn: "El interruptor físico del panel está activo: el interruptor del panel controla las VLAN y el aislamiento de los puertos LAN. Los ajustes de abajo son de solo lectura; desactive la función en el panel de control para configurar VLAN aquí.", mirror_warn: "El interruptor físico del panel está activo: el interruptor del panel controla los puertos LAN. Los ajustes de abajo son de solo lectura; desactive la función en el panel de control para configurar el espejo aquí.",
         i_uptime: "Tiempo en marcha",
         i_uptime_d: "{d} d {t}",
         i_hw: "Hardware",
@@ -1529,7 +1529,7 @@ var LANG = {
         i_gw: "Passerelle",
         i_mac: "Adresse MAC",
         i_fw: "Micro logiciel",
-        i_built: "Compilé le", d_vlan: "Réglages du commutateur physique VLAN du panneau", d_vlan_en: "Commutateur", d_vlan_en_on: "Commutateur actif. ON : les quatre ports LAN sont isolés entre eux ; OFF : l'isolement des ports LAN est désactivé.", d_vlan_en_off: "Le commutateur est désactivé ; les réglages des ports LAN se font dans l'interface de gestion.", vlan_warn: "« Utiliser le commutateur VLAN du panneau » est actif : le commutateur du panneau gère les VLAN et l'isolation des ports LAN. Les réglages ci-dessous sont en lecture seule ; désactivez la fonction sur le tableau de bord pour configurer les VLAN ici.", mirror_warn: "« Utiliser le commutateur VLAN du panneau » est actif : le commutateur du panneau gère les ports LAN. Les réglages ci-dessous sont en lecture seule ; désactivez la fonction sur le tableau de bord pour configurer le miroir ici.",
+        i_built: "Compilé le", lag_warn: "Le commutateur physique du panneau est actif : il gère les ports LAN, l'agrégation de liens est donc en lecture seule. Désactivez la fonction sur le tableau de bord pour configurer un LAG.", d_vlan: "Réglages du commutateur physique VLAN du panneau", d_vlan_en: "Commutateur", d_vlan_en_on: "Commutateur actif. ON : les quatre ports LAN sont isolés entre eux ; OFF : l'isolement des ports LAN est désactivé.", d_vlan_en_off: "Le commutateur est désactivé ; les réglages des ports LAN se font dans l'interface de gestion.", vlan_warn: "Le commutateur physique du panneau est actif : le commutateur du panneau gère les VLAN et l'isolation des ports LAN. Les réglages ci-dessous sont en lecture seule ; désactivez la fonction sur le tableau de bord pour configurer les VLAN ici.", mirror_warn: "Le commutateur physique du panneau est actif : le commutateur du panneau gère les ports LAN. Les réglages ci-dessous sont en lecture seule ; désactivez la fonction sur le tableau de bord pour configurer le miroir ici.",
         i_uptime: "Temps de fonctionnement",
         i_uptime_d: "{d} j {t}",
         i_hw: "Matériel",
@@ -1878,7 +1878,7 @@ var LANG = {
         i_gw: "Gateway",
         i_mac: "MAC",
         i_fw: "Firmware",
-        i_built: "Erstellt", d_vlan: "Physischer VLAN-Panel-Schalter (Einstellungen)", d_vlan_en: "Schalter", d_vlan_en_on: "Schalter aktiv. ON: die vier LAN-Ports sind voneinander getrennt; OFF: die Trennung der LAN-Ports ist aus.", d_vlan_en_off: "Der Schalter ist aus; LAN-Port-Einstellungen erfolgen in der Verwaltungsoberfläche.", vlan_warn: "\"VLAN-Panel-Schalter verwenden\" ist an: der Panel-Schalter übernimmt VLANs und Isolation der LAN-Ports. Die Einstellungen unten sind schreibgeschützt; schalten Sie die Funktion im Dashboard aus, um VLANs hier zu setzen.", mirror_warn: "\"VLAN-Panel-Schalter verwenden\" ist an: der Panel-Schalter übernimmt die LAN-Ports. Die Einstellungen unten sind schreibgeschützt; schalten Sie die Funktion im Dashboard aus, um die Spiegelung hier einzurichten.",
+        i_built: "Erstellt", lag_warn: "Der physische Panel-Schalter ist aktiv: er übernimmt die LAN-Ports, daher ist die Link-Aggregation schreibgeschützt. Schalten Sie die Funktion im Dashboard aus, um LAGs zu konfigurieren.", d_vlan: "Physischer VLAN-Panel-Schalter (Einstellungen)", d_vlan_en: "Schalter", d_vlan_en_on: "Schalter aktiv. ON: die vier LAN-Ports sind voneinander getrennt; OFF: die Trennung der LAN-Ports ist aus.", d_vlan_en_off: "Der Schalter ist aus; LAN-Port-Einstellungen erfolgen in der Verwaltungsoberfläche.", vlan_warn: "Der physische Panel-Schalter ist aktiv: der Panel-Schalter übernimmt VLANs und Isolation der LAN-Ports. Die Einstellungen unten sind schreibgeschützt; schalten Sie die Funktion im Dashboard aus, um VLANs hier zu setzen.", mirror_warn: "Der physische Panel-Schalter ist aktiv: der Panel-Schalter übernimmt die LAN-Ports. Die Einstellungen unten sind schreibgeschützt; schalten Sie die Funktion im Dashboard aus, um die Spiegelung hier einzurichten.",
         i_uptime: "Betriebszeit",
         i_uptime_d: "{d} T {t}",
         i_hw: "Hardware",
@@ -2949,11 +2949,11 @@ function fmtUptime(hex) {
 function updateVlanWarning() {
     var i = S.info || {};
     var on = (i.vlan_switch != null && i.vlan_switch !== "") && (i.vlan_switch_en !== "off");
-    ["vlan-warn", "iso-warn", "mirror-warn"].forEach(function(id) {
+    ["vlan-warn", "iso-warn", "mirror-warn", "lag-warn"].forEach(function(id) {
         var el = $(id);
         if (el) el.hidden = !on;
     });
-    ["tab-vlan", "tab-isolate", "tab-mirror"].forEach(function(id) {
+    ["tab-vlan", "tab-isolate", "tab-mirror", "tab-lag"].forEach(function(id) {
         var sec = $(id);
         if (!sec) return;
         sec.classList.toggle("locked", on);
