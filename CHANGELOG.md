@@ -28,6 +28,9 @@
   and `Access-Control-Allow-Origin: *` is gone. JSON and text responses and the
   401 reply are `Cache-Control: no-store` and `nosniff`, so an authenticated
   page cannot end up in a browser or proxy cache.
+- `send_l2()` undercounted a worst-case L2 entry (76 bytes for what can reach
+  96), and the closing bracket was written without checking the buffer; the
+  longer JSON response header made the host test hit the overrun.
 - Web UI
   - The web session expires after one hour without a request (was 200 seconds). The UI stops
     polling while its tab is hidden, so with 200 seconds switching tabs for a few minutes logged

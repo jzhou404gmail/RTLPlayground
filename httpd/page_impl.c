@@ -412,8 +412,9 @@ void send_l2(uint16_t idx)
 		reg_read_m(RTL837x_L2_DATA_OUT_B);
 		__bit valid = (sfr_data[0] & 0x20) != 0;
 		if (valid) {
-			/* separator + 74-byte worst-case entry + closing "]" */
-			if (slen + 76 > TCP_OUTBUF_SIZE)
+			/* separator + the worst-case entry (VLAN, 17-byte MAC,
+			 * type, port, lag, idx and the braces) + closing "]" */
+			if (slen + 96 > TCP_OUTBUF_SIZE)
 				break;
 			if (!first)
 				char_to_html(',');
@@ -471,7 +472,10 @@ void send_l2(uint16_t idx)
 		else if (first_entry == entry || !entries_left)
 			break;
 	}
-	char_to_html(']');
+	/* The per-entry guard leaves room for the entry, not for the closing
+	 * bracket: write it only while there is still a byte left. */
+	if (slen < TCP_OUTBUF_SIZE)
+		char_to_html(']');
 }
 
 
