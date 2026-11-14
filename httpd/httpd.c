@@ -652,7 +652,7 @@ static void run_login_body(__xdata uint8_t *body)
 		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\nLocation: index.html\r\n" \
 				      "Set-Cookie: session=");
 		session_new();
-		slen += strtox(outbuf + slen, "; SameSite=Strict\r\n\r\n");
+		slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict\r\n\r\n");
 	} else {
 		dbg_string("Password invalid!\n");
 		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\nLocation: login.html\r\n\r\n");
@@ -838,6 +838,19 @@ void handle_post(uint16_t body_off)
 		if (!post_body_take(p))
 			return;
 		run_cmd_body(p);
+		return;
+	} else if (is_word(request_path, "logout")) {
+		if (!authenticated) {
+			send_unauthorized();
+			return;
+		}
+		/* Only this browser's slot: logging out on the phone must not end
+		 * the session on the desktop. */
+		session_drop();
+		authenticated = 0;
+		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n"
+				      "Location: login.html\r\n"
+				      "Set-Cookie: session=; Max-Age=0; Path=/; HttpOnly; SameSite=Strict\r\n\r\n");
 		return;
 	} else if (is_word(request_path, "login")) {
 		dbg_string("POST login\n");

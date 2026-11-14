@@ -65,7 +65,7 @@ var LANG = {
         i_gw: "Gateway",
         i_mac: "MAC",
         i_fw: "Firmware",
-        i_built: "Built",
+        i_built: "Built", hdr_logout: "Log out", hdr_logout_t: "End this browser's session",
         i_uptime: "Uptime",
         i_uptime_d: "{d} d {t}",
         i_hw: "Hardware",
@@ -449,7 +449,7 @@ var LANG = {
         i_gw: "ゲートウェイ",
         i_mac: "MAC",
         i_fw: "ファームウェア",
-        i_built: "ビルド日",
+        i_built: "ビルド日", hdr_logout: "ログアウト", hdr_logout_t: "このブラウザのセッションを終了",
         i_uptime: "稼働時間",
         i_uptime_d: "{d}日 {t}",
         i_hw: "ハードウェア",
@@ -758,7 +758,7 @@ var LANG = {
         i_gw: "网关",
         i_mac: "MAC",
         i_fw: "固件",
-        i_built: "构建日期",
+        i_built: "构建日期", hdr_logout: "退出登录", hdr_logout_t: "结束当前浏览器的登录",
         i_uptime: "运行时间",
         i_uptime_d: "{d}天 {t}",
         i_hw: "硬件",
@@ -1141,7 +1141,7 @@ var LANG = {
         i_gw: "Puerta de enlace",
         i_mac: "MAC",
         i_fw: "Firmware",
-        i_built: "Compilado",
+        i_built: "Compilado", hdr_logout: "Cerrar sesión", hdr_logout_t: "Terminar la sesión de este navegador",
         i_uptime: "Tiempo en marcha",
         i_uptime_d: "{d} d {t}",
         i_hw: "Hardware",
@@ -1529,7 +1529,7 @@ var LANG = {
         i_gw: "Passerelle",
         i_mac: "Adresse MAC",
         i_fw: "Micro logiciel",
-        i_built: "Compilé le",
+        i_built: "Compilé le", hdr_logout: "Se déconnecter", hdr_logout_t: "Terminer la session de ce navigateur",
         i_uptime: "Temps de fonctionnement",
         i_uptime_d: "{d} j {t}",
         i_hw: "Matériel",
@@ -1878,7 +1878,7 @@ var LANG = {
         i_gw: "Gateway",
         i_mac: "MAC",
         i_fw: "Firmware",
-        i_built: "Erstellt",
+        i_built: "Erstellt", hdr_logout: "Abmelden", hdr_logout_t: "Sitzung dieses Browsers beenden",
         i_uptime: "Betriebszeit",
         i_uptime_d: "{d} T {t}",
         i_hw: "Hardware",
@@ -5450,3 +5450,17 @@ window.addEventListener("hashchange", function() {
     }).catch(function() {});
     showTab(id);
 })();
+
+
+/* Log out: the firmware drops only the calling browser's session, so other
+ * open browser windows stay logged in. */
+$("logoutBtn").addEventListener("click", function() {
+    fetch("/logout", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"}
+    }).then(function() {
+        location.href = "/login.html";
+    }).catch(function() {
+        location.href = "/login.html";
+    });
+});

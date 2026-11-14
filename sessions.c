@@ -28,6 +28,7 @@ extern __xdata uint16_t slen;
 
 __xdata char session_id[SESSIONS][SESSION_ID_LENGTH + 1];
 __xdata uint32_t last_session_use[SESSIONS];
+__xdata uint32_t session_started[SESSIONS];
 
 static __xdata uint8_t ss_slot, ss_i, ss_oldest, ss_c;
 /* The slot whose cookie the last request came with; only meaningful while
@@ -43,6 +44,8 @@ static __code const char ss_end[] = " \t:?=\n\r;";
 static uint8_t ss_stale(void)
 {
 	if (now - last_session_use[ss_slot] > session_timeout)
+		return 1;
+	if (now - session_started[ss_slot] > SESSION_LIFETIME_MAX)
 		return 1;
 	return 0;
 }
@@ -74,8 +77,18 @@ static uint8_t ss_match(void)
 
 void session_init(void) __banked
 {
-	for (ss_slot = 0; ss_slot < SESSIONS; ss_slot++)
+	for (ss_slot = 0; ss_slot < SESSIONS; ss_slot++) {
 		session_id[ss_slot][0] = NUL;
+		last_session_use[ss_slot] = 0;
+		session_started[ss_slot] = 0;
+	}
+}
+
+/* A logout ends the calling browser's session and nothing else. */
+void session_drop(void) __banked
+{
+	if (authenticated && session_id[ss_hit][0])
+		session_id[ss_hit][0] = NUL;
 }
 
 void session_check(void) __banked
@@ -89,6 +102,7 @@ void session_check(void) __banked
 			authenticated = 1;
 			ss_hit = ss_slot;
 			last_session_use[ss_slot] = now;
+	session_started[ss_slot] = now;
 			return;
 		}
 	}

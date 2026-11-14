@@ -4,6 +4,10 @@
 
 ## Added
 
+- `POST /logout` and a "Log out" button in the header: the session cookie is
+  cleared on the browser and the server drops only that browser's session.
+  Sessions also carry an 8 h absolute lifetime on top of the idle timeout, and
+  the cookie is `Path=/; HttpOnly; SameSite=Strict`.
 - Devices
   - Support the hongyavision HYWS-SGT0204S (PCB marking `2G5F4_10G2_V1.01`), an
     RTL8372 based 4x2.5G + 2xSFP+ unmanaged switch with a 512 KB Bright Moon
