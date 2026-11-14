@@ -275,7 +275,8 @@ void send_to_login(void)
 
 void send_unauthorized(void)
 {
-	slen = strtox(outbuf, "HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n");
+	slen = strtox(outbuf, "HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n"
+			      "Cache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\n\r\n");
 }
 
 
@@ -1090,7 +1091,10 @@ void httpd_appcall(void)
 			slen += strtox(outbuf + slen, "; charset=UTF-8\r\n");
 			if (f_data[entry].gzip)
 				slen += strtox(outbuf + slen, "Content-Encoding: gzip\r\n");
-			slen += strtox(outbuf + slen, "Cache-Control: max-age=60, must-revalidate\r\nConnection: close\r\nAccess-Control-Allow-Origin: *\r\nContent-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'\r\n\r\n");
+			slen += strtox(outbuf + slen, "Cache-Control: max-age=60, must-revalidate\r\nConnection: close\r\n"
+			      "X-Frame-Options: DENY\r\n"
+			      "X-Content-Type-Options: nosniff\r\n"
+			      "Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'\r\n\r\n");
 
 			len_left = f_data[entry].len;
 			if (len_left > (TCP_OUTBUF_SIZE - slen)) {

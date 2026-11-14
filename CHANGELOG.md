@@ -23,6 +23,11 @@
 
 ## Changed
 
+- Web security headers: static files carry `X-Frame-Options: DENY` and
+  `X-Content-Type-Options: nosniff`, the CSP gained `frame-ancestors 'none'`,
+  and `Access-Control-Allow-Origin: *` is gone. JSON and text responses and the
+  401 reply are `Cache-Control: no-store` and `nosniff`, so an authenticated
+  page cannot end up in a browser or proxy cache.
 - Web UI
   - The web session expires after one hour without a request (was 200 seconds). The UI stops
     polling while its tab is hidden, so with 200 seconds switching tabs for a few minutes logged
