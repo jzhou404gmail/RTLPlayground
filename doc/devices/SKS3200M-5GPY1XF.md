@@ -86,7 +86,10 @@ RTLPlayground image runs on the board:
 - board already running RTLPlayground → upload
   `output/rtlplayground-<version>-SKS3200M_5GPY1XF.bin` (512 KiB) in the web UI
 - board still running the stock firmware → upload the one-shot installer
-  `installer/output/rtlplayground_oem_upgrade.bin`
+  `rtlplayground-<version>-oem-upgrade-SKS3200M_5GPY1XF.bin` from the release
+  (each installer embeds one model's firmware); built locally it is
+  `installer/output/rtlplayground_oem_upgrade.bin` after
+  `make MACHINE=SKS3200M_5GPY1XF && make -C installer`
 
 Build:
 

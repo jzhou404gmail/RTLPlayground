@@ -38,7 +38,7 @@
 | `PCB-K0801W-V1.0` / `DIP-K0801WS-V1.0` | 海思创 Hi-K0801WS（实物标签 `SFP-J08E-HG1`） | 非网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Boya/BoHong `BY25Q16BS` | `PCB_K0801W_V1` | **必须加 `FLASH_NO_DIO=1`** |
 | `PCB-SWTG115AS-V2.1-17443` | 兮克 XikeStor **SKS3200M-5GPY1XF** | 网管 | 5 × 2.5G + 1 × 万兆 SFP+ | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_5GPY1XF` | `make MACHINE=…` |
 | `SWTG024AS-v1.0` | 兮克 XikeStor **SKS3200M-4GPY2XF** | 网管 | 4 × 2.5G + 2 × SFP | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_4GPY2XF` | `make MACHINE=…` |
-| `SWTG118AS-V2.1-17462` | 兮克 XikeStor **SKS3200M-8GPY1XF** | 网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_8GPY1XF` | `make MACHINE=…` |
+| `SWTG118AS-V2.1-17462` | 兮克 XikeStor **SKS3200M-8GPY1XF** | 网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `XIKESTOR_SKS3200M_8GPY1XF` | `make MACHINE=…` |
 | `PB-2131` | IG204 4+2（标签 `IG204 V1`，Steamemo 等品牌共用） | 非网管 | 4 × 2.5G + 2 × SFP+ | RTL8372 | 原厂 4 MiB cFeon `EN25QE32A`；实测机换成 1 MiB `MX25L8005M` | `STEAMEMO_IG204_V1` | `make MACHINE=STEAMEMO_IG204_V1 FLASH_NO_DIO=1` |
 | `F7005-2.5GPOE-V1.0` | NPA **AP-7024-2.5G** | 非网管 | 4 × 2.5G + 2 × SFP+ | RTL8372 | 原厂 512 KiB BrightMoon `T25S40`；成品机换成 2 MiB `BY25Q16BS` | `F7005_2_5` | `make MACHINE=F7005_2_5 FLASH_NO_DIO=1` |
 
@@ -132,14 +132,14 @@ RTL8372，4 × 2.5GBASE-T + 2 × SFP，2 MiB Winbond `W25Q16JV`。**状态：正
 >
 > 光口编号的交叉是**板子本身**的属性，所以同一个修复也让上游支持的 SWTG024AS-V2.0（联果/ Horaco / Sodola）受益：在这之前，插在左笼（J4）的模块会被报成右笼。
 
-### 2.5 兮克 XikeStor SKS3200M-8GPY1XF —— `SWTG118AS-V2.1-17462` → `MACHINE_SKS3200M_8GPY1XF`
+### 2.5 兮克 XikeStor SKS3200M-8GPY1XF —— `SWTG118AS-V2.1-17462` → `MACHINE_XIKESTOR_SKS3200M_8GPY1XF`
 
 RTL8373，8 × 2.5GBASE-T + 1 × SFP+，2 MiB Winbond `W25Q16JV`。**状态：正式支持。** 与 Mokerlink ZX-SWTGW218AS（V2.0）同板；这个 target 的存在是为了让界面报告板卡 `PCB-SWTG118AS-V2.1`、型号 `SKS3200M-8GPY1XF`。
 
 | | |
 |---|---|
-| 编译 | `make MACHINE=SKS3200M_8GPY1XF`（V2.0 板子用 `MACHINE=SWTGW218AS`） |
-| 原厂 → RTLPlayground | 原厂是 CGI 固件（固件版本 V1.9，`admin/admin`，`192.168.10.12`），其"固件升级"页（`fwug.cgi`）可直接接收一键安装镜像 |
+| 编译 | `make MACHINE=XIKESTOR_SKS3200M_8GPY1XF`（V2.0 板子用 `MACHINE=MOKERLINK_ZX_SWTGW218AS`） |
+| 原厂 → RTLPlayground | 原厂是 CGI 固件（固件版本 V1.9，`admin/admin`，`192.168.10.12`），其"固件升级"页（`fwug.cgi`）可直接接收一键安装镜像 `rtlplayground-<版本>-oem-upgrade-XIKESTOR_SKS3200M_8GPY1XF.bin`（release 附件，制作方法见 [4.2](#42-刷机)） |
 | 复位键 | `GPIO54` —— **实测**：约 5 s 重启，约 13 s 恢复出厂设置，< 3 s 无动作 |
 | 默认 IP | DHCP（自动获取） |
 | 机型文档 | [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md) |
@@ -274,7 +274,7 @@ make MACHINE=PCB_K0801W_V1 FLASH_NO_DIO=1
 # 三个兮克机型
 make MACHINE=SKS3200M_4GPY2XF
 make MACHINE=SKS3200M_5GPY1XF
-make MACHINE=SKS3200M_8GPY1XF
+make MACHINE=XIKESTOR_SKS3200M_8GPY1XF
 
 # IG204 4+2（PB-2131）与 NPA AP-7024-2.5G（F7005-2.5GPOE-V1.0）：单比特 fast read 验证过
 make MACHINE=STEAMEMO_IG204_V1 FLASH_NO_DIO=1
@@ -288,7 +288,7 @@ make MACHINE=F7005_2_5 FLASH_NO_DIO=1
 | 机器当前运行 | 用什么方式 |
 |---|---|
 | RTLPlayground | Web 界面"固件升级"，上传 512 KiB 的 `output/<target>/rtlplayground-*.bin` |
-| 原厂**网管**固件（三个兮克机型） | 一键安装镜像 `installer/output/rtlplayground_oem_upgrade.bin`，从原厂"固件升级"页上传 —— loader 的差异见第 2 节各机型说明 |
+| 原厂**网管**固件（三个兮克机型） | 一键安装镜像（540710 字节，内嵌对应机型的固件）：release 附件 `rtlplayground-<版本>-oem-upgrade-<target>.bin`，从原厂"固件升级"页上传 —— 三份镜像按机型一一对应，**不要混用**；loader 的差异见第 2 节各机型说明。本地构建：先 `make MACHINE=<target>`，再 `make -C installer`，产物 `installer/output/rtlplayground_oem_upgrade.bin` 就是当前 target 的安装镜像 |
 | 原厂**非网管**固件（Hi-K0402WS、Hi-K0801WS） | SPI 夹子 + 编程器：先备份 2 MiB，擦除，写入填充到 2 MiB 的镜像，回读校验。填充只对编程器有意义，**不要**上传填充过的文件 |
 | 原厂**非网管**固件（IG204 4+2） | SPI 夹子 + 编程器：先备份原厂 4 MiB `EN25QE32A`，512 KiB 镜像写在偏移 0；原厂芯片没和 RTLPlayground 一起试过（实测机换成了 1 MiB `MX25L8005M`） |
 | 原厂**非网管**固件（NPA AP-7024-2.5G） | 512 KiB `T25S40`：SPI 编程器写 512 KiB 镜像（不用填充）。想用 Web 升级就先换成 2 MiB `BY25Q16BS`（同 SOP-8 封装），见 [机型文档](doc/devices/F7005-2.5GPOE-V1.0.md) |
@@ -313,7 +313,7 @@ make MACHINE=F7005_2_5 FLASH_NO_DIO=1
 | 海思创 Hi-K0402WS 第 1 台 | `PCB_K0402W_V1` | 完整适配：端口、铜口 LED、左右两个光笼、恢复出厂设置、会话 |
 | 海思创 Hi-K0402WS 第 2 台 | `PCB_K0402W_V1` | 界面恢复出厂设置、会话 |
 | 海思创 Hi-K0801WS（`SFP-J08E-HG1`） | `PCB_K0801W_V1` | 能启动、9 个端口正确、闪存模式（`FLASH_NO_DIO=1`）；LED 与 SFP 引脚沿用 V2.0 值，未在该板上单独实测 |
-| 兮克 SKS3200M-8GPY1XF | `SKS3200M_8GPY1XF` | 复位键三态、会话、恢复出厂设置 |
+| 兮克 SKS3200M-8GPY1XF | `XIKESTOR_SKS3200M_8GPY1XF` | 复位键三态、会话、恢复出厂设置 |
 | 兮克 SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | 复位键三态、出厂 MAC、恢复出厂设置；**两个光笼**（插孔 5/6 = 逻辑口 8/3）、**逐焊盘实测的 LED 映射**、端口编号交叉修正（2026-10-13） |
 | 兮克 SKS3200M-5GPY1XF | `SKS3200M_5GPY1XF` | 六个端口、光口 10G、LED、系统灯、出厂 MAC、复位键三态 |
 | IG204 4+2（PB-2131，标签 `IG204 V1`） | `STEAMEMO_IG204_V1` | 换 1 MiB MX25L8005M 后启动、Web 升级、四个铜口 2.5G、2.5G 橙 / 千兆绿、**两条灯都随流量闪烁**、**两个光笼 10G**（检测脚 + I²C + SerDes）、**面板 VLAN 拨刀（GPIO36）**、**SYS 慢闪**；界面显示 硬件 `PB-2131` / 型号 `IG204 V1`；**逐条对照随机说明书**；见 [doc/devices/STEAMEMO_IG204_V1.md](doc/devices/STEAMEMO_IG204_V1.md) |

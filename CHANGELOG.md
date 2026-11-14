@@ -52,7 +52,7 @@
   `ip dhcp`, so a freshly flashed board obtains its management address over DHCP instead of coming up
   at `192.168.10.247` / `192.168.10.12`. If no DHCP server answers, the firmware stays on its built-in
   fallback, which now matches the model's nameplate: `192.168.10.12/24` for the three XikeStor targets
-  (`SKS3200M_8GPY1XF`, `SKS3200M_4GPY2XF`, `SKS3200M_5GPY1XF`) and `192.168.10.247/24` for every other
+  (`XIKESTOR_SKS3200M_8GPY1XF`, `SKS3200M_4GPY2XF`, `SKS3200M_5GPY1XF`) and `192.168.10.247/24` for every other
   target. The fallback gateway is `192.168.10.1`; a lease replaces the address as soon as one arrives.
 - The web interface is fail-closed: an empty admin password no longer authenticates every request.
   `POST /login` only issues a session for a non-empty, matching password, so a board without a password
@@ -60,6 +60,12 @@
   A bare `passwd` now disables web management instead of opening it. Sessions are 128 bit, carry
   `Path=/; HttpOnly; SameSite=Strict`, expire after 8 h regardless of activity, and changing or
   clearing the password invalidates the current session.
+- Docs: the 8-port XikeStor target was written as `SKS3200M_8GPY1XF` in README and here, but the
+  machine file (and therefore `make MACHINE=...`) is `XIKESTOR_SKS3200M_8GPY1XF`; the old name made
+  make stop with "no rule to make target". Fixed in README 1.1/2.5/4.1/5 and in this file, and the
+  V2.0 note now says `MOKERLINK_ZX_SWTGW218AS` instead of the no-longer-existing `SWTGW218AS`.
+  README 4.2 now states that the three one-shot OEM installers are per model (each embeds that
+  model's firmware) and how to build them locally.
 
 ## Added
 
@@ -135,7 +141,7 @@
     See doc/devices/STEAMEMO_IG204_V1.md.
   - `MACHINE_SKS3200M_5GPY1XF` — XikeStor SKS3200M-5GPY1XF (PCB-SWTG115AS-V2.1, 5 x 2.5GBASE-T + 1 x SFP+),
     the ZX-SWTGW215AS board under a different model name. See doc/devices/SKS3200M-5GPY1XF.md.
-  - `MACHINE_SKS3200M_8GPY1XF` — XikeStor SKS3200M-8GPY1XF (SWTG118AS-V2.1-17462, 8 x 2.5GBASE-T + 1 x SFP+),
+  - `MACHINE_XIKESTOR_SKS3200M_8GPY1XF` — XikeStor SKS3200M-8GPY1XF (SWTG118AS-V2.1-17462, 8 x 2.5GBASE-T + 1 x SFP+),
     the ZX-SWTGW218AS board under a different model name.
   - `MACHINE_SKS3200M_4GPY2XF` — XikeStor SKS3200M-4GPY2XF (SWTG024AS-v1.0, 4 x 2.5GBASE-T + 2 x SFP+),
     the SWTG024AS board under a different model name. Enables the reset button and the factory MAC for
