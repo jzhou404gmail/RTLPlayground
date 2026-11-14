@@ -88,9 +88,14 @@ section.tab.act{display:block}
    height, the traffic card takes the rest and scrolls inside. */
 .gridcol{display:flex;flex-direction:column;gap:16px;min-width:0;min-height:0}
 .gridcol>.card{min-height:0;display:flex;flex-direction:column}
+/* [hidden] has to win over .gridcol>.card's display:flex, otherwise boards
+   without a panel switch show an empty card and the column does not line up
+   with the System card. */
+#dash-vlan[hidden]{display:none}
 .gridcol>#dash-vlan{flex:0 0 auto}
-.gridcol>#dash-traffic{flex:1 1 auto}
+.gridcol>#dash-traffic{flex:1 1 auto;overflow:hidden}
 .gridcol>.card .scrollx{overflow:auto;min-height:0}
+.gridcol>#dash-traffic .scrollx{flex:1 1 auto;min-height:0}
 /* Yellow notice on the VLAN, isolation and mirroring tabs while the panel
    switch owns those settings. The same rule greys the cards out and blocks
    pointer interaction, keeping the values readable. */
@@ -113,6 +118,7 @@ table.t th[data-sort]{cursor:pointer;user-select:none}
 table.t th.num{text-align:right}
 table.t td{padding:6px 8px;border-bottom:1px solid var(--bd);vertical-align:middle}
 table.t tr:last-child td{border-bottom:0}
+table.t tbody tr.sfp td{background:color-mix(in srgb,var(--ac) 5%,var(--panel))}
 table.t tr:hover td{background:var(--sel)}
 table.t tr.sel{background:var(--panel2); font-weight: bold;}
 .num{font-variant-numeric:tabular-nums;text-align:right}
@@ -142,7 +148,12 @@ label.row span.lb{width:110px;flex:none;color:var(--fg2);font-size:13px}
   width:40px;border:2px solid var(--bd);border-radius:7px;padding:3px 0 2px;
   text-align:center;cursor:pointer;background:var(--panel2);position:relative;
 }
-.port.sfp{width:50px}
+.port.sfp{
+  width:50px;
+  background:color-mix(in srgb,var(--ac) 7%,var(--panel2));
+  border-color:color-mix(in srgb,var(--ac) 40%,var(--bd));
+}
+.port.sfp .pn{color:var(--ac)}
 .port .pn{font-weight:650;font-size:12px}
 .port .ps{font-size:9px;color:var(--fg2);display:block;line-height:1.2}
 .port .jack{
@@ -160,6 +171,7 @@ label.row span.lb{width:110px;flex:none;color:var(--fg2);font-size:13px}
 .port.up .jack{border-color:var(--pc);opacity:1}
 .port.up .jack:before{background-color:var(--pc)}
 .port.up.sfp .jack:before{background-color:color-mix(in srgb,var(--pc) 10%,var(--panel2))}
+.port.up.sfp{background:color-mix(in srgb,var(--pc) 12%,var(--panel2))}
 .port.up .ps{color:var(--pc);font-weight:600}
 .port.dis{opacity:.45;border-style:dashed}
 .badge{font-size:11px;font-weight:600;border-radius:10px;padding:1px 8px;background:var(--panel2);color:var(--fg2)}

@@ -3115,6 +3115,7 @@ function buildPorts() {
             }));
         });
         var tr = tb.insertRow();
+        if (p.isSFP) tr.className = "sfp";
         tr.insertCell().textContent = p.port + (p.isSFP ? " (SFP)" : "");
         tr.insertCell().appendChild(h("input", {
             class: "in",
