@@ -53,6 +53,7 @@ fires — so it drops straight into CI.
 | `test_sessions` | `sessions.c` | 128-bit ids, idle and absolute expiry, four slots and LRU eviction, logout scope |
 | `test_auth` | `auth.c` | salted digest parse/compare, `/auth.json` (`set`/`legacy`/salt), the `passwd_hash` configuration write-back, no-terminator guard, logout reply |
 | `test_web_auth.js` | `html/app.js` + `html/login.html` | browser password protocol: 32-hex salt, 64-hex digest, the `passwd_hash` command fits the firmware buffer; catches the double-hex regression |
+| `test_web_features.js` | `html/index.html` + `html/app.js` | red Log out button, factory-default notes/default `1234`, and the RESET hint shown only for the three SKS targets |
 
 ## Adding a test for another module
 1. Write `test_<module>.c` with `main()` driving the module's entry points and

@@ -88,6 +88,8 @@ run: $(TESTS)
 	if command -v node >/dev/null 2>&1; then \
 		echo "=== web auth ==="; \
 		node test_web_auth.js || fail=1; \
+		echo "=== web features ==="; \
+		node test_web_features.js || fail=1; \
 		echo; \
 	else \
 		echo "node not found, skipping the browser password test"; \
@@ -97,6 +99,7 @@ run: $(TESTS)
 # The browser-side password protocol needs Node, not the C harness.
 web:
 	@node test_web_auth.js
+	@node test_web_features.js
 
 clean:
 	rm -rf $(BUILDDIR)

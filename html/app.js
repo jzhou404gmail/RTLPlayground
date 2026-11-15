@@ -309,8 +309,10 @@ var LANG = {
         sy_reboot: "Reboot switch",
         sy_defaults: "Restore factory defaults",
         sy_defaults_q: "Restore the factory defaults?",
-        sy_defaults_d: "The configuration built into the image replaces the startup configuration and the switch reboots. The address becomes DHCP; without a DHCP server it falls back to 192.168.10.12/24 on the XikeStor targets and 192.168.10.247/24 on all others. The web port returns to 80 and there is no password: the first visit sets one. Reconnect at that address.",
+        sy_defaults_d: "The configuration built into the image replaces the startup configuration and the switch reboots. The address becomes DHCP; without a DHCP server it falls back to 192.168.10.12/24 on the three XikeStor targets and 192.168.10.247/24 on all others. The web port returns to 80 and the password returns to the default 1234 (change it immediately). Reconnect at that address.",
         sy_defaults_doing: "Restoring the factory defaults, the switch reboots",
+        sy_defaults_note: "Factory defaults use the configuration built into the image: DHCP; without a DHCP server the three XikeStor targets fall back to 192.168.10.12/24 and every other model to 192.168.10.247/24. The web port returns to 80 and the password to 1234 (change it immediately). The current port, NTP, hostname and password are cleared.",
+        sy_reset_note: "The three XikeStor targets have a RESET button: hold it for about 10 seconds or more (10-30 s at power-up) to restore the factory defaults; 3-10 s only reboots; a short press does nothing.",
         sy_lang: "Language",
         sy_ip_err: "Invalid IP / netmask / gateway",
         sy_host_err: "Hostname: 1-23 printable characters, no spaces or quotes",
@@ -647,8 +649,10 @@ var LANG = {
         sy_reboot: "スイッチを再起動",
         sy_defaults: "工場出荷状態に戻す",
         sy_defaults_q: "工場出荷状態の設定に戻しますか?",
-        sy_defaults_d: "イメージに組み込まれた設定が起動設定を置き換え、スイッチが再起動します。アドレスは DHCP になり、DHCP サーバーがない場合は XikeStor が 192.168.10.12/24、その他が 192.168.10.247/24 にフォールバックします。Web ポートは 80 に戻り、パスワードは未設定になるため、最初のアクセスで設定してください。そのアドレスに再接続してください。",
+        sy_defaults_d: "イメージに組み込まれた設定が起動設定を置き換え、スイッチが再起動します。アドレスは DHCP になり、DHCP サーバーがない場合は XikeStor の3機種が 192.168.10.12/24、その他が 192.168.10.247/24 にフォールバックします。Web ポートは 80、パスワードは既定の 1234 に戻ります（すぐに変更してください）。そのアドレスに再接続してください。",
         sy_defaults_doing: "工場出荷状態に戻しています。スイッチが再起動します",
+        sy_defaults_note: "工場出荷状態では、イメージ内蔵の設定（DHCP）を使用します。DHCP サーバーがない場合、XikeStor の3機種は 192.168.10.12/24、その他の機種は 192.168.10.247/24 にフォールバックします。Web ポートは 80、パスワードは 1234 に戻ります（すぐに変更してください）。現在のポート、NTP、ホスト名、パスワードは消去されます。",
+        sy_reset_note: "XikeStor の3機種には RESET ボタンがあります。約10秒以上（電源投入時は10〜30秒）押し続けると工場出荷状態に戻ります。3〜10秒は再起動のみ、短押しは何も行いません。",
         sy_lang: "言語",
         sy_ip_err: "IP / ネットマスク / ゲートウェイが無効です",
         sy_host_err: "ホスト名: 1〜23 文字の印字可能文字、空白と引用符は不可",
@@ -1017,8 +1021,10 @@ var LANG = {
         sy_reboot: "重启交换机",
         sy_defaults: "恢复出厂设置",
         sy_defaults_q: "恢复出厂设置?",
-        sy_defaults_d: "将用镜像内嵌的出厂配置替换当前启动配置，并重启交换机。地址变为 DHCP；没有 DHCP 服务器时，XikeStor 机型回落到 192.168.10.12/24，其它机型回落到 192.168.10.247/24。Web 端口恢复为 80，密码清空（首次访问时设置）。请到该地址重新连接。",
+        sy_defaults_d: "将用镜像内嵌的出厂配置替换当前启动配置，并重启交换机。地址变为 DHCP；没有 DHCP 服务器时，SKS 三款回落到 192.168.10.12/24，其它机型回落到 192.168.10.247/24。Web 端口恢复为 80，密码恢复为默认 1234（请立即修改）。请到该地址重新连接。",
         sy_defaults_doing: "正在恢复出厂设置，交换机重启中",
+        sy_defaults_note: "恢复出厂使用镜像内嵌配置：DHCP；没有 DHCP 服务器时，SKS 三款回落到 192.168.10.12/24，其它机型回落到 192.168.10.247/24。Web 端口恢复为 80，密码恢复为默认 1234（请立即修改）。当前的端口、NTP、hostname 和密码都会被清掉。",
+        sy_reset_note: "SKS 三款带 RESET 键：按住约 10 秒以上（上电时 10–30 秒）恢复出厂设置；3–10 秒仅重启；短按无动作。",
         sy_lang: "语言",
         sy_ip_err: "IP / 子网掩码 / 网关无效",
         sy_host_err: "主机名: 1-23 个可打印字符，不能包含空格或引号",
@@ -1354,8 +1360,10 @@ var LANG = {
         sy_reboot: "Reiniciar switch",
         sy_defaults: "Restaurar valores de fábrica",
         sy_defaults_q: "¿Restaurar los valores de fábrica?",
-        sy_defaults_d: "La configuración incluida en la imagen sustituye a la configuración de arranque y el switch se reinicia. La dirección pasa a DHCP; sin servidor DHCP, los modelos XikeStor usan 192.168.10.12/24 y el resto 192.168.10.247/24. El puerto web vuelve a 80 y no hay contraseña: la primera visita permite definirla. Vuelve a conectarte a esa dirección.",
+        sy_defaults_d: "La configuración incluida en la imagen sustituye a la configuración de arranque y el switch se reinicia. La dirección pasa a DHCP; sin servidor DHCP, los tres modelos XikeStor usan 192.168.10.12/24 y el resto 192.168.10.247/24. El puerto web vuelve a 80 y la contraseña vuelve a 1234 (cámbiala de inmediato). Vuelve a conectarte a esa dirección.",
         sy_defaults_doing: "Restaurando los valores de fábrica, el switch se reinicia",
+        sy_defaults_note: "Los valores de fábrica usan la configuración incluida en la imagen: DHCP; sin servidor DHCP, los tres modelos XikeStor usan 192.168.10.12/24 y el resto 192.168.10.247/24. El puerto web vuelve a 80 y la contraseña a 1234 (cámbiala de inmediato). Se borran el puerto, NTP, nombre de host y contraseña actuales.",
+        sy_reset_note: "Los tres modelos XikeStor tienen botón RESET: manténlo pulsado unos 10 segundos o más (10-30 s al encender) para restaurar los valores de fábrica; de 3 a 10 s solo reinicia; una pulsación corta no hace nada.",
         sy_lang: "Idioma",
         sy_ip_err: "IP / máscara / puerta de enlace no válidos",
         sy_host_err: "Nombre de host: 1-23 caracteres imprimibles, sin espacios ni comillas",
@@ -1769,8 +1777,10 @@ var LANG = {
         sy_reboot: "Redémarre le commutateur",
         sy_defaults: "Rétablir les réglages d'usine",
         sy_defaults_q: "Rétablir les réglages d'usine ?",
-        sy_defaults_d: "La configuration intégrée à l'image remplace la configuration de démarrage et le commutateur redémarre. L'adresse passe en DHCP ; sans serveur DHCP, les modèles XikeStor utilisent 192.168.10.12/24 et les autres 192.168.10.247/24. Le port web revient à 80 et il n'y a plus de mot de passe : la première visite permet d'en définir un. Reconnectez-vous à cette adresse.",
+        sy_defaults_d: "La configuration intégrée à l'image remplace la configuration de démarrage et le commutateur redémarre. L'adresse passe en DHCP ; sans serveur DHCP, les trois modèles XikeStor utilisent 192.168.10.12/24 et les autres 192.168.10.247/24. Le port web revient à 80 et le mot de passe à 1234 (changez-le immédiatement). Reconnectez-vous à cette adresse.",
         sy_defaults_doing: "Rétablissement des réglages d'usine, redémarrage du commutateur",
+        sy_defaults_note: "Les réglages d'usine utilisent la configuration intégrée à l'image : DHCP ; sans serveur DHCP, les trois modèles XikeStor utilisent 192.168.10.12/24 et les autres 192.168.10.247/24. Le port web revient à 80 et le mot de passe à 1234 (changez-le immédiatement). Le port, le NTP, le nom d'hôte et le mot de passe actuels sont effacés.",
+        sy_reset_note: "Les trois modèles XikeStor ont un bouton RESET : maintenez-le environ 10 secondes ou plus (10 à 30 s à la mise sous tension) pour rétablir les réglages d'usine ; 3 à 10 s ne font que redémarrer ; un appui court ne fait rien.",
         sy_lang: "Langage",
         sy_ip_err: "Erreur d'IP / masque réseau / passerelle",
         sy_host_err: "Nom d'hôte : 1 à 23 caractères, sans espace ni apostrophes",
@@ -2164,8 +2174,10 @@ var LANG = {
         sy_reboot: "Switch neu starten",
         sy_defaults: "Werkseinstellungen wiederherstellen",
         sy_defaults_q: "Werkseinstellungen wiederherstellen?",
-        sy_defaults_d: "Die im Image eingebaute Konfiguration ersetzt die Startkonfiguration und der Switch startet neu. Die Adresse wird per DHCP bezogen; ohne DHCP-Server fallen XikeStor-Modelle auf 192.168.10.12/24 und alle anderen auf 192.168.10.247/24 zurück. Der Web-Port ist wieder 80, und es gibt kein Passwort: Der erste Besuch legt eines fest. Verbinde dich an dieser Adresse neu.",
+        sy_defaults_d: "Die im Image eingebaute Konfiguration ersetzt die Startkonfiguration und der Switch startet neu. Die Adresse wird per DHCP bezogen; ohne DHCP-Server fallen die drei XikeStor-Modelle auf 192.168.10.12/24 und alle anderen auf 192.168.10.247/24 zurück. Der Web-Port ist wieder 80, das Passwort wieder 1234 (sofort ändern). Verbinde dich an dieser Adresse neu.",
         sy_defaults_doing: "Werkseinstellungen werden wiederhergestellt, der Switch startet neu",
+        sy_defaults_note: "Die Werkseinstellungen verwenden die im Image eingebaute Konfiguration: DHCP; ohne DHCP-Server fallen die drei XikeStor-Modelle auf 192.168.10.12/24 und alle anderen auf 192.168.10.247/24 zurück. Der Web-Port ist wieder 80, das Passwort wieder 1234 (sofort ändern). Port, NTP, Hostname und Passwort werden gelöscht.",
+        sy_reset_note: "Die drei XikeStor-Modelle haben eine RESET-Taste: etwa 10 Sekunden oder länger halten (10-30 s beim Einschalten), um die Werkseinstellungen wiederherzustellen; 3-10 s starten nur neu; ein kurzer Druck bewirkt nichts.",
         sy_lang: "Sprache",
         sy_ip_err: "Ungültige IP / Netzmaske / Gateway",
         sy_host_err: "Hostname: 1-23 druckbare Zeichen, keine Leerzeichen oder Anführungszeichen",
@@ -4858,8 +4870,14 @@ function okIp(s) {
     });
 }
 
+function hasResetButton() {
+    var i = S.info || {};
+    var s = [i.model, i.hw_ver, i.pcb_ver].join(" ");
+    return /SKS3200M-(8GPY1XF|4GPY2XF|5GPY1XF)/i.test(s);
+}
 function sysLoad() {
     pollInfo().then(function() {
+        $("sy-resetnote").hidden = !hasResetButton();
         $("sy-ip").value = S.info.ip_address || "";
         $("sy-mask").value = S.info.ip_netmask || "";
         $("sy-gw").value = S.info.ip_gateway || "";

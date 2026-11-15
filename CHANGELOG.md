@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.1.12] - 2026-11-16
+
+### Changed
+
+- The header **Log out** button now uses the same red danger style as **Reboot switch** in Maintenance.
+- The Maintenance card explains the factory defaults in all six languages: DHCP; without a DHCP server the three SKS targets fall back to `192.168.10.12/24` and every other model to `192.168.10.247/24`; web port 80; default password `1234` (change it immediately); the current port, NTP, hostname and password are cleared.
+- The SKS-only RESET instructions are shown conditionally: hold about 10 s or more (10-30 s at power-up) to restore the factory defaults, 3-10 s only reboots, a short press does nothing. IG204/K0801W, which have no button, do not show that hint.
+
+### Added
+
+- `test/test_web_features.js` guards the red logout style, the default-parameter notes and the SKS-only RESET hint; it runs as part of `make -C test` and `make web`.
+
 ## [0.1.11] - 2026-11-16
 
 ### Changed
