@@ -65,7 +65,7 @@ make post-sync-check
 | `test/test_web_auth.js` | 浏览器改密仍是 32 hex salt + 64 hex digest，`passwd_hash` 命令行不超长 |
 | `html/index.html` 的 `sy-defaults`、`app.js` 的 `body: "defaults"` | 维护页恢复出厂按钮和 `defaults` 调用还在 |
 | `boot.c` / `rtlplayground.c` 的 `flash_default_config`、三台 SKS 的 `reset_pin` | 长按 RESET 仍在；204/205 的 `GPIO_NA` 不被误改 |
-| 三台 SKS 的 `MACHINE_FALLBACK_IP 12`、`config*.txt` 的 `ip dhcp` | 出厂回落地址/默认配置没有被改回 `.247` 或明文口令 |
+| 三台 SKS 的 `MACHINE_FALLBACK_IP 12`、其它机型的默认 `.247`、`config*.txt` 的 `ip dhcp` + `1234` 摘要 | 出厂回落地址没有被改错，默认口令仍是 1234 且不存明文 |
 | `node --check html/app.js` | 前端没有语法错误 |
 | `git diff --check` | 没有冲突标记/空白错误 |
 | `make -C test` | C 主机测试 + `test_web_auth.js` 全过 |

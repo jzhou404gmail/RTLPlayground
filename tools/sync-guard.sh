@@ -170,6 +170,17 @@ post)
 			esac
 		done < "$INVENTORY"
 	fi
+	# Only the three SKS headers may override the fallback, and the override
+	# must be .12; every other model uses the rtlplayground.c default .247.
+	FB_FILES=$(grep -l 'MACHINE_FALLBACK_IP' machine/*.h 2>/dev/null | sort || true)
+	FB_WANT=$(printf '%s\n' machine/SKS3200M_4GPY2XF.h machine/SKS3200M_5GPY1XF.h \
+		machine/XIKESTOR_SKS3200M_8GPY1XF.h | sort)
+	if [ "$FB_FILES" = "$FB_WANT" ]; then
+		ok "only the three SKS targets override the fallback (to .12)"
+	else
+		echo "[fail] fallback overrides are $FB_FILES; expected only the three SKS headers" >&2
+		FAIL=$((FAIL + 1))
+	fi
 	check_test "passwd_hash tool is executable" '[ -x tools/passwd_hash.py ]'
 	check_test "no whitespace errors" 'git diff --check'
 

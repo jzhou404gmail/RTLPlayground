@@ -26,11 +26,13 @@ contains	boot.c	flash_default_config	boot-time long-press writes the default con
 contains	rtlplayground.c	flash_default_config	runtime long-press writes the default config
 contains	config.txt	ip dhcp	default config uses DHCP
 contains	config-xikestor.txt	ip dhcp	XikeStor default config uses DHCP
-absent	config.txt	passwd	default config has no password
-absent	config-xikestor.txt	passwd	XikeStor default config has no password
+contains	config.txt	passwd_hash 5f3c6ac1c12f81f3f1095f02cc65c05e 6fcabffe67fd0b86c1a199268e3fda929e0ccd3deeacf33f2389652853363967	default password 1234 is stored as a digest
+absent	config.txt	passwd 	default config has no plaintext password
+contains	config-xikestor.txt	passwd_hash 5f3c6ac1c12f81f3f1095f02cc65c05e 6fcabffe67fd0b86c1a199268e3fda929e0ccd3deeacf33f2389652853363967	XikeStor default password 1234 is stored as a digest
+absent	config-xikestor.txt	passwd 	XikeStor default config has no plaintext password
 contains	httpd/httpd.c	HTTP_PORT_DEFAULT 80	web port default is 80
 contains	httpd/httpd.c	SESSION_TIMEOUT_DEFAULT 3600	session timeout default is 3600 s
-contains	rtlplayground.c	#define MACHINE_FALLBACK_IP 247	non-XikeStor fallback IP default is .247
+contains	rtlplayground.c	#define MACHINE_FALLBACK_IP 247	fallback default for models without an override is .247
 contains	rtlplayground.c	gatewayIP[] = { 192, 168, 10, 1 }	factory fallback gateway is 192.168.10.1
 contains	rtlplayground.c	netmask[] = { 255, 255, 255, 0}	factory fallback netmask is /24
 contains	machine/XIKESTOR_SKS3200M_8GPY1XF.h	MACHINE_FALLBACK_IP 12	8GPY1XF fallback is 192.168.10.12

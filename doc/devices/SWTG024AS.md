@@ -72,8 +72,8 @@ locally with `make MACHINE=SKS3200M_4GPY2XF && make -C installer`); see
    with the file in the `submitFile` field. The page answers 升级成功！, the board
    reboots into the installer, the installer writes RTLPlayground to `0x0` and
    reboots again.
-4. RTLPlayground then comes up on **DHCP** with **no login password**; the
-   vendor `admin/admin` no longer applies.
+4. RTLPlayground then comes up on **DHCP** with the built-in default password
+   **`1234`** (change it after the first login); the vendor `admin/admin` no longer applies.
 
 Verified on the owner's unit (2026-10-12): upgraded from `V10.9.4` to
 `MACHINE_SKS3200M_4GPY2XF`; the UI then reports 硬件 `PCB-SWTG024AS-V1.0` /

@@ -1,5 +1,16 @@
 # Change Log
 
+## [0.1.11] - 2026-11-16
+
+### Changed
+
+- Factory defaults restore the upstream default admin password **`1234`**. Both embedded configs now carry the fixed salted digest `passwd_hash 5f3c6ac1… 6fcabffe…` (SHA-256 of the salt and `1234`), never the plaintext. A freshly flashed or factory-reset board shows the normal login page and accepts `1234`; change it immediately after the first login. A board whose startup configuration has no credential at all (for example after a bare `passwd` on the console) still shows the first-run setup page.
+- Fallback addresses are confirmed per model: the three XikeStor targets with a reset button (`XIKESTOR_SKS3200M_8GPY1XF`, `SKS3200M_4GPY2XF`, `SKS3200M_5GPY1XF`) keep the nameplate `192.168.10.12/24`; every model without that override uses `192.168.10.247/24`. The local-feature guard now rejects any other `MACHINE_FALLBACK_IP` override and checks the `1234` digest in both config files.
+
+### Added
+
+- The local-feature inventory now checks the `1234` digest and the exact set of SKS fallback overrides; `make local-feature-check` is the fast gate, `make post-sync-check` also runs the host tests.
+
 ## [0.1.10] - 2026-11-16
 
 ### Fixed

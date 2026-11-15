@@ -75,10 +75,12 @@ SKS 三台的 GPIO54 定义、`boot.c` 的 `early_boot_handle_button()` 和
 
 ```text
 ip dhcp
+passwd_hash 5f3c6ac1c12f81f3f1095f02cc65c05e 6fcabffe67fd0b86c1a199268e3fda929e0ccd3deeacf33f2389652853363967
 ```
 
-（`config.txt` 与 `config-xikestor.txt` 目前内容相同；Makefile 按
-`XIKESTOR_TARGETS` 选择 `config-xikestor.txt`。）
+第二行是口令 `1234` 的加盐 SHA-256 摘要（对应 `SHA-256(salt || "1234")`），
+不是明文。`config.txt` 与 `config-xikestor.txt` 目前内容相同；Makefile 按
+`XIKESTOR_TARGETS` 选择 `config-xikestor.txt`。
 
 恢复出厂后：
 
@@ -87,17 +89,20 @@ ip dhcp
 | 地址 | DHCP；没有 DHCP 时 XikeStor 三台为 `192.168.10.12/24`，其它机型为 `192.168.10.247/24` |
 | 网关 / 掩码 | `192.168.10.1` / `255.255.255.0` |
 | Web 端口 | `80` |
-| 管理员密码 | **清空**（fail-closed；第一次访问显示首装页，浏览器生成 salt + 摘要） |
+| 管理员密码 | **`1234`**（内嵌摘要；第一次登录后请立即修改） |
 | Hostname | 清空后按机型/MAC 重新生成 |
 | DNS / NTP / Syslog | 不写入启动配置；NTP/DNS 等按固件默认关闭/未设置 |
 | 会话超时 | `3600` 秒（`SESSION_TIMEOUT_DEFAULT`） |
 | 管理 VLAN | `1` |
 | 端口名 / VLAN / 镜像 / 限速 / STP 配置 | 全部回到固件的初始默认 |
 
-**重要**：201–205 现在都配置了 `http port 8000`、NTP、hostname 和
-`passwd_hash`。恢复出厂会全部清掉，Web 会回到 **80**，密码需要重新首装；不要
+**重要**：201–205 现在都配置了 `http port 8000`、NTP、hostname 和各自的
+`passwd_hash`。恢复出厂会全部清掉，Web 回到 **80**，口令回到默认 `1234`；不要
 在远程不可达时随手点。恢复前先备份 `/config`（`upgrade/logs/pre-*` 里已有本轮
 备份），恢复后按备份写回。
+
+只有启动配置里完全没有凭据时（例如擦除配置或串口执行裸 `passwd`），登录页才
+会显示首装页；恢复出厂不会走首装页，直接用 `1234` 登录。
 
 ### 8GPY1XF 的默认地址修正
 
@@ -118,7 +123,7 @@ DHCP 时会错误地落到 `192.168.10.247`。现在三台 SKS 都有：
 - 串口 `passwd_hash` 落盘、`auth_persist()` 保护
 - 维护页恢复出厂按钮、`defaults` 后端、长按 RESET
 - SKS 三台 `.12` 回落、IG204/K0801W 无按键
-- 默认配置 `ip dhcp`、无明文口令、Web 80、会话 3600、网关/掩码
+- 默认配置 `ip dhcp` + `1234` 摘要、无明文口令、Web 80、会话 3600、网关/掩码
 - 主机测试与 `test_web_auth.js`
 
 新增 fork 功能时，先加清单行，再加测试；这样下一次上游同步不会再把“自己的
