@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.1.10] - 2026-11-16
+
+### Fixed
+
+- Restored **Maintenance → Restore factory defaults** in the System tab, with the six interface languages and the confirmation text. The button posts `defaults` (with `X-RTLP`) exactly like the console command; it was removed when `9122eb8` adopted the upstream single-page UI while the backend `defaults`/`factory-reset` command and the reset-button handlers stayed in place.
+- `XIKESTOR_SKS3200M_8GPY1XF` now defines `MACHINE_FALLBACK_IP 12`. Without a DHCP server it falls back to `192.168.10.12/24` like the other two XikeStor targets, matching the nameplate, instead of the generic `192.168.10.247/24`.
+
+### Added
+
+- `tools/local-feature-checks.tsv` and `doc/local-features.md`: one machine-readable line per fork-specific requirement. `make local-feature-check` (fast) and `make post-sync-check` (also runs the host tests) read the inventory, so a future upstream sync fails when the logout button, factory-reset button, long-press RESET, password flow, SKS fallback address or default configuration disappears.
+- The inventory covers the three SKS reset pins/fallback addresses, the two button-less models (`GPIO_NA`), `flash_default_config`, the `defaults`/`factory-reset` command, `config.txt`/`config-xikestor.txt`, the web port/session defaults and the factory-gateway/netmask.
+
 ## [0.1.9] - 2026-11-16
 
 ### Fixed

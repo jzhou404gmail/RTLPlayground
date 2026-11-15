@@ -307,6 +307,10 @@ var LANG = {
         sy_unknown_note: "Unknown lines are highlighted before writing.",
         sy_maint: "Maintenance",
         sy_reboot: "Reboot switch",
+        sy_defaults: "Restore factory defaults",
+        sy_defaults_q: "Restore the factory defaults?",
+        sy_defaults_d: "The configuration built into the image replaces the startup configuration and the switch reboots. The address becomes DHCP; without a DHCP server it falls back to 192.168.10.12/24 on the XikeStor targets and 192.168.10.247/24 on all others. The web port returns to 80 and there is no password: the first visit sets one. Reconnect at that address.",
+        sy_defaults_doing: "Restoring the factory defaults, the switch reboots",
         sy_lang: "Language",
         sy_ip_err: "Invalid IP / netmask / gateway",
         sy_host_err: "Hostname: 1-23 printable characters, no spaces or quotes",
@@ -641,6 +645,10 @@ var LANG = {
         sy_unknown_note: "不明な行は書き込み前に強調表示されます。",
         sy_maint: "メンテナンス",
         sy_reboot: "スイッチを再起動",
+        sy_defaults: "工場出荷状態に戻す",
+        sy_defaults_q: "工場出荷状態の設定に戻しますか?",
+        sy_defaults_d: "イメージに組み込まれた設定が起動設定を置き換え、スイッチが再起動します。アドレスは DHCP になり、DHCP サーバーがない場合は XikeStor が 192.168.10.12/24、その他が 192.168.10.247/24 にフォールバックします。Web ポートは 80 に戻り、パスワードは未設定になるため、最初のアクセスで設定してください。そのアドレスに再接続してください。",
+        sy_defaults_doing: "工場出荷状態に戻しています。スイッチが再起動します",
         sy_lang: "言語",
         sy_ip_err: "IP / ネットマスク / ゲートウェイが無効です",
         sy_host_err: "ホスト名: 1〜23 文字の印字可能文字、空白と引用符は不可",
@@ -1007,6 +1015,10 @@ var LANG = {
         sy_unknown_note: "未知行会在写入前高亮显示。",
         sy_maint: "维护",
         sy_reboot: "重启交换机",
+        sy_defaults: "恢复出厂设置",
+        sy_defaults_q: "恢复出厂设置?",
+        sy_defaults_d: "将用镜像内嵌的出厂配置替换当前启动配置，并重启交换机。地址变为 DHCP；没有 DHCP 服务器时，XikeStor 机型回落到 192.168.10.12/24，其它机型回落到 192.168.10.247/24。Web 端口恢复为 80，密码清空（首次访问时设置）。请到该地址重新连接。",
+        sy_defaults_doing: "正在恢复出厂设置，交换机重启中",
         sy_lang: "语言",
         sy_ip_err: "IP / 子网掩码 / 网关无效",
         sy_host_err: "主机名: 1-23 个可打印字符，不能包含空格或引号",
@@ -1340,6 +1352,10 @@ var LANG = {
         sy_unknown_note: "Las líneas desconocidas se resaltan antes de escribir.",
         sy_maint: "Mantenimiento",
         sy_reboot: "Reiniciar switch",
+        sy_defaults: "Restaurar valores de fábrica",
+        sy_defaults_q: "¿Restaurar los valores de fábrica?",
+        sy_defaults_d: "La configuración incluida en la imagen sustituye a la configuración de arranque y el switch se reinicia. La dirección pasa a DHCP; sin servidor DHCP, los modelos XikeStor usan 192.168.10.12/24 y el resto 192.168.10.247/24. El puerto web vuelve a 80 y no hay contraseña: la primera visita permite definirla. Vuelve a conectarte a esa dirección.",
+        sy_defaults_doing: "Restaurando los valores de fábrica, el switch se reinicia",
         sy_lang: "Idioma",
         sy_ip_err: "IP / máscara / puerta de enlace no válidos",
         sy_host_err: "Nombre de host: 1-23 caracteres imprimibles, sin espacios ni comillas",
@@ -1751,6 +1767,10 @@ var LANG = {
         sy_unknown_note: "Les lignes incorrectes sont mises en évidence avant l'écriture.",
         sy_maint: "Maintenance",
         sy_reboot: "Redémarre le commutateur",
+        sy_defaults: "Rétablir les réglages d'usine",
+        sy_defaults_q: "Rétablir les réglages d'usine ?",
+        sy_defaults_d: "La configuration intégrée à l'image remplace la configuration de démarrage et le commutateur redémarre. L'adresse passe en DHCP ; sans serveur DHCP, les modèles XikeStor utilisent 192.168.10.12/24 et les autres 192.168.10.247/24. Le port web revient à 80 et il n'y a plus de mot de passe : la première visite permet d'en définir un. Reconnectez-vous à cette adresse.",
+        sy_defaults_doing: "Rétablissement des réglages d'usine, redémarrage du commutateur",
         sy_lang: "Langage",
         sy_ip_err: "Erreur d'IP / masque réseau / passerelle",
         sy_host_err: "Nom d'hôte : 1 à 23 caractères, sans espace ni apostrophes",
@@ -2142,6 +2162,10 @@ var LANG = {
         sy_unknown_note: "Unbekannte Zeilen werden vor dem Schreiben hervorgehoben.",
         sy_maint: "Wartung",
         sy_reboot: "Switch neu starten",
+        sy_defaults: "Werkseinstellungen wiederherstellen",
+        sy_defaults_q: "Werkseinstellungen wiederherstellen?",
+        sy_defaults_d: "Die im Image eingebaute Konfiguration ersetzt die Startkonfiguration und der Switch startet neu. Die Adresse wird per DHCP bezogen; ohne DHCP-Server fallen XikeStor-Modelle auf 192.168.10.12/24 und alle anderen auf 192.168.10.247/24 zurück. Der Web-Port ist wieder 80, und es gibt kein Passwort: Der erste Besuch legt eines fest. Verbinde dich an dieser Adresse neu.",
+        sy_defaults_doing: "Werkseinstellungen werden wiederhergestellt, der Switch startet neu",
         sy_lang: "Sprache",
         sy_ip_err: "Ungültige IP / Netzmaske / Gateway",
         sy_host_err: "Hostname: 1-23 druckbare Zeichen, keine Leerzeichen oder Anführungszeichen",
@@ -5026,6 +5050,18 @@ $("sy-reboot").addEventListener("click", function() {
     confirmModal(t("sy_reboot_q"), S.dirty ? t("sy_reboot_d") : "", function() {
         api("/reset").catch(function() {});
         toast(t("sy_rebooting"), "ok");
+    });
+});
+/* "defaults" is not a configuration command: it replaces the startup
+ * configuration with the image's embedded config and reboots, so it is sent
+ * directly instead of through postCmd()/CONF_CMDS. */
+$("sy-defaults").addEventListener("click", function() {
+    confirmModal(t("sy_defaults_q"), t("sy_defaults_d"), function() {
+        api("/cmd", {
+            method: "POST",
+            body: "defaults"
+        }).catch(function() {});
+        toast(t("sy_defaults_doing"), "ok");
     });
 });
 

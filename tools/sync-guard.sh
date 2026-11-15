@@ -124,42 +124,52 @@ $UNTRACKED"
 
 post)
 	FAIL=0
-	check_file() { # <file> <literal> <description>
-		if [ -f "$1" ] && grep -Fq -- "$2" "$1"; then
-			ok "$3"
-		else
-			echo "[fail] $3 ($1)" >&2
-			FAIL=$((FAIL + 1))
-		fi
-	}
 	check_test() { # <description> <shell condition>
 		if eval "$2"; then ok "$1"; else echo "[fail] $1" >&2; FAIL=$((FAIL + 1)); fi
 	}
 
-	check_file html/index.html 'id="logoutBtn"' "header has the logout button"
-	check_file html/app.js 'hdr_logout' "logout i18n strings exist"
-	check_file html/app.js '$("logoutBtn")' "logout button has a handler"
-	check_file html/app.js 'crypto.getRandomValues(salt)' "password change rotates the salt"
-	if grep -Fq 'bytesToHex(sha256Hex' html/app.js; then
-		echo "[fail] password digest is double-hexed (128 chars); the firmware command buffer overflows" >&2
+	# The fork-specific requirements live in one machine-readable inventory.
+	# Add a feature there (and, where possible, a test) instead of editing this
+	# script: the post-sync guard then checks it on every upstream sync.
+	INVENTORY=tools/local-feature-checks.tsv
+	if [ ! -f "$INVENTORY" ]; then
+		echo "[fail] missing $INVENTORY" >&2
 		FAIL=$((FAIL + 1))
 	else
-		ok "password digest is not double-hexed"
+		while IFS=$'\t' read -r kind file pattern desc; do
+			case "$kind" in
+			''|'#'*) continue ;;
+			contains)
+				if [ -f "$file" ] && grep -Fq -- "$pattern" "$file"; then
+					ok "$desc"
+				else
+					echo "[fail] $desc ($file)" >&2
+					FAIL=$((FAIL + 1))
+				fi
+				;;
+			absent)
+				if [ ! -f "$file" ] || ! grep -Fq -- "$pattern" "$file"; then
+					ok "$desc"
+				else
+					echo "[fail] $desc ($file must not contain '$pattern')" >&2
+					FAIL=$((FAIL + 1))
+				fi
+				;;
+			exists)
+				if [ -f "$file" ]; then
+					ok "$desc"
+				else
+					echo "[fail] $desc ($file missing)" >&2
+					FAIL=$((FAIL + 1))
+				fi
+				;;
+			*)
+				echo "[fail] unknown inventory kind '$kind' in $INVENTORY" >&2
+				FAIL=$((FAIL + 1))
+				;;
+			esac
+		done < "$INVENTORY"
 	fi
-	check_file html/app.js 'sy_pw_ok' "password-change success message exists"
-	check_file html/app.js 'passwd_hash' "config editor recognises passwd_hash"
-	check_file html/app.js 'vlan\s+switch' "config editor recognises vlan switch"
-	check_file html/login.html 'pw2row' "first-run password setup page exists"
-	check_file html/login.html 'legacy' "legacy plaintext login path exists"
-	check_file httpd/httpd.c 'setup_body_take' "first-run setup handler exists"
-	check_file httpd/httpd.c 'send_server_error' "auth write failure is reported"
-	check_file auth.c 'auth_salt_tmp' "failed digest parse cannot corrupt the live hash"
-	check_file auth.c 'legacy' "auth.json still reports the legacy flag"
-	check_file auth.c 'No terminator' "config write-back guard exists"
-	check_file rtlplayground.c 'auth_persist' "serial auth writes are persisted"
-	check_file tools/passwd_hash.py 'passwd_hash' "host passwd_hash tool exists"
-	check_test "test_auth.c exists" '[ -f test/test_auth.c ]'
-	check_file test/test_httpd_tx.c 'scenario_setup' "HTTP auth scenarios exist"
 	check_test "passwd_hash tool is executable" '[ -x tools/passwd_hash.py ]'
 	check_test "no whitespace errors" 'git diff --check'
 

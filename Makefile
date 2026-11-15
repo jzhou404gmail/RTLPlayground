@@ -1,4 +1,4 @@
-VERSION=0.1.9
+VERSION=0.1.10
 IMAGESIZE = 524288
 DEFAULT_CONFIG_LOCATION = 454656
 CONFIG_LOCATION = 458752
@@ -47,7 +47,7 @@ endif
 
 # Goals that make sense without a machine selection.
 MACHINE_FREE_GOALS = clean distclean tools tools/clean machine_check \
-                     pre-sync-check post-sync-check sync-guard-status
+                     pre-sync-check post-sync-check sync-guard-status local-feature-check
 # A bare "make" has no goals but builds $(all), which does need a machine.
 MACHINE_IS_NEEDED = $(if $(MAKECMDGOALS),$(filter-out $(MACHINE_FREE_GOALS),$(MAKECMDGOALS)),all)
 
@@ -168,6 +168,10 @@ post-sync-check:
 
 sync-guard-status:
 	@tools/sync-guard.sh status
+
+# Fast inventory check for the fork-specific features (no host test build).
+local-feature-check:
+	@tools/sync-guard.sh post --quick
 
 create_build_dir:
 	mkdir -p "$(BUILDDIR)"
@@ -313,7 +317,7 @@ $(OUTPUT): $(BUILDDIR)/rtlplayground.img $(CONFIG) | tools
 	ln -sf "$(abspath $(OUTPUT))" output/rtlplayground.bin
 
 .PHONY: clean distclean all $(SUBDIRS) $(SUBDIRSCLEAN) create_build_dir \
-        pre-sync-check post-sync-check sync-guard-status
+        pre-sync-check post-sync-check sync-guard-status local-feature-check
 
 .PHONY:
 machine_check:

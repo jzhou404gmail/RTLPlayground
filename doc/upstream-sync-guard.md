@@ -47,7 +47,9 @@ git merge origin/main        # 或 rebase
 make post-sync-check
 ```
 
-`post` 会检查这次修复所依赖的本地功能是否还在：
+`post` 读取 [`tools/local-feature-checks.tsv`](../tools/local-feature-checks.tsv)
+逐项检查 fork 自己的功能。**新增 fork 功能时先加一行清单**，不要只依赖下面这张
+表（表只是摘要）：
 
 | 检查 | 目的 |
 |---|---|
@@ -61,9 +63,13 @@ make post-sync-check
 | `rtlplayground.c` 的 `auth_persist` | 串口 `passwd_hash` 仍会落盘 |
 | `tools/passwd_hash.py`、`test/test_auth.c`、`scenario_setup` | 工具和回归测试还在 |
 | `test/test_web_auth.js` | 浏览器改密仍是 32 hex salt + 64 hex digest，`passwd_hash` 命令行不超长 |
+| `html/index.html` 的 `sy-defaults`、`app.js` 的 `body: "defaults"` | 维护页恢复出厂按钮和 `defaults` 调用还在 |
+| `boot.c` / `rtlplayground.c` 的 `flash_default_config`、三台 SKS 的 `reset_pin` | 长按 RESET 仍在；204/205 的 `GPIO_NA` 不被误改 |
+| 三台 SKS 的 `MACHINE_FALLBACK_IP 12`、`config*.txt` 的 `ip dhcp` | 出厂回落地址/默认配置没有被改回 `.247` 或明文口令 |
 | `node --check html/app.js` | 前端没有语法错误 |
 | `git diff --check` | 没有冲突标记/空白错误 |
 | `make -C test` | C 主机测试 + `test_web_auth.js` 全过 |
+| `make local-feature-check` | 只跑清单检查，不编译主机测试，改完 UI 可先快速自查 |
 
 任何一项失败，脚本以非零状态退出；**不要提交这次同步**。先按下面的恢复步骤
 把本地改动找回来，再重新解决冲突。
