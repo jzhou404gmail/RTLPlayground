@@ -1,5 +1,9 @@
 # 上游同步清单（2026-11-13）
 
+> 动手前先跑 `make pre-sync-check`，合并后跑 `make post-sync-check`。前者会备份
+> 本地提交并拒绝脏工作区，后者会检查退出登录/摘要口令/首装等本地功能是否被
+> 覆盖。详见 [upstream-sync-guard.md](upstream-sync-guard.md)。
+
 按「值不值得跟」排的三档。上游基线 `eff1c55`（11/11），本地分叉点 `03311de`（10/13）。
 详细差异见 [upstream-sync-2026-11-12.md](upstream-sync-2026-11-12.md)。
 

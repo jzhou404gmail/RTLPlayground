@@ -12,12 +12,14 @@
 - A malformed `passwd_hash` no longer half-overwrites the live salt/hash: `auth_parse_hex()` decodes into scratch first.
 - `auth_persist()` refuses to rewrite a configuration sector that has no NUL terminator (it would otherwise replace the whole configuration with just the auth line), and it strips bare `passwd`/`passwd_hash` lines as well.
 - `run_cmd_body()` answers 500 when the auth record could not be written, so the Web UI no longer reports a password change that will disappear at the next reboot.
+- A machine-free `make` goal (`clean`, `tools`, `pre-sync-check`, ...) no longer treats every `#define MACHINE_*` in `machine.h` as a machine name; a bare `make` prints the target help again instead of failing with bogus `PCB_INFO`/`MIN_PORT` rules.
 - README: the "no password, open the page" and "`passwd <text>` sets a password" text is corrected to the fail-closed first-run flow.
 
 ### Added
 
 - `tools/passwd_hash.py`: prints `passwd_hash <salt> <digest>` for a password, for boards reachable only over the serial console.
 - `test/test_auth.c`: host-side coverage for the digest parse/compare, `/auth.json`, the configuration write-back, the no-terminator guard and the logout reply.
+- `tools/sync-guard.sh` with `make pre-sync-check` / `make post-sync-check`: refuses a dirty upstream sync, backs up local commits as a tag plus patches/diff, and after the sync checks that the logout button, salt rotation, first-run setup, legacy fallback, `passwd_hash` flow and host tests are still present. See `doc/upstream-sync-guard.md`.
 
 ## [0.x] - 2026-xx-XX
 

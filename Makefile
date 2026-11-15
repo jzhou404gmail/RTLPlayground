@@ -20,9 +20,22 @@ SUBDIRSCLEAN=$(addsuffix clean,$(SUBDIRS))
 MACHINE_TARGETS := $(shell ls machine/*.c 2>/dev/null | sed -E 's#machine/##; s#\.c$$##' | grep -v '_init$$' | sort -u)
 
 ifeq ($(MACHINE),)
-	MACHINE:= $(shell grep "^\s*#define MACHINE_" machine.h | sed "s/^\s*#define MACHINE_//")
+	# Only names that actually have a machine/<NAME>.c count: matching every
+	# "#define MACHINE_..." also catches MACHINE_STR_HELPER, MACHINE_PCB_INFO
+	# and the port helpers, which used to turn a machine-free goal into a
+	# confusing "no rule to make target" error.
+	MACHINE := $(shell for n in $(MACHINE_TARGETS); do \
+		awk -v n="$$n" '$$1=="#define" && $$2=="MACHINE_" n {f=1} END{exit !f}' machine.h \
+			&& echo $$n; \
+	done)
 else
 	CC_FLAGS += -DMACHINE_NAME=$(MACHINE)
+endif
+
+ifneq ($(MACHINE),)
+ifneq ($(words $(MACHINE)),1)
+	$(error More than one MACHINE_<target> is enabled in machine.h: $(MACHINE))
+endif
 endif
 
 # Boards that share one PCB symlink their machine/<NAME>.c at machine/pcb/<PCB>.c;
@@ -33,7 +46,8 @@ ifneq ($(MACHINE_LINK_TARGET),)
 endif
 
 # Goals that make sense without a machine selection.
-MACHINE_FREE_GOALS = clean distclean tools tools/clean machine_check
+MACHINE_FREE_GOALS = clean distclean tools tools/clean machine_check \
+                     pre-sync-check post-sync-check sync-guard-status
 # A bare "make" has no goals but builds $(all), which does need a machine.
 MACHINE_IS_NEEDED = $(if $(MAKECMDGOALS),$(filter-out $(MACHINE_FREE_GOALS),$(MAKECMDGOALS)),all)
 
@@ -142,6 +156,18 @@ all: create_build_dir $(VERSION_HEADER) $(SUBDIRS) $(OUTPUT)
 # Report how much room is left in each code bank of the last build.
 bank_size:
 	@python3 tools/bank_usage.py $(BUILDDIR)/rtlplayground.ihx
+
+# Guard the fork's local work around an upstream sync. "pre" refuses a dirty
+# tree, backs up local commits (tag + patches/diff) and prints whether they
+# are on fork/main; "post" checks the local features and runs the host tests.
+pre-sync-check:
+	@tools/sync-guard.sh pre
+
+post-sync-check:
+	@tools/sync-guard.sh post
+
+sync-guard-status:
+	@tools/sync-guard.sh status
 
 create_build_dir:
 	mkdir -p "$(BUILDDIR)"
@@ -286,7 +312,8 @@ $(OUTPUT): $(BUILDDIR)/rtlplayground.img $(CONFIG) | tools
 	tools/output/crc_calculator -u "$@"
 	ln -sf "$(abspath $(OUTPUT))" output/rtlplayground.bin
 
-.PHONY: clean distclean all $(SUBDIRS) $(SUBDIRSCLEAN) create_build_dir
+.PHONY: clean distclean all $(SUBDIRS) $(SUBDIRSCLEAN) create_build_dir \
+        pre-sync-check post-sync-check sync-guard-status
 
 .PHONY:
 machine_check:
