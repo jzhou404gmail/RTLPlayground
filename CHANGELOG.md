@@ -1,5 +1,24 @@
 # Change Log
 
+## [0.1.8] - 2026-11-16
+
+### Fixed
+
+- Web UI: the **Log out** button is back in the top-right of the header. It was dropped when the upstream single-page app replaced the fork's UI; the restored button sends `X-RTLP: 1` and posts to `/logout`, which the CSRF guard requires.
+- Password change generates a fresh random 16-byte salt for every change again. The upstream UI had reused the salt stored in the firmware, unlike the fork's previous UI.
+- The local configuration-command patterns (`passwd_hash`, `http port`/`http tls`, `vlan switch`) are back in `app.js`. Without them the config editor warned about them, the Save merge could duplicate `passwd_hash`, and the dashboard VLAN switch did not mark the config dirty.
+- A freshly flashed, fail-closed board can be provisioned from the web again: `/auth.json` reports `legacy`, and `login.html` switches between first-run setup (choose the password, the browser generates the salt and the SHA-256 digest, `POST /login` with `X-RTLP`), digest login, and the old plaintext fallback. The 6-20 character policy is enforced again.
+- Serial `passwd_hash ...` is written to the startup configuration. The pending auth write was only serviced by the HTTP command path, so a digest entered on the console lived in RAM until the next boot.
+- A malformed `passwd_hash` no longer half-overwrites the live salt/hash: `auth_parse_hex()` decodes into scratch first.
+- `auth_persist()` refuses to rewrite a configuration sector that has no NUL terminator (it would otherwise replace the whole configuration with just the auth line), and it strips bare `passwd`/`passwd_hash` lines as well.
+- `run_cmd_body()` answers 500 when the auth record could not be written, so the Web UI no longer reports a password change that will disappear at the next reboot.
+- README: the "no password, open the page" and "`passwd <text>` sets a password" text is corrected to the fail-closed first-run flow.
+
+### Added
+
+- `tools/passwd_hash.py`: prints `passwd_hash <salt> <digest>` for a password, for boards reachable only over the serial console.
+- `test/test_auth.c`: host-side coverage for the digest parse/compare, `/auth.json`, the configuration write-back, the no-terminator guard and the logout reply.
+
 ## [0.x] - 2026-xx-XX
 
 ## Added
@@ -17,7 +36,7 @@
 
 - Four web logins at once (`sessions.c`, in BANK3): each browser has its own cookie, idle timeout and 8 h absolute lifetime; the fifth login replaces the least recently used. A logout ends only the calling browser, a password change ends them all.
 - `test/test_sessions.c` covers the session table on the host: distinct 128-bit ids, idle and absolute expiry, LRU eviction, logout scope.
-- Build: `CONFIG=<file>` selects the embedded startup configuration, `OUTPUT_DIR`/`OUTPUT_PREFIX`/`OUTPUT_NAME`/`OUTPUT` place the image, `make bank_size` prints how full each code bank of the last build is. BANK1 is at 99.4%, so check it before adding code.
+- Build: `CONFIG=<file>` selects the embedded startup configuration, `OUTPUT_DIR`/`OUTPUT_PREFIX`/`OUTPUT_NAME`/`OUTPUT` place the image, `make bank_size` prints how full each code bank of the last build is. BANK1 is the tightest bank (about 88% used on the current tree), so check it before adding code.
 
 ## Changed
 

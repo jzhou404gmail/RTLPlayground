@@ -19,6 +19,8 @@ var LANG = {
         hdr_dirty_t: "Running config differs from startup config",
         hdr_save: "Save to flash",
         hdr_save_t: "Persist running configuration to flash",
+        hdr_logout: "Log out",
+        hdr_logout_t: "End this browser's session",
         th_auto: "System",
         th_auto_sel: "System (Selenized)",
         sy_display: "Display",
@@ -337,11 +339,13 @@ var LANG = {
         sy_ntpint_err: "Poll interval must be 1-1440",
         sy_time_note: "The switch has no battery backed clock: the time is lost at every restart and set again from the NTP server once the network is up. Save to flash to keep the settings.",
         sy_sysport_err: "Syslog port must be 1-65535",
-        sy_pw_len: "Password: 1-20 characters",
+        sy_pw_len: "Password: 6-20 characters",
         sy_pw_space: "Password cannot contain spaces",
         sy_pw_match: "Passwords do not match",
         sy_pw_q: "Change admin password?",
-        sy_pw_d: "Takes effect immediately for new logins. Save to flash to persist.",
+        sy_pw_d: "Takes effect immediately for new logins and is written to flash.",
+        sy_pw_fail: "Password not changed",
+        sy_pw_ok: "Password changed",
         sy_reboot_q: "Reboot the switch?",
         sy_reboot_d: "There are UNSAVED changes and they will be lost. Save to flash first if you want to keep them.",
         sy_rebooting: "Rebooting, reconnect in about 20 s",
@@ -403,6 +407,8 @@ var LANG = {
         hdr_dirty_t: "実行中の設定が起動設定と異なります",
         hdr_save: "フラッシュに保存",
         hdr_save_t: "実行中の設定をフラッシュに書き込む",
+        hdr_logout: "ログアウト",
+        hdr_logout_t: "このブラウザのセッションを終了",
         th_auto: "システム",
         th_auto_sel: "システム (Selenized)",
         sy_display: "表示",
@@ -645,11 +651,13 @@ var LANG = {
         sy_dhcp_d: "スイッチは DHCP でアドレスを要求します。再接続するには新しい IP を確認する必要があります。",
         sy_sysip_err: "syslog サーバー IP が無効です",
         sy_sysport_err: "syslog ポートは 1〜65535 の範囲で指定してください",
-        sy_pw_len: "パスワード: 1〜20 文字",
+        sy_pw_len: "パスワード: 6〜20 文字",
         sy_pw_space: "パスワードに空白は使えません",
         sy_pw_match: "パスワードが一致しません",
         sy_pw_q: "管理者パスワードを変更しますか?",
-        sy_pw_d: "新しいログインから即時に有効になります。保持するにはフラッシュに保存してください。",
+        sy_pw_d: "新しいログインから即時に有効になり、フラッシュに書き込まれます。",
+        sy_pw_fail: "パスワードを変更できませんでした",
+        sy_pw_ok: "パスワードを変更しました",
         sy_reboot_q: "スイッチを再起動しますか?",
         sy_reboot_d: "未保存の変更があり、失われます。保持したい場合は先にフラッシュに保存してください。",
         sy_rebooting: "再起動中です。約 20 秒後に再接続してください",
@@ -712,6 +720,8 @@ var LANG = {
         hdr_dirty_t: "运行配置与启动配置不同",
         hdr_save: "保存到 Flash",
         hdr_save_t: "将运行配置写入 Flash",
+        hdr_logout: "退出登录",
+        hdr_logout_t: "结束当前浏览器的登录",
         th_auto: "跟随系统",
         th_auto_sel: "跟随系统 (Selenized)",
         sy_display: "显示",
@@ -1029,11 +1039,13 @@ var LANG = {
         sy_ntpint_err: "轮询间隔必须为 1-1440",
         sy_time_note: "交换机没有电池供电的时钟：每次重启都会丢失时间，网络连通后会从 NTP 服务器重新获取时间。保存到 Flash 以保留这些设置。",
         sy_sysport_err: "syslog 端口范围为 1-65535",
-        sy_pw_len: "密码: 1-20 个字符",
+        sy_pw_len: "密码: 6-20 个字符",
         sy_pw_space: "密码不能包含空格",
         sy_pw_match: "两次输入的密码不一致",
         sy_pw_q: "修改管理员密码?",
-        sy_pw_d: "对新的登录立即生效。如需保留请保存到 Flash。",
+        sy_pw_d: "对新的登录立即生效，并写入 Flash。",
+        sy_pw_fail: "密码未修改",
+        sy_pw_ok: "密码已修改",
         sy_reboot_q: "重启交换机?",
         sy_reboot_d: "存在未保存的更改，重启后将丢失。如需保留请先保存到 Flash。",
         sy_rebooting: "正在重启，约 20 秒后重新连接",
@@ -1095,6 +1107,8 @@ var LANG = {
         hdr_dirty_t: "La configuración en ejecución difiere de la guardada",
         hdr_save: "Guardar en flash",
         hdr_save_t: "Persistir la configuración en ejecución a flash",
+        hdr_logout: "Cerrar sesión",
+        hdr_logout_t: "Terminar la sesión de este navegador",
         th_auto: "Sistema",
         th_auto_sel: "Sistema (Selenized)",
         sy_display: "Pantalla",
@@ -1336,11 +1350,13 @@ var LANG = {
         sy_dhcp_d: "El switch solicita una dirección mediante DHCP. Deberás encontrar su nueva IP para reconectar.",
         sy_sysip_err: "IP del servidor syslog no válida",
         sy_sysport_err: "El puerto de syslog debe estar entre 1 y 65535",
-        sy_pw_len: "Contraseña: 1-20 caracteres",
+        sy_pw_len: "Contraseña: 6-20 caracteres",
         sy_pw_space: "La contraseña no puede contener espacios",
         sy_pw_match: "Las contraseñas no coinciden",
         sy_pw_q: "¿Cambiar la contraseña de administrador?",
-        sy_pw_d: "Toma efecto inmediatamente para los nuevos inicios de sesión. Guarda en flash para persistir.",
+        sy_pw_d: "Se aplica de inmediato a los nuevos inicios de sesión y se escribe en flash.",
+        sy_pw_fail: "La contraseña no se cambió",
+        sy_pw_ok: "Contraseña cambiada",
         sy_reboot_q: "¿Reiniciar el switch?",
         sy_reboot_d: "Hay cambios SIN GUARDAR y se perderán. Guarda en flash primero si quieres conservarlos.",
         sy_rebooting: "Reiniciando, reconecta en unos 20 s",
@@ -1483,6 +1499,8 @@ var LANG = {
         hdr_dirty_t: "La configuration utilisée diffère de celle au démarrage",
         hdr_save: "Sauvegarder en flash",
         hdr_save_t: "Maintenir la configuration actuelle en flash",
+        hdr_logout: "Se déconnecter",
+        hdr_logout_t: "Terminer la session de ce navigateur",
         th_auto: "Système",
         th_auto_sel: "Système (sélénisé)",
         sy_display: "Affichage",
@@ -1765,11 +1783,13 @@ var LANG = {
         sy_ntpint_err: "L'intervalle de scrutation doit être compris entre 1 et 1440",
         sy_time_note: "Le commutateur n'a pas d'horloge sauvegardée par batterie: L'heure est donc perdue à chaque redémarrage et doit être récupérée grâce au serveur NTP une fois le réseau fonctionnel. Sauvegardez en mémoire flash pour enregistrer les paramètres.",
         sy_sysport_err: "Le port Syslog doit être compris entre 1 et 65535",
-        sy_pw_len: "Mot de passe : 1 à 20 caractères",
+        sy_pw_len: "Mot de passe : 6 à 20 caractères",
         sy_pw_space: "Le mot de passe ne doit pas contenir d'espaces",
         sy_pw_match: "Les mots de passe ne correspondent pas",
         sy_pw_q: "Changer le mot de passe d'administration?",
-        sy_pw_d: "Cela prend effet immédiatement dès la prochaine connection. Enregistrez en Flash pour rendre la modification persistante.",
+        sy_pw_d: "S'applique immédiatement aux nouvelles connexions et est écrit en flash.",
+        sy_pw_fail: "Le mot de passe n'a pas été modifié",
+        sy_pw_ok: "Mot de passe modifié",
         sy_reboot_q: "Redémarrer le commutateur ?",
         sy_reboot_d: "Il y a des paramètres NON SAUVEGARDES qui vont être perdus. Sauvegardez-les au préalable en mémoire flash si vous souhaitez les conserver.",
         sy_rebooting: "Redémarrage, reconnectez-vous d'ici 20s",
@@ -1832,6 +1852,8 @@ var LANG = {
         hdr_dirty_t: "Laufende Konfiguration weicht von der Startkonfiguration ab",
         hdr_save: "Im Flash speichern",
         hdr_save_t: "Laufende Konfiguration dauerhaft im Flash speichern",
+        hdr_logout: "Abmelden",
+        hdr_logout_t: "Sitzung dieses Browsers beenden",
         th_auto: "System",
         th_auto_sel: "System (Selenized)",
         sy_display: "Anzeige",
@@ -2152,11 +2174,13 @@ var LANG = {
         sy_ntp_err: "Hostname oder IPv4-Adresse des NTP-Servers eingeben",
         sy_ntpint_err: "Abfrageintervall muss zwischen 1 und 1440 liegen",
         sy_time_note: "Der Switch hat keine batteriegepufferte Uhr: Die Zeit geht bei jedem Neustart verloren und wird neu vom NTP-Server bezogen, sobald das Netzwerk bereit ist. Im Flash speichern, damit die Einstellungen erhalten bleiben.",
-        sy_pw_len: "Passwort: 1-20 Zeichen",
+        sy_pw_len: "Passwort: 6-20 Zeichen",
         sy_pw_space: "Das Passwort darf keine Leerzeichen enthalten",
         sy_pw_match: "Die Passwörter stimmen nicht überein",
         sy_pw_q: "Admin-Passwort ändern?",
-        sy_pw_d: "Gilt sofort für neue Anmeldungen. Im Flash speichern, damit es erhalten bleibt.",
+        sy_pw_d: "Gilt sofort für neue Anmeldungen und wird in den Flash geschrieben.",
+        sy_pw_fail: "Passwort nicht geändert",
+        sy_pw_ok: "Passwort geändert",
         sy_reboot_q: "Switch neu starten?",
         sy_reboot_d: "Es gibt UNGESPEICHERTE Änderungen, sie gehen verloren. Zuerst im Flash speichern, wenn du sie behalten willst.",
         sy_rebooting: "Neustart läuft, in etwa 20 s neu verbinden",
@@ -2351,20 +2375,27 @@ function sha256Hex(bytes){
   for(i=0;i<8;i++) out+=("00000000"+H[i].toString(16)).slice(-8);
   return out;
 }
-function hexToBytes(h){var a=new Uint8Array(h.length/2);for(var i=0;i<a.length;i++)a[i]=parseInt(h.substr(i*2,2),16);return a;}
 function bytesToHex(b) {
     var s = "";
     for (var i = 0; i < b.length; i++) s += (b[i] < 16 ? "0" : "") + b[i].toString(16);
     return s;
 }
-/* /auth.json gives the salt; the digest is SHA-256(salt || password). */
+/* A new random salt for every password change: a salt belongs to the
+ * credential, not to the device, so it must not be reused when the password
+ * changes. crypto.getRandomValues() works on plain HTTP; only crypto.subtle
+ * needs a secure context. The digest is SHA-256(salt || password). */
 function pwHash(pw) {
-    return fetch("/auth.json", {cache: "no-store"}).then(function(r) { return r.json(); }).then(function(j) {
-        if (!j.set || !j.salt) throw new Error("no salt");
-        var salt = hexToBytes(j.salt), p = new TextEncoder().encode(pw);
+    return new Promise(function(resolve, reject) {
+        if (!window.crypto || !crypto.getRandomValues) {
+            reject(new Error("crypto.getRandomValues unavailable"));
+            return;
+        }
+        var salt = new Uint8Array(16);
+        crypto.getRandomValues(salt);
+        var p = new TextEncoder().encode(pw);
         var all = new Uint8Array(salt.length + p.length);
         all.set(salt); all.set(p, salt.length);
-        return {salt: j.salt, digest: bytesToHex(sha256Hex(all))};
+        resolve({salt: bytesToHex(salt), digest: bytesToHex(sha256Hex(all))});
     });
 }
 
@@ -2427,13 +2458,16 @@ var CONF_CMDS = [
     /^syslog\s+ip\s+(\d{1,3}\.){3}\d{1,3}$/,
     /^syslog\s+port\s+\d{1,5}$/,
     /^session\s+\d{1,5}$/,
+    /^http\s+port\s+\d{1,5}$/, /^http\s+tls\s+(on|off)$/,
     /^dns\s+server\s+(\d{1,3}\.){3}\d{1,3}(\s+(\d{1,3}\.){3}\d{1,3})?$/,
     /^ntp\s+(on|off)$/,
     /^ntp\s+server\s+[A-Za-z0-9.-]{1,47}$/,
     /^ntp\s+interval\s+\d{1,4}$/,
     /^ntp\s+timezone\s+[+-]?\d{1,2}(:\d{2})?$/,
     /^ntp\s+dst\s+(off|eu|us)$/,
-    /^passwd\s+\S+$/, /^hostname\s+\S{1,23}$/,
+    /^passwd\s+\S+$/, /^passwd_hash\s+[0-9a-f]{32}\s+[0-9a-f]{64}$/,
+    /^hostname\s+\S{1,23}$/,
+    /^vlan\s+switch\s+(on|off)$/,
     /^vlan\s+\d+\s+(d|mgmt)$/m,
     /^vlan\s+\d+(\s+[a-zA-Z]\w*)?(\s+\d+t?)*$/m,
     /^pvid\s+\d+\s+\d+$/m,
@@ -4938,7 +4972,7 @@ $("sy-sesstmo").addEventListener("change", function() {
 $("sy-pwapply").addEventListener("click", function() {
     var a = $("sy-pw1").value,
         b = $("sy-pw2").value;
-    if (a.length < 1 || a.length > 20) {
+    if (a.length < 6 || a.length > 20) {
         toast(t("sy_pw_len"), "err");
         return;
     }
@@ -4955,10 +4989,12 @@ $("sy-pwapply").addEventListener("click", function() {
             return postCmd("passwd_hash " + h.salt + " " + h.digest, true);
         }).then(function() {
             $("sy-pw1").value = $("sy-pw2").value = "";
-            toast(t("sy_pwapply"), "ok");
+            toast(t("sy_pw_ok"), "ok");
             /* the password change ends every session */
             setTimeout(function() { location.href = "/login.html"; }, 900);
-        }).catch(function() {});
+        }).catch(function(e) {
+            toast(e && e.message ? e.message : t("sy_pw_fail"), "err");
+        });
     });
 });
 $("sy-send").addEventListener("click", sysConsole);
@@ -5123,7 +5159,8 @@ tabHooks.system = {
 
 var CONF_OVERWRITE = [
     /^ip\b/, /^gw\b/, /^netmask\b/, /^hostname\b/,
-    /^syslog\s+ip\b/, /^syslog\s+port\b/, /^dns\s+server\b/, /^passwd\b/, /^session\b/,
+    /^syslog\s+ip\b/, /^syslog\s+port\b/, /^dns\s+server\b/, /^passwd\b/, /^passwd_hash\b/, /^session\b/,
+    /^http\s+port\b/, /^http\s+tls\b/,
     /^ntp\s+server\b/, /^ntp\s+interval\b/, /^ntp\s+timezone\b/, /^ntp\s+dst\b/,
     /^vlan\s+\d{1,4}\s+mgmt$/, /^vlan\s+\d{1,4}(?!\s+mgmt\b)/,
     /^pvid\s+\d{1,2}\b/,
@@ -5134,7 +5171,7 @@ var CONF_OVERWRITE = [
     /^stp\s+(port\s+\d{1,2}|lag\s+[1-4])\s+(edge|cost|prio|guard|filter|p2p)\b/,
     /^igmp\b/, /^mtu\s+\d{1,2}\b/, /^storm\s+\d{1,2}\s+(bcast|mcast|ucast|umcast)\b/,
 ];
-var CONF_TOGGLE = [/^(syslog)\s+(on|off)$/, /^(ntp)\s+(on|off)$/, /^(stp)\s+(on|off)$/, /^(lldp)\s+(on|off)$/, /^(stp\s+(port\s+\d{1,2}|lag\s+[1-4]))\s+(on|off)$/];
+var CONF_TOGGLE = [/^(vlan\s+switch)\s+(on|off)$/, /^(syslog)\s+(on|off)$/, /^(ntp)\s+(on|off)$/, /^(stp)\s+(on|off)$/, /^(lldp)\s+(on|off)$/, /^(stp\s+(port\s+\d{1,2}|lag\s+[1-4]))\s+(on|off)$/];
 
 function mergeConf(base, texts) {
     var conf = base.slice();
@@ -5562,3 +5599,21 @@ window.addEventListener("hashchange", function() {
     }).catch(function() {});
     showTab(id);
 })();
+
+/* Log out: the firmware drops only the calling browser's session, so other
+ * open browsers stay logged in. api() adds X-RTLP: 1, which the firmware
+ * requires on every authenticated state-changing POST (including /logout);
+ * the form content type is needed because httpd rejects a POST without one. */
+$("logoutBtn").addEventListener("click", function() {
+    api("/logout", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "1"
+    }).then(function() {
+        location.href = "/login.html";
+    }, function() {
+        location.href = "/login.html";
+    });
+});

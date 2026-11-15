@@ -23,6 +23,7 @@
 #include "dhcp.h"
 #include "cmd_parser.h"
 #include "cmd_editor.h"
+#include "auth.h"
 #include "uip/uipopt.h"
 #include "uip/uip.h"
 #include "uip/uip_arp.h"
@@ -1284,6 +1285,14 @@ void idle(void)
 		cmd_tokenize();
 		if (err_status == ERR_OK)
 			cmd_parser();
+		/* passwd/passwd_hash mark the auth record dirty. The HTTP path
+		 * services this itself; on the serial console nothing else would,
+		 * so "passwd_hash ..." would only change RAM until the next boot. */
+		if (auth_save_pending) {
+			auth_save_pending = 0;
+			print_string(auth_persist() ? "Password saved to flash\n"
+						    : "Password not saved\n");
+		}
 		print_cmd_prompt();
 	}
 	health_phase(HEALTH_PH_CMD);

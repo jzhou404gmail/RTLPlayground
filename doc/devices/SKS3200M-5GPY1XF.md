@@ -74,8 +74,10 @@ device over the web interface — this board has no serial console:
 Both XikeStor targets embed `config-xikestor.txt` instead of `config.txt`
 (selected by machine target in the Makefile). Both files now hold `ip dhcp`, so
 a freshly flashed board comes up on **DHCP** and with **no login password**.
-Adding an `ip <address>` or a `passwd <text>` line to the file overrides that
-default.
+Adding an `ip <address>` line to the file overrides that default; the password
+is set on the first visit to the web interface (or with
+`passwd_hash <salt> <digest>` from `tools/passwd_hash.py` on the console), not
+with a plaintext `passwd <text>` line.
 
 ## Installing
 

@@ -30,7 +30,8 @@ TESTS = $(BUILDDIR)/test_cmd_editor \
         $(BUILDDIR)/test_httpd_tx \
         $(BUILDDIR)/test_ntp \
         $(BUILDDIR)/test_tick_gate \
-        $(BUILDDIR)/test_sessions
+        $(BUILDDIR)/test_sessions \
+        $(BUILDDIR)/test_auth
 
 # The table tests link the register mock and one environment file; stub/
 # stands in for the two headers a firmware build generates.
@@ -57,13 +58,19 @@ $(BUILDDIR)/test_tick_gate: test_tick_gate.c support.c $(SRCROOT)/cmd_editor.c |
 $(BUILDDIR)/test_sessions: test_sessions.c $(SRCROOT)/sessions.c | $(BUILDDIR)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
+# auth.c is compiled UNMODIFIED from the firmware tree; this test carries the
+# flash sector and the console-side environment itself.
+$(BUILDDIR)/test_auth: test_auth.c $(SRCROOT)/auth.c | $(BUILDDIR)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+
 $(BUILDDIR)/test_page_json: test_page_json.c $(TABLE_ENV) hw_mock.h | $(BUILDDIR)
 	$(CC) $(CFLAGS) $(filter %.c,$^) -o $@ $(LDFLAGS)
 
-# httpd/httpd.c and uip/uip.c are compiled UNMODIFIED from the firmware tree;
-# this test carries the environment below them itself.
+# httpd/httpd.c, uip/uip.c, sessions.c, timer.c and auth.c are compiled
+# UNMODIFIED from the firmware tree; this test carries the environment below
+# them itself, including a simulated configuration sector for auth.c.
 $(BUILDDIR)/test_httpd_tx: test_httpd_tx.c httpd_env.c $(SRCROOT)/httpd/httpd.c $(SRCROOT)/uip/uip.c \
-                         $(SRCROOT)/sessions.c $(SRCROOT)/timer.c | $(BUILDDIR)
+                         $(SRCROOT)/sessions.c $(SRCROOT)/timer.c $(SRCROOT)/auth.c | $(BUILDDIR)
 	$(CC) $(CFLAGS) -I$(SRCROOT) $(filter %.c,$^) -o $@ $(LDFLAGS)
 
 # ntp.c and dns.c are compiled UNMODIFIED from the firmware tree; the uIP edge

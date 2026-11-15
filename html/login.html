@@ -54,11 +54,17 @@ input.pw:focus{border-color:var(--ac)}
 .eye .ic-shut{display:none}
 .eye.on .ic-occhi{display:none}
 .eye.on .ic-shut{display:block}
+/* First-run setup: a second field, without the reveal button, shown only
+   while no password exists yet. */
+#pw2row{margin-top:14px}
+#pw2row[hidden]{display:none}
+#pwd2{padding-right:12px}
 button{
   width:100%;margin-top:18px;padding:10px;font-size:15px;font-weight:600;
   color:var(--acfg);background:var(--ac);border:0;border-radius:8px;cursor:pointer;
 }
 button:hover{filter:brightness(1.1)}
+button:disabled{opacity:.55;cursor:default;filter:none}
 #err{color:var(--bad);font-size:13px;min-height:20px;margin-top:14px;text-align:center}
 </style>
 <script>
@@ -102,6 +108,10 @@ button:hover{filter:brightness(1.1)}
         </svg>
       </button>
     </div>
+    <div id="pw2row" hidden>
+      <label for="pwd2" id="lp2">Repeat password</label>
+      <input id="pwd2" class="pw" type="password" autocomplete="new-password" maxlength="20">
+    </div>
     <button type="submit" id="lb">Sign in</button>
     <div id="err"></div>
   </form>
@@ -109,12 +119,18 @@ button:hover{filter:brightness(1.1)}
 <script>
 (function(){
   var L={
-    de:["Switch-Anmeldung","RTLPlayground-Verwaltungsoberfläche","Passwort","Anmelden","Falsches Passwort, bitte erneut versuchen.","Passwort anzeigen","Passwort verbergen"],
-    en:["Switch Login","RTLPlayground management interface","Password","Sign in","Wrong password, try again.","Show password","Hide password"],
-    ja:["スイッチ ログイン","RTLPlayground 管理インターフェース","パスワード","ログイン","パスワードが違います。もう一度お試しください。","パスワードを表示","パスワードを隠す"],
-    zh:["交换机登录","RTLPlayground 管理界面","密码","登录","密码错误，请重试。","显示密码","隐藏密码"],
-    es:["Inicio de sesión del switch","Interfaz de gestión de RTLPlayground","Contraseña","Iniciar sesión","Contraseña incorrecta, inténtalo de nuevo.","Mostrar contraseña","Ocultar contraseña"],
-    fr:["Utilisateur du commutateur","Interface de management RTLPlayground","Mot de passe","Se connecter","Mot de passe erronné, essayez à nouveau.","Afficher le mot de passe","Masquer le mot de passe"]
+    de:["Switch-Anmeldung","RTLPlayground-Verwaltungsoberfläche","Passwort","Anmelden","Falsches Passwort, bitte erneut versuchen.","Passwort anzeigen","Passwort verbergen",
+        "Kein Passwort gesetzt. Wählen Sie eines für das Administratorkonto.","Passwort wiederholen","Passwort setzen","Die Passwörter stimmen nicht überein.","Passwort: 6-20 Zeichen, keine Leerzeichen.","Das Passwort konnte nicht gesetzt werden.","Kein Passwort gesetzt. Laden Sie diese Seite neu, um eines zu setzen."],
+    en:["Switch Login","RTLPlayground management interface","Password","Sign in","Wrong password, try again.","Show password","Hide password",
+        "No password is set. Choose one for the admin account.","Repeat password","Set password","Passwords do not match.","Password: 6-20 characters, no spaces.","Could not set the password.","No password is set. Reload this page to set one."],
+    ja:["スイッチ ログイン","RTLPlayground 管理インターフェース","パスワード","ログイン","パスワードが違います。もう一度お試しください。","パスワードを表示","パスワードを隠す",
+        "パスワードが未設定です。管理者用のパスワードを設定してください。","パスワード（再入力）","パスワードを設定","パスワードが一致しません。","パスワード: 6〜20 文字、空白なし。","パスワードを設定できませんでした。","パスワードが未設定です。このページを再読み込みして設定してください。"],
+    zh:["交换机登录","RTLPlayground 管理界面","密码","登录","密码错误，请重试。","显示密码","隐藏密码",
+        "尚未设置密码。请为管理员设置一个密码。","重复密码","设置密码","两次输入的密码不一致。","密码: 6-20 个字符，不能含空格。","无法设置密码。","尚未设置密码。请刷新此页面进行设置。"],
+    es:["Inicio de sesión del switch","Interfaz de gestión de RTLPlayground","Contraseña","Iniciar sesión","Contraseña incorrecta, inténtalo de nuevo.","Mostrar contraseña","Ocultar contraseña",
+        "No hay contraseña configurada. Elige una para la cuenta de administrador.","Repetir contraseña","Establecer contraseña","Las contraseñas no coinciden.","Contraseña: 6-20 caracteres, sin espacios.","No se pudo establecer la contraseña.","No hay contraseña configurada. Recarga esta página para establecer una."],
+    fr:["Utilisateur du commutateur","Interface de management RTLPlayground","Mot de passe","Se connecter","Mot de passe erronné, essayez à nouveau.","Afficher le mot de passe","Masquer le mot de passe",
+        "Aucun mot de passe n'est défini. Choisissez-en un pour le compte administrateur.","Confirmer le mot de passe","Définir le mot de passe","Les mots de passe ne correspondent pas.","Mot de passe : 6 à 20 caractères, sans espaces.","Impossible de définir le mot de passe.","Aucun mot de passe n'est défini. Rechargez cette page pour en définir un."]
   };
   var l=null;
   try{l=localStorage.getItem("rtl_lang");}catch(e){}
@@ -187,17 +203,89 @@ function bytesToHex(b){var s="";for(var i=0;i<b.length;i++)s+=("0"+b[i].toString
 (function(){
   var form=document.querySelector('form');
   var err=document.getElementById('err');
+  var pw=document.getElementById('pwd');
+  var pw2=document.getElementById('pwd2');
+  var pw2row=document.getElementById('pw2row');
+  var lp2=document.getElementById('lp2');
+  var lb=document.getElementById('lb');
+  var sub=document.getElementById('sub');
+  var s=window.__loginI18n||["","","","","","Show password","Hide password",
+    "No password is set. Choose one for the admin account.","Repeat password","Set password",
+    "Passwords do not match.","Password: 6-20 characters, no spaces.","Could not set the password.",
+    "No password is set. Reload this page to set one."];
+  /* digest: a password exists, POST SHA-256(salt || password)
+   * legacy: an old plaintext passwd line exists, POST the plaintext once
+   * setup:  no credential at all, choose the first admin password */
+  var mode="digest", ready=false;
+
+  function setMode(j){
+    if(j&&j.set)mode="digest";
+    else if(j&&j.legacy)mode="legacy";
+    else mode="setup";
+    if(mode==="setup"){
+      sub.textContent=s[7];
+      lp2.textContent=s[8];
+      lb.textContent=s[9];
+      pw2row.hidden=false;
+      pw.autocomplete="new-password";
+      err.textContent='';
+    }
+  }
+
+  /* Do not let a submit race the /auth.json answer: the mode decides whether
+   * the password is hashed, sent as the legacy plaintext or used for setup. */
+  lb.disabled=true;
+  fetch('/auth.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+    setMode(j);
+    ready=true;
+    lb.disabled=false;
+  }).catch(function(){
+    /* Keep the normal login form; submitting refetches auth.json and reports
+     * the failure instead of silently posting the wrong form. */
+    ready=true;
+    lb.disabled=false;
+  });
+  setTimeout(function(){ if(!ready){ready=true;lb.disabled=false;} },3000);
+
+  function setup(pwv){
+    if(pwv.length<6||pwv.length>20||/\s/.test(pwv)){err.textContent=s[11];return;}
+    if(pwv!==pw2.value){err.textContent=s[10];return;}
+    if(!window.crypto||!crypto.getRandomValues){err.textContent=s[12];return;}
+    var salt=new Uint8Array(16);
+    crypto.getRandomValues(salt);
+    var p=new TextEncoder().encode(pwv);
+    var buf=new Uint8Array(salt.length+p.length);
+    buf.set(salt,0);buf.set(p,salt.length);
+    err.textContent='';
+    lb.disabled=true;
+    fetch('/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded','X-RTLP':'1'},
+      body:'salt='+bytesToHex(salt)+'&hash='+sha256Hex(buf)
+    }).then(function(r){
+      if(!r.ok||/\/login\.html(\?|$)/.test(r.url))throw new Error('setup');
+      location.href='/';
+    }).catch(function(){err.textContent=s[12];lb.disabled=false;});
+  }
+
   form.addEventListener('submit',function(ev){
+    if(!ready){ev.preventDefault();return;}
+    if(mode==="legacy"){
+      /* The firmware still has the old plaintext credential: the native form
+       * POST is the compatibility path, and a password change in the System
+       * tab replaces it with a digest. */
+      return;
+    }
     ev.preventDefault();
-    var pw=document.getElementById('pwd');
     if(!pw.value)return;
     err.textContent='';
+    if(mode==="setup"){setup(pw.value);return;}
     fetch('/auth.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
-      if(!j.set){err.textContent='No password provisioned; use the serial console.';return;}
+      if(!j.set){err.textContent=s[13];return;}
       var salt=hexToBytes(j.salt);
-      var pwd=new TextEncoder().encode(pw.value);
-      var buf=new Uint8Array(salt.length+pwd.length);
-      buf.set(salt,0);buf.set(pwd,salt.length);
+      var p=new TextEncoder().encode(pw.value);
+      var buf=new Uint8Array(salt.length+p.length);
+      buf.set(salt,0);buf.set(p,salt.length);
       var h=document.createElement('input');
       h.type='hidden';h.name='pwd';h.value=sha256Hex(buf);
       pw.removeAttribute('name');

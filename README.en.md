@@ -246,7 +246,8 @@ was moved from cage to cage and read with `sfp` and linked at 10G in both.
 The System tab (*Maintenance*) has a **Restore factory defaults** button, and the console has the
 equivalent `defaults` command. Both write the configuration compiled into the image over the startup
 configuration and reboot the board, which then comes up with the image's default configuration: **DHCP**
-for the address and **no password** for the web interface.
+for the address and **no password** for the web interface. The first visit then shows a first-run page
+that sets the admin password; the browser generates the salt and posts only the SHA-256 digest.
 
 It is deliberately **not** a configuration command: it never becomes part of the startup configuration.
 The UI text exists in all six interface languages (English, Japanese, Chinese, Spanish, French, German).
@@ -439,7 +440,13 @@ The image lands in `output/<target>/rtlplayground-<version>-<target>.bin` (512 K
 ### 4.3 After flashing
 
 - A freshly flashed board of **any** model comes up on **DHCP** and has **no password**; the web
-  interface opens without a login. `passwd <text>` sets a password, a bare `passwd` clears it again.
+  interface is fail-closed, so the first visit shows a first-run page that sets the admin password
+  (the browser generates the random salt and posts only SHA-256(salt || password)). Change it later in
+  the System tab; a bare `passwd` on the console clears it and opens first-run setup again.
+  The firmware does not run SHA-256 on the 8051, so `passwd <text>` no longer accepts a plaintext
+  argument. On a console-only board, generate the digest on the host with
+  `python3 tools/passwd_hash.py '<password>'` and enter the printed
+  `passwd_hash <salt> <digest>`; the console persists it immediately.
 - If the segment has no DHCP server the board stays on its compiled-in fallback:
   **`192.168.10.12/24` for the SKS3200M-8GPY1XF / 4GPY2XF / 5GPY1XF**, and
   **`192.168.10.247/24` for every other model** (Hi-K0402WS, Hi-K0801WS, IG204, AP-7024, ...).
@@ -748,8 +755,10 @@ When you power up the switch, the device will perform some examples and provide 
 ## (8) The web-interface
 
 The web interface is reachable on whatever address DHCP gives the board (or the static address you put
-into `config.txt` before compiling). It has **no password** by default: the login page is skipped
-entirely. Set one with `passwd <text>`, clear it again with a bare `passwd`.
+into `config.txt` before compiling). It has **no password** by default, but it is fail-closed: the first
+visit shows a first-run page that sets the admin password (the browser generates the salt and posts only
+the SHA-256 digest). Change it later in the System tab; a bare `passwd` on the console clears it and
+opens first-run setup again.
 
 > [!TIP]
 > Find a freshly flashed board in the router's DHCP lease list, or by its hostname.

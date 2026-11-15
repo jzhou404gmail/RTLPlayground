@@ -32,6 +32,11 @@ __xdata uint8_t auth_save_pending;
 static __xdata uint8_t a_i, a_hi, a_lo, a_diff;
 static __xdata uint16_t a_j;
 static __xdata uint8_t auth_line[112];
+/* Decode into scratch first: a malformed passwd_hash must not overwrite the
+ * live salt/hash before it is known to be valid, or a typo would lock the
+ * operator out until the next boot. */
+static __xdata uint8_t auth_salt_tmp[16];
+static __xdata uint8_t auth_hash_tmp[32];
 
 __code const uint8_t auth_hexchars[17] = "0123456789abcdef";
 __code const char auth_json_hdr[] =
@@ -64,8 +69,13 @@ static uint8_t hex_decode(const __xdata uint8_t *src, __xdata uint8_t *dst, uint
 
 uint8_t auth_parse_hex(const __xdata uint8_t *salt_hex, const __xdata uint8_t *hash_hex) __banked
 {
-	if (!hex_decode(salt_hex, auth_salt, 16) || !hex_decode(hash_hex, auth_hash, 32))
+	if (!hex_decode(salt_hex, auth_salt_tmp, 16)
+	    || !hex_decode(hash_hex, auth_hash_tmp, 32))
 		return 0;
+	for (a_i = 0; a_i < 16; a_i++)
+		auth_salt[a_i] = auth_salt_tmp[a_i];
+	for (a_i = 0; a_i < 32; a_i++)
+		auth_hash[a_i] = auth_hash_tmp[a_i];
 	auth_set = 1;
 	return 1;
 }
@@ -98,21 +108,24 @@ void auth_clear(void) __banked
 
 static uint8_t line_is_auth(const __xdata uint8_t *p, uint16_t len)
 {
-	static __code const uint8_t pw[] = "passwd ";
-	static __code const uint8_t ph[] = "passwd_hash ";
+	static __code const uint8_t pw[] = "passwd";
+	static __code const uint8_t ph[] = "passwd_hash";
 
-	if (len >= 7) {
-		for (a_i = 0; a_i < 7; a_i++)
+	/* A bare "passwd" disables web management, so it has to be dropped
+	 * along with "passwd <text>". "passwd_hash ..." is the digest record
+	 * and is rewritten from RAM at the end of the configuration. */
+	if (len >= 6) {
+		for (a_i = 0; a_i < 6; a_i++)
 			if (p[a_i] != pw[a_i])
 				break;
-		if (a_i == 7)
+		if (a_i == 6 && (len == 6 || p[6] == ' '))
 			return 1;
 	}
-	if (len >= 12) {
-		for (a_i = 0; a_i < 12; a_i++)
+	if (len >= 11) {
+		for (a_i = 0; a_i < 11; a_i++)
 			if (p[a_i] != ph[a_i])
 				break;
-		if (a_i == 12)
+		if (a_i == 11 && (len == 11 || p[11] == ' '))
 			return 1;
 	}
 	return 0;
@@ -134,8 +147,11 @@ uint8_t auth_persist(void) __banked
 
 	while (valid < CONFIG_LEN && config_buf[valid])
 		valid++;
+	/* No terminator in the whole sector: the read may be corrupt or the
+	 * configuration may fill it. Rewriting it from this buffer would replace
+	 * the user's settings with only the auth line, so do not touch flash. */
 	if (valid >= CONFIG_LEN)
-		valid = 0;
+		return 0;
 
 	if (auth_set) {
 		static __code const uint8_t prefix[] = "passwd_hash ";
@@ -208,6 +224,11 @@ void auth_send_info(void) __banked
 {
 	slen = strtox(outbuf, auth_json_hdr);
 	slen += strtox(outbuf + slen, auth_set ? "1" : "0");
+	/* An old plaintext "passwd" line is still accepted by /login while no
+	 * digest exists. Tell login.html so it posts the plaintext once instead
+	 * of hashing a password the firmware cannot verify. */
+	slen += strtox(outbuf + slen, ",\"legacy\":");
+	slen += strtox(outbuf + slen, (!auth_set && passwd[0]) ? "1" : "0");
 	slen += strtox(outbuf + slen, ",\"salt\":\"");
 	if (auth_set) {
 		for (a_i = 0; a_i < 16; a_i++) {

@@ -1,11 +1,11 @@
 /*
- * Host-side bench for the httpd transmit path.
+ * Host-side bench for the HTTP server.
  *
- * Compiles the UNMODIFIED httpd/httpd.c and uip/uip.c and drives them through a
- * real handshake and a real GET from a client that moves its receive window.
- * Everything below the two modules - flash, console, JSON pages - is mocked
- * here, so what the bench observes is the byte stream the firmware would put on
- * the wire.
+ * Compiles the UNMODIFIED httpd/httpd.c, uip/uip.c, sessions.c, timer.c and
+ * auth.c. The first scenarios drive a GET of a static file through a real
+ * handshake with a client that moves its receive window; the last ones post to
+ * /login (first-run setup, digest login, legacy plaintext fallback) and
+ * /logout, with a simulated configuration sector behind auth.c.
  *
  * The file served out of the simulated flash carries a position-dependent
  * pattern, so a duplicated or skipped range shows up as a mismatch at a known
@@ -30,6 +30,8 @@
 #include "rtl837x_flash.h"
 #include "page_impl.h"
 #include "html_data.h"
+#include "auth.h"
+#include "sessions.h"
 
 /* Private to uip.c, and the client needs them to build segments. */
 #define TCP_SYN 0x02
@@ -83,15 +85,41 @@ const struct f_data f_data[] = {
 	{ 0, 0, 0, mime_HTML, 0 },
 };
 
+/* The startup configuration sector, for the real auth.c. A string of zeros
+ * after the text is what the firmware sees after the NUL terminator. */
+static uint8_t config_flash[CONFIG_LEN];
+
+static void config_flash_reset(void)
+{
+	memset(config_flash, 0, sizeof(config_flash));
+	memcpy(config_flash, "ip dhcp\n", 8);
+}
+
 void flash_read_bulk(uint8_t *dst)
 {
-	for (uint16_t i = 0; i < flash_region.len; i++)
-		dst[i] = pattern(flash_region.addr + i);
+	for (uint16_t i = 0; i < flash_region.len; i++) {
+		uint32_t a = flash_region.addr + i;
+
+		if (a >= CONFIG_START && a < CONFIG_START + CONFIG_LEN)
+			dst[i] = config_flash[a - CONFIG_START];
+		else
+			dst[i] = pattern(a);
+	}
 }
 
 void flash_init(uint8_t enable_dio) { (void)enable_dio; }
-void flash_sector_erase(void) { }
-void flash_write_bytes(uint8_t *ptr) { (void)ptr; }
+void flash_sector_erase(void)
+{
+	if (flash_region.addr == CONFIG_START)
+		memset(config_flash, 0xff, sizeof(config_flash));
+}
+void flash_write_bytes(uint8_t *ptr)
+{
+	if (flash_region.addr >= CONFIG_START
+	    && flash_region.addr + flash_region.len <= CONFIG_START + CONFIG_LEN)
+		memcpy(config_flash + (flash_region.addr - CONFIG_START), ptr,
+		       flash_region.len);
+}
 const char *get_flash_size_str(void) { return "512 kB"; }
 void crc16_bank1(uint8_t *v) { (void)v; }
 void reset_chip(void) { }
@@ -164,6 +192,9 @@ void send_vlanlist(void) { }
 void send_lldp(void) {}
 
 extern uint8_t authenticated;
+extern uint8_t outbuf[];
+extern uint16_t slen;
+extern uint8_t *session;
 
 /* uip.c defines the listen table but no header declares it; the bench reads it
  * to confirm the port httpd_init() asked for is the one uIP is watching. */
@@ -564,6 +595,178 @@ static void scenario_http_port(void)
 	CHECK(!uip_watches(as_listened(8000)), "http port: 8000 is dropped again");
 }
 
+/* ---- authentication over the real request path ------------------------- */
+
+static const char SETUP_BODY[] =
+	"salt=000102030405060708090a0b0c0d0e0f&"
+	"hash=99c90773ea9ce66a355bd6a2a6e55122c3caf5a164785c90b1d58c2d63bb8680";
+static const char SETUP_HASH[] =
+	"99c90773ea9ce66a355bd6a2a6e55122c3caf5a164785c90b1d58c2d63bb8680";
+
+static int response_has(const char *s)
+{
+	if (stream_len < STREAM_MAX)
+		stream[stream_len] = 0;
+	else
+		stream[STREAM_MAX - 1] = 0;
+	return strstr((const char *)stream, s) != NULL;
+}
+
+/* The request is small enough to arrive in one segment. The response is
+ * drained the same way as the file GETs. */
+static void request_post(const char *path, const char *body,
+			 const char *cookie, int csrf)
+{
+	char req[768];
+	int n = snprintf(req, sizeof(req),
+		"POST %s HTTP/1.1\r\nHost: sw\r\n"
+		"Content-Type: application/x-www-form-urlencoded\r\n"
+		"Content-Length: %u\r\n",
+		path, (unsigned)strlen(body));
+
+	if (cookie)
+		n += snprintf(req + n, sizeof(req) - (size_t)n,
+			      "Cookie: %s\r\n", cookie);
+	if (csrf)
+		n += snprintf(req + n, sizeof(req) - (size_t)n,
+			      "X-RTLP: 1\r\n");
+	n += snprintf(req + n, sizeof(req) - (size_t)n, "\r\n%s", body);
+
+	client_send(TCP_ACK | TCP_PSH, req, n);
+	if (verbose)
+		printf("      request (%d B):\n%s\n", n, req);
+	drain(MSS_FULL);
+	if (verbose) {
+		stream[stream_len < STREAM_MAX ? stream_len : STREAM_MAX - 1] = 0;
+		printf("      response: %s\n", (const char *)stream);
+	}
+}
+
+static void scenario_setup(void)
+{
+	config_flash_reset();
+	auth_clear();
+	session_start(MSS_FULL);
+	request_post("/login", SETUP_BODY, NULL, 1);
+
+	CHECK(response_has("HTTP/1.1 302 Found"),
+	      "setup: a valid first-run POST logs in");
+	CHECK(response_has("Set-Cookie: session="),
+	      "setup: the answer carries a session cookie");
+	CHECK(auth_set == 1, "setup: the digest is armed");
+	CHECK(strstr((const char *)config_flash, "passwd_hash ") != NULL,
+	      "setup: the digest is written to the configuration");
+}
+
+static void scenario_setup_csrf(void)
+{
+	config_flash_reset();
+	auth_clear();
+	session_start(MSS_FULL);
+	request_post("/login", SETUP_BODY, NULL, 0);
+
+	CHECK(response_has("HTTP/1.1 403 Forbidden"),
+	      "setup: a POST without X-RTLP is refused");
+	CHECK(auth_set == 0, "setup: the refused request provisions nothing");
+}
+
+static void scenario_digest_login(void)
+{
+	static uint8_t salt[] = "000102030405060708090a0b0c0d0e0f";
+	static uint8_t hash[] =
+		"99c90773ea9ce66a355bd6a2a6e55122c3caf5a164785c90b1d58c2d63bb8680";
+	char body[96];
+
+	config_flash_reset();
+	auth_clear();
+	auth_parse_hex(salt, hash);
+	snprintf(body, sizeof(body), "pwd=%s", SETUP_HASH);
+	session_start(MSS_FULL);
+	request_post("/login", body, NULL, 0);
+
+	CHECK(response_has("HTTP/1.1 302 Found"),
+	      "login: the stored digest is accepted");
+	CHECK(response_has("Set-Cookie: session="),
+	      "login: the answer carries a session cookie");
+}
+
+static void scenario_legacy_login(void)
+{
+	config_flash_reset();
+	auth_clear();
+	strcpy(passwd, "1234");
+	session_start(MSS_FULL);
+	request_post("/login", "pwd=1234", NULL, 0);
+
+	CHECK(response_has("HTTP/1.1 302 Found"),
+	      "login: the old plaintext fallback is accepted");
+}
+
+static void arm_digest(void)
+{
+	static uint8_t salt[] = "000102030405060708090a0b0c0d0e0f";
+	static uint8_t hash[] =
+		"99c90773ea9ce66a355bd6a2a6e55122c3caf5a164785c90b1d58c2d63bb8680";
+
+	auth_clear();
+	auth_parse_hex(salt, hash);
+}
+
+static void make_session(char *sid, size_t n)
+{
+	session_init();
+	authenticated = 0;
+	slen = 0;
+	session_new();
+	memcpy(sid, outbuf, SESSION_ID_LENGTH);
+	sid[SESSION_ID_LENGTH] = 0;
+	(void)n;
+}
+
+static void scenario_logout(void)
+{
+	char sid[SESSION_ID_LENGTH + 1], cookie[64];
+
+	config_flash_reset();
+	/* A session only exists once a credential does; without one,
+	 * scan_header() fail-closes and would clear the auth flag. */
+	arm_digest();
+	make_session(sid, sizeof(sid));
+	snprintf(cookie, sizeof(cookie), "session=%s", sid);
+
+	session_start(MSS_FULL);
+	request_post("/logout", "1", cookie, 1);
+
+	CHECK(response_has("HTTP/1.1 302 Found"),
+	      "logout: an authenticated POST answers 302");
+	CHECK(response_has("Max-Age=0"),
+	      "logout: the session cookie is expired");
+
+	session = (__xdata uint8_t *)sid;
+	session_check();
+	CHECK(authenticated == 0, "logout: the session is gone");
+}
+
+static void scenario_logout_csrf(void)
+{
+	char sid[SESSION_ID_LENGTH + 1], cookie[64];
+
+	config_flash_reset();
+	arm_digest();
+	make_session(sid, sizeof(sid));
+	snprintf(cookie, sizeof(cookie), "session=%s", sid);
+
+	session_start(MSS_FULL);
+	request_post("/logout", "1", cookie, 0);
+
+	CHECK(response_has("HTTP/1.1 403 Forbidden"),
+	      "logout: a POST without X-RTLP is refused");
+
+	session = (__xdata uint8_t *)sid;
+	session_check();
+	CHECK(authenticated == 1, "logout: the refused request keeps the session");
+}
+
 int main(int argc, char **argv)
 {
 	if (argc > 1 && !strcmp(argv[1], "-v"))
@@ -576,6 +779,12 @@ int main(int argc, char **argv)
 	scenario_rexmit_after_shrink();
 	scenario_bad_l4_checksum();
 	scenario_http_port();
+	scenario_setup();
+	scenario_setup_csrf();
+	scenario_digest_login();
+	scenario_legacy_login();
+	scenario_logout();
+	scenario_logout_csrf();
 
 	printf("\n%s (%d failure%s)\n",
 	       failures ? "BENCH: FAILURES" : "BENCH: ALL PASS",

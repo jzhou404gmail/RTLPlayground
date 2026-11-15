@@ -36,6 +36,11 @@ __xdata uint8_t http_tls;
 static __xdata uint8_t login_fails;
 static __xdata uint32_t login_lock_until;
 
+/* First-run setup body, in xdata: internal RAM has no spare byte for a
+ * temporary pointer or two. Only used while a setup POST is parsed. */
+static __xdata uint8_t * __xdata setup_salt;
+static __xdata uint8_t * __xdata setup_hash;
+
 /* Per-request checks filled in by scan_header(). */
 static __xdata uint8_t host_ok;
 static __xdata uint8_t csrf_ok;
@@ -302,6 +307,13 @@ void send_bad_request(void)
 {
 	slen = strtox(outbuf, "HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n" \
 			      "<!DOCTYPE HTML PUBLIC>\n<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n");
+}
+
+
+void send_server_error(void)
+{
+	slen = strtox(outbuf, "HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\n" \
+			      "Content-Type: text/plain\r\n\r\nPassword not saved\n");
 }
 
 
@@ -787,8 +799,13 @@ static void run_cmd_body(__xdata uint8_t *body)
 	cmd_capture = 0;
 	if (auth_save_pending) {
 		auth_save_pending = 0;
-		if (!auth_persist() && slen + 38 < TCP_OUTBUF_SIZE)
-			slen += strtox(outbuf + slen, "Password not saved\n");
+		if (!auth_persist()) {
+			/* The command may have changed the running configuration, but
+			 * the password is not durable. Answer an error so the UI does
+			 * not claim success and send the operator back to login. */
+			send_server_error();
+			return;
+		}
 	}
 	/* Commands that configure something print nothing at all. Saying
 	 * so beats an empty body, which reads the same as "nothing ran".
@@ -814,11 +831,75 @@ static void login_locked_reply(void)
 			      "Cache-Control: no-store\r\nLocation: login.html\r\n\r\n");
 }
 
+/* A successful login and a successful first-run setup end the same way: the
+ * session cookie is written into outbuf right after the Set-Cookie prefix. */
+static void login_success(void)
+{
+	dbg_string("Password accepted!\n");
+	login_fails = 0;
+	login_lock_until = 0;
+	slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n" \
+			      "Cache-Control: no-store\r\nLocation: index.html\r\n" \
+			      "Set-Cookie: session=");
+	session_new();
+	if (http_tls)
+		slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict; Secure\r\n\r\n");
+	else
+		slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict\r\n\r\n");
+}
+
+/* "salt=<32 hex>&hash=<64 hex>" from login.html while no credential exists.
+ * The browser hashes SHA-256(salt || password): the 8051 keeps no SHA-256
+ * implementation, and the digest is all it needs to store and compare. */
+static uint8_t setup_body_take(__xdata uint8_t *body)
+{
+	/* "salt=" (5) + 32 + "&" (1) + "hash=" (5) + 64 = 107. Check the
+	 * length first so a short body cannot make the index below read past
+	 * the NUL terminator. */
+	if (strlen_x((__xdata const char *)body) != 107)
+		return 0;
+	setup_salt = body + 5;	/* caller matched "salt=" */
+	if (setup_salt[32] != '&' || !strstart(setup_salt + 33, "hash="))
+		return 0;
+	setup_hash = setup_salt + 38;
+	return auth_parse_hex(setup_salt, setup_hash);
+}
+
 static void run_login_body(__xdata uint8_t *body)
 {
 	uint8_t ok = 0;
 
 	read_timer(&now);
+
+	/* First-run provisioning. Fail closed otherwise: without a digest and
+	 * without the old plaintext line there is no credential to check, and
+	 * an empty or unknown password must never open a session. */
+	if (!auth_set && passwd[0] == NUL && strstart(body, "salt=")) {
+		/* A plain HTML form cannot set X-RTLP. Requiring it here keeps a
+		 * cross-site form from claiming a fresh switch before its owner does. */
+		if (!csrf_ok) {
+			dbg_string("Setup without X-RTLP\n");
+			send_forbidden();
+			return;
+		}
+		if (!setup_body_take(body)) {
+			auth_clear();
+			send_bad_request();
+			return;
+		}
+		auth_save_pending = 0;
+		if (!auth_persist()) {
+			/* Do not leave a credential that only lives in RAM and
+			 * disappears at the next reboot. */
+			auth_clear();
+			send_server_error();
+			return;
+		}
+		httpd_forget_sessions();
+		login_success();
+		return;
+	}
+
 	if (now < login_lock_until) {
 		dbg_string("Login throttled\n");
 		login_locked_reply();
@@ -826,7 +907,9 @@ static void run_login_body(__xdata uint8_t *body)
 	}
 
 	if (strstart(body, "pwd=")) {
-		if (auth_set)
+		/* "pwd=" + 64 hex = 68; the length check keeps a short body from
+		 * making auth_verify_hex() read past its NUL terminator. */
+		if (auth_set && strlen_x((__xdata const char *)body + 4) == 64)
 			ok = auth_verify_hex(body + 4);
 		/* Until the plaintext line is removed from the configuration, it is
 		 * still accepted: this is the way back in if a digest login fails. */
@@ -835,17 +918,7 @@ static void run_login_body(__xdata uint8_t *body)
 	}
 
 	if (ok) {
-		dbg_string("Password accepted!\n");
-		login_fails = 0;
-		login_lock_until = 0;
-		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n" \
-				      "Cache-Control: no-store\r\nLocation: index.html\r\n" \
-				      "Set-Cookie: session=");
-		session_new();
-		if (http_tls)
-			slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict; Secure\r\n\r\n");
-		else
-			slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict\r\n\r\n");
+		login_success();
 	} else {
 		dbg_string("Password invalid!\n");
 		if (login_fails < 255)

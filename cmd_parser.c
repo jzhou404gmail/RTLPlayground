@@ -1510,9 +1510,13 @@ void parse_passwd(void)
 
 	if (cmd_words_len == 1) {
 		auth_clear();
-		auth_save_pending = 1;
+		/* During the boot replay this is just the stored state; only an
+		 * operator's "passwd" on the console has to be written back. */
+		if (save_cmd)
+			auth_save_pending = 1;
 		httpd_forget_sessions();
-		print_string("Web management disabled; use the serial console to set a password\n");
+		print_string("Web management disabled; open the Web UI to set a new password,\n");
+		print_string("or use passwd_hash <salt> <digest> on the console\n");
 		return;
 	}
 
@@ -1533,7 +1537,8 @@ void parse_passwd(void)
 
 	/* Hashing happens in the browser: the plaintext never has to be hashed on
 	 * the 8051, which has no RAM for a SHA-256 implementation. */
-	print_string("Set the password in the Web UI (it sends only the digest)\n");
+	print_string("On-device hashing is unavailable; set the password in the Web UI,\n");
+	print_string("or use passwd_hash <salt> <digest> (tools/passwd_hash.py)\n");
 }
 
 
