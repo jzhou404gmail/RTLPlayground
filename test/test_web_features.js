@@ -27,8 +27,16 @@ assert(index.includes("button.danger"),
 	"the danger button style must exist");
 assert(index.includes('id="sy-resetnote"'),
 	"Maintenance must have a reset-button note element");
-assert(app.includes("sy_defaults_note"),
-	"Maintenance must explain the factory defaults");
+assert(index.includes('id="sy-defaults-other"'),
+	"Maintenance must have the non-SKS default-parameter note");
+assert(index.includes('id="sy-defaults-sks"'),
+	"Maintenance must have the SKS default-parameter note");
+assert(index.includes("white-space:pre-line"),
+	"the factory-default notes must keep the two-line layout");
+assert(app.includes("sy_defaults_note_other"),
+	"Maintenance must explain the non-SKS factory defaults");
+assert(app.includes("sy_defaults_note_sks"),
+	"Maintenance must explain the SKS factory defaults");
 assert(app.includes("sy_reset_note"),
 	"Maintenance must explain the RESET button");
 assert(app.includes("1234"),
@@ -54,4 +62,11 @@ test({ model: "IG204 V1", hw_ver: "PB-2131" }, false, "IG204 has no RESET");
 test({ model: "SFP-J08E-HG1", hw_ver: "PCB-K0801W-V1.0" }, false,
 	"K0801W has no RESET");
 
-console.log("web features OK: red logout, factory notes, SKS-only RESET hint");
+assert(app.includes("192.168.10.247/24"), "the non-SKS note must mention .247");
+assert(app.includes("192.168.10.12/24"), "the SKS note must mention .12");
+assert(app.includes("password is 1234") || app.includes("密码默认 1234"),
+	"the default password 1234 must be documented");
+assert(app.includes("\\nWeb") || app.includes("\\nThe web"),
+	"the factory-default note must contain its line break");
+
+console.log("web features OK: red logout, split two-line factory notes, SKS-only RESET hint");

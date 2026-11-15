@@ -1,5 +1,18 @@
 # Change Log
 
+## [0.1.13] - 2026-11-16
+
+### Changed
+
+- The Maintenance factory-default note is now split by model and only the matching one is shown:
+  - models without a reset button: DHCP, no-DHCP fallback `192.168.10.247/24`, web port 80, default password 1234;
+  - the three SKS targets: DHCP, no-DHCP fallback `192.168.10.12/24`, web port 80, default password 1234.
+- The RESET-button instructions remain visible only on the three SKS targets.
+
+### Added
+
+- `test_web_features.js` now checks both the non-SKS and SKS note elements/strings and the `.247`/`.12`/`1234` content.
+
 ## [0.1.12] - 2026-11-16
 
 ### Changed

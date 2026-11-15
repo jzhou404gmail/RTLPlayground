@@ -20,8 +20,11 @@ contains	auth.c	No terminator	config write-back guard exists
 contains	rtlplayground.c	auth_persist	serial auth writes are persisted
 contains	html/index.html	id="sy-defaults"	maintenance has the factory-reset button
 contains	html/index.html	id="sy-resetnote"	maintenance has the RESET-key note
+contains	html/index.html	id="sy-defaults-other"	non-SKS default note element exists
+contains	html/index.html	id="sy-defaults-sks"	SKS default note element exists
 contains	html/app.js	sy_defaults	factory-reset i18n strings exist
-contains	html/app.js	sy_defaults_note	factory-reset default-parameter note exists
+contains	html/app.js	sy_defaults_note_other	non-SKS factory-default note exists
+contains	html/app.js	sy_defaults_note_sks	SKS factory-default note exists
 contains	html/app.js	sy_reset_note	RESET-button instructions exist
 contains	html/app.js	hasResetButton	RESET instructions are shown only for the SKS three
 contains	html/app.js	body: "defaults"	factory-reset button posts the defaults command
@@ -53,3 +56,4 @@ exists	test/test_auth.c	-	auth host test exists
 contains	test/test_httpd_tx.c	scenario_setup	HTTP auth scenarios exist
 exists	test/test_web_auth.js	-	browser password test exists
 exists	test/test_web_features.js	-	browser feature test exists
+contains	html/index.html	white-space:pre-line	factory-default notes keep the two-line layout
