@@ -60,9 +60,10 @@ make post-sync-check
 | `auth.c` 的 `auth_salt_tmp`、`"legacy"`、`No terminator` | 摘要解析保护和配置回写保护还在 |
 | `rtlplayground.c` 的 `auth_persist` | 串口 `passwd_hash` 仍会落盘 |
 | `tools/passwd_hash.py`、`test/test_auth.c`、`scenario_setup` | 工具和回归测试还在 |
+| `test/test_web_auth.js` | 浏览器改密仍是 32 hex salt + 64 hex digest，`passwd_hash` 命令行不超长 |
 | `node --check html/app.js` | 前端没有语法错误 |
 | `git diff --check` | 没有冲突标记/空白错误 |
-| `make -C test` | 主机测试全过 |
+| `make -C test` | C 主机测试 + `test_web_auth.js` 全过 |
 
 任何一项失败，脚本以非零状态退出；**不要提交这次同步**。先按下面的恢复步骤
 把本地改动找回来，再重新解决冲突。

@@ -140,6 +140,12 @@ post)
 	check_file html/app.js 'hdr_logout' "logout i18n strings exist"
 	check_file html/app.js '$("logoutBtn")' "logout button has a handler"
 	check_file html/app.js 'crypto.getRandomValues(salt)' "password change rotates the salt"
+	if grep -Fq 'bytesToHex(sha256Hex' html/app.js; then
+		echo "[fail] password digest is double-hexed (128 chars); the firmware command buffer overflows" >&2
+		FAIL=$((FAIL + 1))
+	else
+		ok "password digest is not double-hexed"
+	fi
 	check_file html/app.js 'sy_pw_ok' "password-change success message exists"
 	check_file html/app.js 'passwd_hash' "config editor recognises passwd_hash"
 	check_file html/app.js 'vlan\s+switch' "config editor recognises vlan switch"

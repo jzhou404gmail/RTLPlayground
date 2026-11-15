@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.1.9] - 2026-11-16
+
+### Fixed
+
+- Web UI password change: `pwHash()` wrapped the 64-character SHA-256 hex string in `bytesToHex()` a second time, producing a 128-character "digest". The resulting `passwd_hash <salt> <digest>` line exceeded the firmware's 128-byte command buffer, so changing the password failed with `ERROR: Command too long`. The digest is now the 64-character `sha256Hex()` result. `test/test_web_auth.js` checks the 32-hex salt, the 64-hex digest, the command length and that `app.js` and `login.html` compute the same value. This supersedes the v0.1.8 image; the rest of the v0.1.8 fixes are included unchanged.
+
 ## [0.1.8] - 2026-11-16
 
 ### Fixed

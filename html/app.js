@@ -2395,7 +2395,7 @@ function pwHash(pw) {
         var p = new TextEncoder().encode(pw);
         var all = new Uint8Array(salt.length + p.length);
         all.set(salt); all.set(p, salt.length);
-        resolve({salt: bytesToHex(salt), digest: bytesToHex(sha256Hex(all))});
+        resolve({salt: bytesToHex(salt), digest: sha256Hex(all)});
     });
 }
 
