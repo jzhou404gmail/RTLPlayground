@@ -1138,6 +1138,11 @@ void check_links(void)
 
 	reg_read_m(RTL837X_REG_LINKS);
 	if (cmp_4(sfr_data, linkbits_last) || (linkbits_p89 != linkbits_last_p89)) {
+		__xdata uint8_t new_links = (sfr_data[0] & ~linkbits_last[0]) |
+					    (sfr_data[1] & ~linkbits_last[1]) |
+					    (sfr_data[2] & ~linkbits_last[2]) |
+					    (sfr_data[3] & ~linkbits_last[3]) |
+					    (linkbits_p89 & ~linkbits_last_p89);
 		print_string("\n<new link: ");
 		print_byte(linkbits_p89); print_byte(sfr_data[0]); print_byte(sfr_data[1]);
 		print_byte(sfr_data[2]); print_byte(sfr_data[3]);
@@ -1164,6 +1169,8 @@ void check_links(void)
 		} else {
 			cpy_4(linkbits_last, sfr_data);
 		}
+		if (new_links)
+			dhcp_link_up();
 	}
 }
 

@@ -21,6 +21,7 @@
 
 ## Changed
 
+- DHCP client: renew at most every 30 min, restart with DISCOVER after a DHCPNAK, a failed renewal or lease expiry, and renew immediately when a port comes up. A router that rebooted or upgraded without its lease database sees the switch again without a power cycle; the 30 min cap also covers switches behind another switch, where the uplink does not bounce.
 - The main loop is timer-driven: the one-second tick, the SFP poll, the STP steps, LLDP's transmit timer and the LACP periodic timer are timers instead of tick counters. SFP wake-up, DHCP, DNS/NTP waits, the boot-time RTL8224 wait and the reset-button timing follow the same model. The fork keeps its RAM second counter (`read_timer()`), the tick-based press timing that works on RTL8372, the per-model fallback address and the front-panel VLAN switch poll.
 - Web API reshape (upstream #768): `/status.json` is gone; `/ports.json` carries the per-port configuration and `/traffic.json` the counters. `/mtu.json` and `/lacp.json` are removed (LAG state is in `/lag.json`), `/vlanlist` is now `/vlanlist.json`, and the JSON uses physical port numbers (CPU = 0). The web UI is the upstream single-page app that speaks this schema; the fork's `X-RTLP` header and browser-side password digest are kept.
 - The timer library moved out of `uip/` to `timer.c/h`, in the home bank so every bank can call it; deadlines are 16 bit and `delay()`/`sleep()` each own their timer. The HTTP request deadline is a timer too, and `clock_time()` rereads the tick counter until its low byte stops moving.
