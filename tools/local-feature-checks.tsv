@@ -57,3 +57,7 @@ contains	test/test_httpd_tx.c	scenario_setup	HTTP auth scenarios exist
 exists	test/test_web_auth.js	-	browser password test exists
 exists	test/test_web_features.js	-	browser feature test exists
 contains	html/index.html	white-space:pre-line	factory-default notes keep the two-line layout
+contains	boot.c	#define BOOT_HOLD_MIN_TICKS (10 * SYS_TICK_HZ)	SKS boot long-press threshold is 10 s
+contains	boot.c	#define BOOT_HOLD_MAX_TICKS (30 * SYS_TICK_HZ)	SKS boot long-press maximum is 30 s
+contains	rtlplayground.c	held_ticks > 10UL * SYS_TICK_HZ	runtime long-press >10 s restores defaults
+contains	rtlplayground.c	held_ticks > 3UL * SYS_TICK_HZ	runtime press 3-10 s only reboots

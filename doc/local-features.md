@@ -69,6 +69,32 @@ SKS 三台的 GPIO54 定义、`boot.c` 的 `early_boot_handle_button()` 和
 > 204/205 没有复位键，不要拿长按行为去要求它们；Web 按钮和 `defaults` 是这两台
 > 的恢复路径。
 
+### SKS 复位键实测结论（2026-10，已确认无需重测）
+
+| 机型 | 实测日期 | ~5 s | 恢复出厂 | <3 s | 记录 |
+|---|---|---|---|---|---|
+| SKS3200M-8GPY1XF（.201） | 2026-10-13 | 重启，启动配置保留 | ~13 s，marker 被替换为按 MAC 生成的 hostname | 未单独重测，走同一代码分支 | [SWTGW218AS.md](devices/SWTGW218AS.md) |
+| SKS3200M-4GPY2XF（.202） | 2026-10-12 | 重启，marker `RESETTEST4GPY` 保留 | ~11 s，marker 消失，只剩内嵌配置 | 无动作 | [SWTG024AS.md](devices/SWTG024AS.md#reset-button) |
+| SKS3200M-5GPY1XF（.203） | 2026-10-12 | 重启，启动配置保留 | ~13 s，恢复内嵌配置 | 无动作 | [SKS3200M-5GPY1XF.md](devices/SKS3200M-5GPY1XF.md) |
+
+这些测量是用 [`tools/reset_button_probe.py`](../tools/reset_button_probe.py)
+配合启动配置里的 marker hostname 做的；原始 probe 日志没有留在仓库，结论和
+marker 现象已写进上面的机型文档。
+
+**代码是否变过：**
+
+- 三个 SKS 的 `.reset_pin` 一直是 **GPIO54**；2026-11-14 的 `machine/` 拆分只是
+  把定义搬了位置，没有改引脚。
+- 阈值一直是：上电 **10–30 s** 恢复、>30 s 正常启动；运行 **>10 s** 恢复并复位、
+  **3–10 s** 仅复位、**<3 s** 无动作。当前 `boot.c` 的
+  `BOOT_HOLD_MIN_TICKS`/`BOOT_HOLD_MAX_TICKS` 和 `rtlplayground.c` 的
+  `held_ticks > 10UL * SYS_TICK_HZ` / `> 3UL * SYS_TICK_HZ` 与实测时一致。
+- 之后的改动只有计时实现：`9360097`（2026-10-30，boot 改用 timer 结构）、
+  `1724911`（2026-11-14，timer 框架重构）。`handle_button()` 的差异只有
+  “短按后 LED 恢复”这一行，复位动作和阈值未变。
+- 因此只要 SKS 硬件/接线没有改动，**不需要为了这次 UI 修改再做物理长按测试**；
+  清单会继续检查引脚和四个阈值，防止以后同步上游时被改掉。
+
 ### 出厂默认参数
 
 所有 target 的内嵌配置都是：
