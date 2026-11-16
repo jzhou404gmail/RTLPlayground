@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.1.14] - 2026-11-16
+
+### Changed
+
+- The SKS-only RESET hint now starts with **`RESET 键`** / **`RESET button`** (six languages) instead of repeating “SKS 三款带 RESET 键”. It remains visible only on the three SKS targets.
+
 ## [0.1.13] - 2026-11-16
 
 ### Changed

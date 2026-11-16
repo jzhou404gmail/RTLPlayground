@@ -39,6 +39,10 @@ assert(app.includes("sy_defaults_note_sks"),
 	"Maintenance must explain the SKS factory defaults");
 assert(app.includes("sy_reset_note"),
 	"Maintenance must explain the RESET button");
+assert(app.includes("RESET 键：") && app.includes("RESET button: hold"),
+	"the RESET hint must start with RESET 键/RESET button, not the model name");
+assert(!app.includes("SKS 三款带 RESET 键"),
+	"the RESET hint must not repeat the SKS model prefix");
 assert(app.includes("1234"),
 	"the factory-default password must be documented in the UI strings");
 
