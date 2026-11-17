@@ -18,7 +18,6 @@
 #define DNS_TIMEOUT	(2 * SYS_TICK_HZ)
 
 extern __xdata struct dhcp_state dhcp_state;
-extern volatile __xdata uint32_t ticks;
 
 __xdata struct dns_state dns_state;
 __xdata uip_ipaddr_t dns_ip;
@@ -191,16 +190,6 @@ void dns_lookup(void) __banked
 }
 
 
-/* 1 if a lookup has somewhere to go: a configured server, or the one DHCP
- * handed out. A failed lookup means "no answer" when this is 1 and "nothing
- * to ask" when it is 0, which is what the NTP client tells the user. */
-uint8_t dns_has_server(void) __banked __reentrant
-{
-	return dns_used(dns_state.server[0]) || dns_used(dns_state.server[1])
-	       || dns_used(dhcp_state.dns);
-}
-
-
 void dns_show(void) __banked
 {
 	print_string("DNS servers ");
@@ -237,11 +226,11 @@ void dns_callback(uint16_t lport) __banked __reentrant
 		return;
 	if (dns_state.send) {
 		dns_state.send = 0;
-		dns_state.sent = ticks;
+		timer_set(&dns_state.wait, DNS_TIMEOUT);
 		dns_query();
 		return;
 	}
-	if (ticks - dns_state.sent >= DNS_TIMEOUT) {
+	if (timer_expired(&dns_state.wait)) {
 		dns_state.tries++;
 		dns_next();
 	}

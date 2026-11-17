@@ -6,20 +6,16 @@
 #include "cmd_parser.h"
 #include "rtl837x_flash.h"
 #include "uip.h"
+#include "timer.h"
 #include "html_data.h"
 #include "auth.h"
+#include "sessions.h"
 
 // #define DEBUG
 #include "debug.h"
 
-#define SESSION_ID_LENGTH 32
-#define SESSION_TIMEOUT_DEFAULT 200
+#define SESSION_TIMEOUT_DEFAULT 3600
 #define HTTP_PORT_DEFAULT 80
-
-/* Absolute lifetime of a session, regardless of activity. An idle timeout
- * alone lets a cookie that is used often stay valid forever. Uptime is in
- * seconds, 8 h is far below the wrap of the 32-bit counter. */
-#define SESSION_LIFETIME_MAX (8UL * 3600UL)
 
 /* Seconds of inactivity after which a session cookie stops validating.
  * Configurable with the "session" command, see cmd_parser.c. */
@@ -40,11 +36,22 @@ __xdata uint8_t http_tls;
 static __xdata uint8_t login_fails;
 static __xdata uint32_t login_lock_until;
 
+/* First-run setup body, in xdata: internal RAM has no spare byte for a
+ * temporary pointer or two. Only used while a setup POST is parsed. */
+static __xdata uint8_t * __xdata setup_salt;
+static __xdata uint8_t * __xdata setup_hash;
+
 /* Per-request checks filled in by scan_header(). */
 static __xdata uint8_t host_ok;
 static __xdata uint8_t csrf_ok;
 static __xdata uint8_t host_ip[4];
-static __xdata uint8_t *host_hdr;
+static __xdata uint8_t * __xdata host_hdr;
+/* scan_header()/host_is_ip() scratch, in xdata: internal RAM is full and these
+ * are only used while one request is parsed. */
+static __xdata uint8_t * __xdata host_scan;
+static __xdata uint8_t * __xdata hip_h;
+static __xdata uint16_t hip_v;
+static __xdata uint8_t hip_i, hip_d;
 
 #define CMARK_S 6
 
@@ -52,7 +59,6 @@ static __xdata uint8_t *host_hdr;
 #pragma constseg BANK1
 
 extern volatile __xdata uint8_t sfr_data[4];
-extern volatile __xdata uint32_t ticks;
 extern __xdata uint8_t cmd_capture;	/* owned by rtlplayground.c, see write_char_no_syslog() */
 extern __code const uint8_t * __code const hex;
 extern __code const struct f_data f_data[];
@@ -83,8 +89,8 @@ __xdata uint8_t boundary[72];
 #define CONFIG_UPLOAD_BUF (CONFIG_LEN + 384)
 __xdata uint8_t config_upload;
 __xdata uint8_t config_buf[CONFIG_UPLOAD_BUF];
-// bytes buffered in config_buf so far (config body, or a firmware part
-// header); accumulates across TCP segments
+// bytes buffered in config_buf so far (HTTP header, POST body, or a firmware
+// part header); accumulates across TCP segments
 __xdata uint16_t pre_acc;
 __xdata uint8_t * __xdata content_type = 0;
 __xdata uint8_t * __xdata session = 0;
@@ -100,17 +106,11 @@ __xdata uint16_t short_parsed;
 #define POSTBODY_LOGIN	2
 #define POSTBODY_TIMEOUT (5 * SYS_TICK_HZ)
 __xdata uint8_t postbody_endpoint;
-__xdata uint16_t postbody_start;
+__xdata struct timer postbody_timer;
 
 __xdata char passwd[21];
-// Set when a verified firmware upload awaits its response ACK, after
-// which the chip resets to apply the staged image
-__xdata uint8_t fw_reset_pending;
-__xdata char session_id[SESSION_ID_LENGTH + 1];
 __xdata uint8_t authenticated;
 __xdata uint32_t now;
-__xdata uint32_t last_session_use;
-__xdata uint32_t session_started;
 
 #define TSTATE_NONE		0
 #define TSTATE_TX		1
@@ -119,6 +119,7 @@ __xdata uint32_t session_started;
 #define TSTATE_POST 		4
 #define TSTATE_MULTIPART	5
 #define TSTATE_POSTBODY		6
+#define TSTATE_HEADER		7
 
 extern __xdata uint16_t crc_value;
 __xdata uint16_t crc_final;
@@ -139,7 +140,6 @@ void httpd_init(void) __banked
 	// Not through uip_conn: it only points at a connection while uIP is
 	// handling one, and nothing has set it yet at init time.
 	uip_conns[0].appstate.tstate = TSTATE_CLOSED;
-	fw_reset_pending = 0; // xdata is not zeroed by the startup code
 }
 
 
@@ -310,6 +310,13 @@ void send_bad_request(void)
 }
 
 
+void send_server_error(void)
+{
+	slen = strtox(outbuf, "HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\n" \
+			      "Content-Type: text/plain\r\n\r\nPassword not saved\n");
+}
+
+
 void send_to_login(void)
 {
 	slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n" \
@@ -355,42 +362,40 @@ void send_ok(void)
  * the switch, but its Host header still says evil.example.com. */
 static uint8_t host_is_ip(void)
 {
-	__xdata uint8_t *h = host_hdr;
-	uint16_t v;
-	uint8_t i, d;
+	hip_h = host_hdr;
 
-	for (i = 0; i < 4; i++) {
-		v = 0;
-		d = 0;
-		while (*h >= '0' && *h <= '9') {
-			if (d == 3)
+	for (hip_i = 0; hip_i < 4; hip_i++) {
+		hip_v = 0;
+		hip_d = 0;
+		while (*hip_h >= '0' && *hip_h <= '9') {
+			if (hip_d == 3)
 				return 0;
-			v = v * 10 + (*h - '0');
-			h++;
-			d++;
-			if (v > 255)
+			hip_v = hip_v * 10 + (*hip_h - '0');
+			hip_h++;
+			hip_d++;
+			if (hip_v > 255)
 				return 0;
 		}
-		if (!d)
+		if (!hip_d)
 			return 0;
-		host_ip[i] = (uint8_t)v;
-		if (i < 3) {
-			if (*h != '.')
+		host_ip[hip_i] = (uint8_t)hip_v;
+		if (hip_i < 3) {
+			if (*hip_h != '.')
 				return 0;
-			h++;
+			hip_h++;
 		}
 	}
-	if (*h == ':') {
-		h++;
-		d = 0;
-		while (*h >= '0' && *h <= '9') {
-			h++;
-			d++;
+	if (*hip_h == ':') {
+		hip_h++;
+		hip_d = 0;
+		while (*hip_h >= '0' && *hip_h <= '9') {
+			hip_h++;
+			hip_d++;
 		}
-		if (!d)
+		if (!hip_d)
 			return 0;
 	}
-	if (*h != 0 && *h != '\r' && *h != '\n')
+	if (*hip_h != 0 && *hip_h != '\r' && *hip_h != '\n')
 		return 0;
 
 	return host_ip[0] == (uip_hostaddr[0] & 0xff)
@@ -426,7 +431,8 @@ static uint8_t host_is_name(void)
 __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 {
 	__xdata uint8_t *v;
-	__xdata uint8_t *host = 0;
+
+	host_scan = 0;
 
 	content_type = 0;
 	content_length = 0;
@@ -446,7 +452,7 @@ __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 			parse_short(v);
 			content_length = short_parsed;
 		} else if ((v = header_value(p, "\nhost:"))) {
-			host = v;
+			host_scan = v;
 		} else if ((v = header_value(p, "\nx-rtlp:"))) {
 			csrf_ok = (*v && *v != '\r' && *v != '\n');
 		} else if ((v = header_value(p, "\ncookie:"))) {
@@ -480,26 +486,15 @@ __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 		boundary[i + 4] = 0;
 	}
 
-	if (host) {
-		host_hdr = host;
+	if (host_scan) {
+		host_hdr = host_scan;
 		host_ok = host_is_ip() || host_is_name();
 	}
 
 	read_timer(&now);
 
-	if (session && session_id[0]) {
-		if (now - last_session_use > session_timeout
-		    || now - session_started > SESSION_LIFETIME_MAX) {
-			dbg_string("Session expired\n");
-		} else {
-			if (is_word_x(session, session_id)) {
-				authenticated = 1;
-				last_session_use = now;
-			} else {
-				dbg_string("Invalid session cookie!\n");
-			}
-		}
-	}
+	if (session)
+		session_check();
 	/* Fail closed. An empty password is not a credential: until one is
 	 * provisioned over the serial console, login.html is the only thing
 	 * that can be reached. Nothing may turn this back into a bypass. */
@@ -508,29 +503,12 @@ __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 	return p;
 }
 
-/*
- * Generate random HEX-chars at the buffer location.
- */
-void gen_random_hex_chars(__xdata uint8_t * b, __xdata uint8_t bytes)
-{
-	uint8_t i = 0;
-	while (bytes) {
-		if (!i)
-			get_random_32();
-		b[--bytes] = itohex(sfr_data[i]);
-		if (!bytes) { break; }
-		b[--bytes] = itohex(sfr_data[i] >> 4 | sfr_data[i] << 4);
-		i = (i + 1) & 0x3;
-	}
-}
-
-
 /* Drop the session: called when the password changes and, later, on
  * logout. There is one slot for the whole web interface, so this also
  * invalidates a cookie someone else may still hold. */
 void httpd_forget_sessions(void) __banked
 {
-	session_id[0] = NUL;
+	session_init();
 	authenticated = 0;
 }
 
@@ -669,7 +647,7 @@ uint8_t stream_upload(void)
 						"Content-Type: text/plain\r\n\r\n"
 						"OK: checksum verified, rebooting\n");
 					// Reset once the response is fully ACKed
-					fw_reset_pending = 1;
+					s->fw_reset_pending = 1;
 				} else {
 					print_string("Checksum incorrect! Aborting.\n");
 					slen = strtox(outbuf, "HTTP/1.1 400 Bad Request\r\nContent-Length: 33\r\n"
@@ -697,9 +675,10 @@ uint8_t stream_upload(void)
 				memcpy(flash_buf + write_len, boundary, bindex);
 				write_len += bindex;
 				bindex = 0;
+			} else {
+				crc16_bank1(upload_settings.p + upload_settings.bptr);
+				flash_buf[write_len++] = upload_settings.p[upload_settings.bptr++];
 			}
-			crc16_bank1(upload_settings.p + upload_settings.bptr);
-			flash_buf[write_len++] = upload_settings.p[upload_settings.bptr++];
 			if (write_len >= FLASH_PAGE_SIZE) {
 				/* The staged image spans FIRMWARE_UPLOAD_START to twice that,
 				 * the span check_and_flash_update_image() reads back. Nothing
@@ -731,7 +710,6 @@ uint8_t stream_upload(void)
 					memcpy(flash_buf, flash_buf + FLASH_PAGE_SIZE, write_len);
 				}
 			}
-			bindex = 0;
 		}
 	} while(1);
 }
@@ -811,7 +789,7 @@ static void handle_firmware_fragment(__xdata uint8_t *p)
 
 static void run_cmd_body(__xdata uint8_t *body)
 {
-	uint16_t hdr_len = strtox(outbuf, HTTP_RESPONCE_TXT);
+	uint16_t hdr_len = strtox(outbuf, HTTP_RESPONSE_TXT);
 
 	slen = hdr_len;
 	cmd_capture = 1;
@@ -821,8 +799,13 @@ static void run_cmd_body(__xdata uint8_t *body)
 	cmd_capture = 0;
 	if (auth_save_pending) {
 		auth_save_pending = 0;
-		if (!auth_persist() && slen + 38 < TCP_OUTBUF_SIZE)
-			slen += strtox(outbuf + slen, "Password not saved\n");
+		if (!auth_persist()) {
+			/* The command may have changed the running configuration, but
+			 * the password is not durable. Answer an error so the UI does
+			 * not claim success and send the operator back to login. */
+			send_server_error();
+			return;
+		}
 	}
 	/* Commands that configure something print nothing at all. Saying
 	 * so beats an empty body, which reads the same as "nothing ran".
@@ -848,11 +831,75 @@ static void login_locked_reply(void)
 			      "Cache-Control: no-store\r\nLocation: login.html\r\n\r\n");
 }
 
+/* A successful login and a successful first-run setup end the same way: the
+ * session cookie is written into outbuf right after the Set-Cookie prefix. */
+static void login_success(void)
+{
+	dbg_string("Password accepted!\n");
+	login_fails = 0;
+	login_lock_until = 0;
+	slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n" \
+			      "Cache-Control: no-store\r\nLocation: index.html\r\n" \
+			      "Set-Cookie: session=");
+	session_new();
+	if (http_tls)
+		slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict; Secure\r\n\r\n");
+	else
+		slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict\r\n\r\n");
+}
+
+/* "salt=<32 hex>&hash=<64 hex>" from login.html while no credential exists.
+ * The browser hashes SHA-256(salt || password): the 8051 keeps no SHA-256
+ * implementation, and the digest is all it needs to store and compare. */
+static uint8_t setup_body_take(__xdata uint8_t *body)
+{
+	/* "salt=" (5) + 32 + "&" (1) + "hash=" (5) + 64 = 107. Check the
+	 * length first so a short body cannot make the index below read past
+	 * the NUL terminator. */
+	if (strlen_x((__xdata const char *)body) != 107)
+		return 0;
+	setup_salt = body + 5;	/* caller matched "salt=" */
+	if (setup_salt[32] != '&' || !strstart(setup_salt + 33, "hash="))
+		return 0;
+	setup_hash = setup_salt + 38;
+	return auth_parse_hex(setup_salt, setup_hash);
+}
+
 static void run_login_body(__xdata uint8_t *body)
 {
 	uint8_t ok = 0;
 
 	read_timer(&now);
+
+	/* First-run provisioning. Fail closed otherwise: without a digest and
+	 * without the old plaintext line there is no credential to check, and
+	 * an empty or unknown password must never open a session. */
+	if (!auth_set && passwd[0] == NUL && strstart(body, "salt=")) {
+		/* A plain HTML form cannot set X-RTLP. Requiring it here keeps a
+		 * cross-site form from claiming a fresh switch before its owner does. */
+		if (!csrf_ok) {
+			dbg_string("Setup without X-RTLP\n");
+			send_forbidden();
+			return;
+		}
+		if (!setup_body_take(body)) {
+			auth_clear();
+			send_bad_request();
+			return;
+		}
+		auth_save_pending = 0;
+		if (!auth_persist()) {
+			/* Do not leave a credential that only lives in RAM and
+			 * disappears at the next reboot. */
+			auth_clear();
+			send_server_error();
+			return;
+		}
+		httpd_forget_sessions();
+		login_success();
+		return;
+	}
+
 	if (now < login_lock_until) {
 		dbg_string("Login throttled\n");
 		login_locked_reply();
@@ -860,7 +907,9 @@ static void run_login_body(__xdata uint8_t *body)
 	}
 
 	if (strstart(body, "pwd=")) {
-		if (auth_set)
+		/* "pwd=" + 64 hex = 68; the length check keeps a short body from
+		 * making auth_verify_hex() read past its NUL terminator. */
+		if (auth_set && strlen_x((__xdata const char *)body + 4) == 64)
 			ok = auth_verify_hex(body + 4);
 		/* Until the plaintext line is removed from the configuration, it is
 		 * still accepted: this is the way back in if a digest login fails. */
@@ -869,22 +918,7 @@ static void run_login_body(__xdata uint8_t *body)
 	}
 
 	if (ok) {
-		dbg_string("Password accepted!\n");
-		login_fails = 0;
-		login_lock_until = 0;
-		read_timer(&last_session_use);
-		session_started = last_session_use;
-		gen_random_hex_chars(session_id, SESSION_ID_LENGTH);
-		session_id[SESSION_ID_LENGTH] = NUL;
-		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\n" \
-				      "Cache-Control: no-store\r\nLocation: index.html\r\n" \
-				      "Set-Cookie: session=");
-		for (uint8_t i = 0; i < SESSION_ID_LENGTH; i++)
-			outbuf[slen++] = session_id[i];
-		if (http_tls)
-			slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict; Secure\r\n\r\n");
-		else
-			slen += strtox(outbuf + slen, "; Path=/; HttpOnly; SameSite=Strict\r\n\r\n");
+		login_success();
 	} else {
 		dbg_string("Password invalid!\n");
 		if (login_fails < 255)
@@ -919,7 +953,7 @@ static uint8_t post_body_take(__xdata uint8_t *p)
 	}
 	memcpy(config_buf, p, have);
 	pre_acc = have;
-	postbody_start = ticks;
+	timer_set(&postbody_timer, POSTBODY_TIMEOUT);
 	uip_conn->appstate.tstate = TSTATE_POSTBODY;
 	return 0;
 }
@@ -936,7 +970,7 @@ static void post_body_continue(void)
 	memcpy(config_buf + pre_acc, uip_appdata, take);
 	pre_acc += take;
 	if (pre_acc < content_length) {
-		postbody_start = ticks;
+		timer_set(&postbody_timer, POSTBODY_TIMEOUT);
 		return;
 	}
 	config_buf[pre_acc] = NUL;
@@ -948,7 +982,42 @@ static void post_body_continue(void)
 }
 
 
-void handle_post(void)
+
+/*
+ * Buffer an HTTP request header across TCP receive events. Stop copying at
+ * CRLFCRLF so any body bytes in the final segment stay in uip_appdata.
+ *
+ * Return the body offset in the current receive buffer, 0 while incomplete,
+ * or 0xffff after sending an error response.
+ */
+static uint16_t request_header_take(void)
+{
+	uint16_t i;
+
+	for (i = 0; i < uip_len; i++) {
+		if (pre_acc + 1 >= CONFIG_UPLOAD_BUF) {
+			uip_conn->appstate.tstate = TSTATE_NONE;
+			send_bad_request();
+			return 0xffff;
+		}
+		config_buf[pre_acc++] = ((__xdata uint8_t *)uip_appdata)[i];
+		config_buf[pre_acc] = NUL;
+		if (pre_acc >= 4
+		    && config_buf[pre_acc - 4] == '\r'
+		    && config_buf[pre_acc - 3] == '\n'
+		    && config_buf[pre_acc - 2] == '\r'
+		    && config_buf[pre_acc - 1] == '\n') {
+			uip_conn->appstate.tstate = TSTATE_NONE;
+			return i + 1;
+		}
+	}
+
+	timer_set(&postbody_timer, POSTBODY_TIMEOUT);
+	uip_conn->appstate.tstate = TSTATE_HEADER;
+	return 0;
+}
+
+void handle_post(uint16_t body_off)
 {
 	__xdata struct httpd_state * __xdata s = &(uip_conn->appstate);
 	__xdata uint8_t *p = uip_appdata;
@@ -961,6 +1030,9 @@ void handle_post(void)
 
 	// Was the multipart header sent in multiple packets?
 	if (s->tstate != TSTATE_MULTIPART) {
+		p = config_buf;
+		request_path = p + 6;
+
 		dbg_string("Is POST\n");
 		p += 5;  // Skip post
 		// Find end of request path
@@ -974,7 +1046,7 @@ void handle_post(void)
 		dbg_string("Boundary: >"); dbg_string_x(boundary); dbg_string("<\n");
 		if (!*p || !content_type) {
 			dbg_string("Bad Request!\n");
-			send_not_found();
+			send_bad_request();
 			return;
 		}
 		if (!host_ok) {
@@ -990,6 +1062,10 @@ void handle_post(void)
 			send_forbidden();
 			return;
 		}
+		/* The header is buffered in config_buf; the body bytes that came with
+		 * the last segment are still in uip_appdata after the header. */
+		pre_acc = 0;
+		p = (__xdata uint8_t *)uip_appdata + body_off;
 		if (is_word(request_path, "upload")) {
 			if (!authenticated) {
 				send_unauthorized();
@@ -1015,7 +1091,10 @@ void handle_post(void)
 			dbg_string("Configuration upload\n");
 			verify_crc = 0;
 			config_upload = 1;
-			pre_acc = 0;
+			// config_take() matches CRLF-prefixed delimiters, including the first.
+			config_buf[0] = '\r';
+			config_buf[1] = '\n';
+			pre_acc = 2;
 		}
 		// Check for other POST requests, which are not multipart, below
 	} else {
@@ -1039,7 +1118,6 @@ void handle_post(void)
 			handle_firmware_fragment(p);
 		return;
 	} else if (is_word(request_path, "cmd")) {
-		p += 4;
 		if (!authenticated) {
 			send_unauthorized();
 			return;
@@ -1065,7 +1143,6 @@ void handle_post(void)
 			return;
 		}
 
-		p += 4;
 		postbody_endpoint = POSTBODY_LOGIN;
 		if (!post_body_take(p))
 			return;
@@ -1096,12 +1173,15 @@ void httpd_appcall(void)
 	print_byte(s->tstate);
 	write_char(' ');
 #endif
-	if(uip_connected() && s->tstate == TSTATE_CLOSED) {
+	if(uip_connected()) {
 		dbg_string("Connected...\n");
 		s->tstate = TSTATE_NONE;
+		s->fw_reset_pending = 0; // explicitly initialize reused XDATA appstate
 	} else if (uip_closed()) {
 		dbg_string("Connection closed\n");
 		s->tstate = TSTATE_CLOSED;
+		if (s->fw_reset_pending && uip_acked())
+			reset_chip();
 	} else if (uip_aborted() || uip_timedout()) {
 		dbg_string("Connection aborted\n");
 		uip_close();
@@ -1112,9 +1192,9 @@ void httpd_appcall(void)
 			dbg_string("Closing because everything has been transmitted\n");
 			uip_close();
 			s->tstate = TSTATE_CLOSED;
-		} else if (s->tstate == TSTATE_POSTBODY
-			   && (uint16_t)ticks - postbody_start > POSTBODY_TIMEOUT) {
-			dbg_string("Body never arrived\n");
+		} else if ((s->tstate == TSTATE_POSTBODY || s->tstate == TSTATE_HEADER)
+			   && timer_expired(&postbody_timer)) {
+			dbg_string("HTTP request never completed\n");
 			uip_abort();
 			s->tstate = TSTATE_CLOSED;
 		}
@@ -1150,7 +1230,7 @@ void httpd_appcall(void)
 			cont_len -= slen;
 			cont_addr += slen;
 			s->tstate = TSTATE_TX;
-		} else if (fw_reset_pending) {
+		} else if (s->fw_reset_pending) {
 			// The upload verdict has been fully ACKed by the client;
 			// now it is safe to reset and apply the staged image
 			print_string("Resetting to apply update\n");
@@ -1177,6 +1257,7 @@ void httpd_appcall(void)
 		cont_len = 0;
 		dbg_char('<'); dbg_short(uip_len); dbg_char('\n');
 		__xdata uint8_t *p = uip_appdata;
+		uint16_t body_off = 0;
 		// Mark end of request header with \0
 		p[uip_len] = 0;
 #ifdef DEBUG
@@ -1185,9 +1266,21 @@ void httpd_appcall(void)
 		dbg_char('\n');
 #endif
 		p = uip_appdata;
-		if (is_word(p, "POST") || s->tstate == TSTATE_MULTIPART
-		    || s->tstate == TSTATE_POSTBODY) {
-			handle_post();
+		if (s->tstate != TSTATE_MULTIPART && s->tstate != TSTATE_POSTBODY) {
+			if (s->tstate != TSTATE_HEADER)
+				pre_acc = 0;
+			body_off = request_header_take();
+			if (!body_off) {
+				uip_len = 0;
+				return;
+			}
+			if (body_off == 0xffff)
+				goto do_send;
+		}
+
+		if (s->tstate == TSTATE_MULTIPART || s->tstate == TSTATE_POSTBODY
+		    || is_word(config_buf, "POST")) {
+			handle_post(body_off);
 			// If this is an ongoing post stream, then wait for the next packet
 			if (s->tstate == TSTATE_POST || s->tstate == TSTATE_MULTIPART
 			    || s->tstate == TSTATE_POSTBODY) {
@@ -1197,12 +1290,11 @@ void httpd_appcall(void)
 			goto do_send;
 		}
 
-		// We only expect a GET request here.
+		p = config_buf;
 		if (!is_word(p, "GET")) {
 			send_bad_request();
 			goto do_send;
 		}
-
 		dbg_string("GET request ");
 		p += 4;
 		scan_header(p);
@@ -1232,8 +1324,10 @@ void httpd_appcall(void)
 				goto do_send;
 			}
 			dbg_string("Not file entry\n");
-			if (!strcmp(q, "/status.json")) {
-				send_status();
+			if (!strcmp(q, "/ports.json")) {
+				send_ports();
+			} else if (!strcmp(q, "/traffic.json")) {
+				send_traffic();
 			} else if (!strcmp(q, "/information.json")) {
 				send_basic_info();
 			} else if (!strcmp(q, "/vlan.json")) {
@@ -1259,15 +1353,15 @@ void httpd_appcall(void)
 				send_mirror();
 			} else if (is_word(q, "/isolation.json")) {
 				send_isolation();
-			} else if (is_word(q, "/mtu.json")) {
-				send_mtu();
 			} else if (is_word(q, "/lag.json")) {
 				send_lag();
 			} else if (is_word(q, "/stp.json")) {
 				send_stp();
+			} else if (is_word(q, "/stpcnt.json")) {
+				send_stp_counters();
 			} else if (is_word(q, "/lldp.json")) {
 				send_lldp();
-			} else if (is_word(q, "/vlanlist")) {
+			} else if (is_word(q, "/vlanlist.json")) {
 				send_vlanlist();
 			} else if (is_word(q, "/config")) {
 				send_config();
@@ -1275,11 +1369,10 @@ void httpd_appcall(void)
 				send_cmd_log();
 			} else if (is_word(q, "/cmd_log_clear")) {
 				clear_command_history();
-				send_mtu(); // dummy response
+				slen = strtox(outbuf, "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
 			} else if (is_word(q, "/reset")) {
-				uip_close();
-				delay(1000); //wait for the close packet to be sent, otherwise the browser will retry
-				reset_chip();
+				slen = strtox(outbuf, "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
+				s->fw_reset_pending = 1;
 			} else {
 				send_not_found();
 			}

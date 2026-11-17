@@ -1,0 +1,63 @@
+# kind	file	pattern	description
+# kind is contains / absent / exists. Add one line per fork-specific requirement.
+contains	html/index.html	id="logoutBtn"	header has the logout button
+contains	html/index.html	class="ctl danger" id="logoutBtn"	logout button uses the red danger style
+contains	html/app.js	hdr_logout	logout i18n strings exist
+contains	html/app.js	$("logoutBtn")	logout button has a handler
+contains	html/app.js	crypto.getRandomValues(salt)	password change rotates the salt
+contains	html/app.js	digest: sha256Hex(all)	password digest is the 64-char sha256 string
+absent	html/app.js	bytesToHex(sha256Hex	password digest is not double-hexed
+contains	html/app.js	sy_pw_ok	password-change success message exists
+contains	html/app.js	passwd_hash	config editor recognises passwd_hash
+contains	html/app.js	vlan\s+switch	config editor recognises vlan switch
+contains	html/login.html	pw2row	first-run password setup page exists
+contains	html/login.html	legacy	legacy plaintext login path exists
+contains	httpd/httpd.c	setup_body_take	first-run setup handler exists
+contains	httpd/httpd.c	send_server_error	auth write failure is reported
+contains	auth.c	auth_salt_tmp	failed digest parse cannot corrupt the live hash
+contains	auth.c	legacy	auth.json still reports the legacy flag
+contains	auth.c	No terminator	config write-back guard exists
+contains	rtlplayground.c	auth_persist	serial auth writes are persisted
+contains	html/index.html	id="sy-defaults"	maintenance has the factory-reset button
+contains	html/index.html	id="sy-resetnote"	maintenance has the RESET-key note
+contains	html/index.html	id="sy-defaults-other"	non-SKS default note element exists
+contains	html/index.html	id="sy-defaults-sks"	SKS default note element exists
+contains	html/app.js	sy_defaults	factory-reset i18n strings exist
+contains	html/app.js	sy_defaults_note_other	non-SKS factory-default note exists
+contains	html/app.js	sy_defaults_note_sks	SKS factory-default note exists
+contains	html/app.js	sy_reset_note	RESET-button instructions exist
+contains	html/app.js	hasResetButton	RESET instructions are shown only for the SKS three
+contains	html/app.js	body: "defaults"	factory-reset button posts the defaults command
+contains	cmd_parser.c	factory-reset	defaults/factory-reset backend command exists
+contains	boot.c	early_boot_handle_button	boot-time long-press handler exists
+contains	boot.c	flash_default_config	boot-time long-press writes the default config
+contains	rtlplayground.c	flash_default_config	runtime long-press writes the default config
+contains	config.txt	ip dhcp	default config uses DHCP
+contains	config-xikestor.txt	ip dhcp	XikeStor default config uses DHCP
+contains	config.txt	passwd_hash 5f3c6ac1c12f81f3f1095f02cc65c05e 6fcabffe67fd0b86c1a199268e3fda929e0ccd3deeacf33f2389652853363967	default password 1234 is stored as a digest
+absent	config.txt	passwd 	default config has no plaintext password
+contains	config-xikestor.txt	passwd_hash 5f3c6ac1c12f81f3f1095f02cc65c05e 6fcabffe67fd0b86c1a199268e3fda929e0ccd3deeacf33f2389652853363967	XikeStor default password 1234 is stored as a digest
+absent	config-xikestor.txt	passwd 	XikeStor default config has no plaintext password
+contains	httpd/httpd.c	HTTP_PORT_DEFAULT 80	web port default is 80
+contains	httpd/httpd.c	SESSION_TIMEOUT_DEFAULT 3600	session timeout default is 3600 s
+contains	rtlplayground.c	#define MACHINE_FALLBACK_IP 247	fallback default for models without an override is .247
+contains	rtlplayground.c	gatewayIP[] = { 192, 168, 10, 1 }	factory fallback gateway is 192.168.10.1
+contains	rtlplayground.c	netmask[] = { 255, 255, 255, 0}	factory fallback netmask is /24
+contains	machine/XIKESTOR_SKS3200M_8GPY1XF.h	MACHINE_FALLBACK_IP 12	8GPY1XF fallback is 192.168.10.12
+contains	machine/SKS3200M_4GPY2XF.h	MACHINE_FALLBACK_IP 12	4GPY2XF fallback is 192.168.10.12
+contains	machine/SKS3200M_5GPY1XF.h	MACHINE_FALLBACK_IP 12	5GPY1XF fallback is 192.168.10.12
+contains	machine/XIKESTOR_SKS3200M_8GPY1XF.c	reset_pin = GPIO54_ACL_BIT2_EN	8GPY1XF reset button pin is GPIO54
+contains	machine/SKS3200M_4GPY2XF.c	reset_pin = GPIO54_ACL_BIT2_EN	4GPY2XF reset button pin is GPIO54
+contains	machine/SKS3200M_5GPY1XF.c	reset_pin = GPIO54_ACL_BIT2_EN	5GPY1XF reset button pin is GPIO54
+contains	machine/STEAMEMO_IG204_V1.c	reset_pin = GPIO_NA	IG204 has no reset button
+contains	machine/PCB_K0801W_V1.c	reset_pin = GPIO_NA	K0801W has no reset button
+contains	tools/passwd_hash.py	passwd_hash	host passwd_hash tool exists
+exists	test/test_auth.c	-	auth host test exists
+contains	test/test_httpd_tx.c	scenario_setup	HTTP auth scenarios exist
+exists	test/test_web_auth.js	-	browser password test exists
+exists	test/test_web_features.js	-	browser feature test exists
+contains	html/index.html	white-space:pre-line	factory-default notes keep the two-line layout
+contains	boot.c	#define BOOT_HOLD_MIN_TICKS (10 * SYS_TICK_HZ)	SKS boot long-press threshold is 10 s
+contains	boot.c	#define BOOT_HOLD_MAX_TICKS (30 * SYS_TICK_HZ)	SKS boot long-press maximum is 30 s
+contains	rtlplayground.c	held_ticks > 10UL * SYS_TICK_HZ	runtime long-press >10 s restores defaults
+contains	rtlplayground.c	held_ticks > 3UL * SYS_TICK_HZ	runtime press 3-10 s only reboots

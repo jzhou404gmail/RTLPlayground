@@ -48,6 +48,7 @@ extern __xdata struct vlan_settings vlan_settings;
 
 uint8_t port_l2_forget(void) __banked;
 void port_l2_learned(void) __banked;
+uint16_t port_link_mask(void) __banked;
 void port_stats_print(void) __banked;
 void port_media_show(uint8_t port) __banked;
 int8_t vlan_get(uint16_t vlan) __banked;
@@ -82,7 +83,6 @@ bool port_ingress_vlan_filter_get(uint8_t port) __banked;
 vlan_ingress_mode_t port_ingress_filter_get(__xdata uint8_t port) __banked;
 void port_isolate(uint8_t port, __xdata uint16_t pmask) __banked;
 uint16_t port_isolation_get(uint8_t port) __banked;
-void vlan_switch_poll(void) __banked;
 void port_l2_static_mgmt(__xdata uint8_t *mac, __xdata uint16_t vlan, __xdata bool remove_entry) __banked;
 
 #endif

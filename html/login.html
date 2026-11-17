@@ -36,16 +36,35 @@ body{
 h1{font-size:19px;font-weight:650}
 p.sub{color:var(--fg2);font-size:13px;margin-bottom:24px}
 label{display:block;font-size:13px;color:var(--fg2);margin-bottom:6px}
-input[type=password]{
-  width:100%;padding:10px 12px;font-size:15px;color:var(--fg);
+.pwrow{position:relative}
+input.pw{
+  width:100%;padding:10px 44px 10px 12px;font-size:15px;color:var(--fg);
   background:var(--bg);border:1px solid var(--bd);border-radius:8px;outline:none;
 }
-input[type=password]:focus{border-color:var(--ac)}
+input.pw:focus{border-color:var(--ac)}
+/* Reveal toggle inside the field, at its right edge. */
+.eye{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  width:32px;height:32px;margin:0;padding:0;display:flex;align-items:center;justify-content:center;
+  color:var(--fg2);background:transparent;border:0;border-radius:6px;cursor:pointer;
+}
+.eye:hover{color:var(--fg);background:var(--bg)}
+.eye:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.eye svg{width:19px;height:19px;pointer-events:none}
+.eye .ic-shut{display:none}
+.eye.on .ic-occhi{display:none}
+.eye.on .ic-shut{display:block}
+/* First-run setup: a second field, without the reveal button, shown only
+   while no password exists yet. */
+#pw2row{margin-top:14px}
+#pw2row[hidden]{display:none}
+#pwd2{padding-right:12px}
 button{
   width:100%;margin-top:18px;padding:10px;font-size:15px;font-weight:600;
   color:var(--acfg);background:var(--ac);border:0;border-radius:8px;cursor:pointer;
 }
 button:hover{filter:brightness(1.1)}
+button:disabled{opacity:.55;cursor:default;filter:none}
 #err{color:var(--bad);font-size:13px;min-height:20px;margin-top:14px;text-align:center}
 </style>
 <script>
@@ -72,8 +91,27 @@ button:hover{filter:brightness(1.1)}
   <p class="sub" id="sub">RTLPlayground management interface</p>
   <form method="post" action="login">
     <label for="pwd" id="lp">Password</label>
-    <input id="pwd" name="pwd" type="password" autocomplete="current-password" autofocus required
-           oninput="document.getElementById('err').textContent=''">
+    <div class="pwrow">
+      <input id="pwd" class="pw" name="pwd" type="password" autocomplete="current-password" autofocus required
+             oninput="document.getElementById('err').textContent=''">
+      <button type="button" class="eye" id="pwtoggle" aria-pressed="false"
+              aria-label="Show password" title="Show password">
+        <svg class="ic-occhi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        <svg class="ic-shut" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 3l18 18"/><path d="M10.6 5.2A10.9 10.9 0 0 1 12 5c7 0 11 7 11 7a18.7 18.7 0 0 1-3.2 4.1"/>
+          <path d="M6.6 6.7A18.6 18.6 0 0 0 1 12s4 7 11 7a10.8 10.8 0 0 0 5.4-1.4"/>
+          <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>
+        </svg>
+      </button>
+    </div>
+    <div id="pw2row" hidden>
+      <label for="pwd2" id="lp2">Repeat password</label>
+      <input id="pwd2" class="pw" type="password" autocomplete="new-password" maxlength="20">
+    </div>
     <button type="submit" id="lb">Sign in</button>
     <div id="err"></div>
   </form>
@@ -81,17 +119,24 @@ button:hover{filter:brightness(1.1)}
 <script>
 (function(){
   var L={
-    de:["Switch-Anmeldung","RTLPlayground-Verwaltungsoberfläche","Passwort","Anmelden","Falsches Passwort, bitte erneut versuchen."],
-    en:["Switch Login","RTLPlayground management interface","Password","Sign in","Wrong password, try again."],
-    ja:["スイッチ ログイン","RTLPlayground 管理インターフェース","パスワード","ログイン","パスワードが違います。もう一度お試しください。"],
-    zh:["交换机登录","RTLPlayground 管理界面","密码","登录","密码错误，请重试。"],
-    es:["Inicio de sesión del switch","Interfaz de gestión de RTLPlayground","Contraseña","Iniciar sesión","Contraseña incorrecta, inténtalo de nuevo."],
-    fr:["Utilisateur du commutateur","Interface de management RTLPlayground","Mot de passe","Se connecter","Mot de passe erronné, essayez à nouveau."]
+    de:["Switch-Anmeldung","RTLPlayground-Verwaltungsoberfläche","Passwort","Anmelden","Falsches Passwort, bitte erneut versuchen.","Passwort anzeigen","Passwort verbergen",
+        "Kein Passwort gesetzt. Wählen Sie eines für das Administratorkonto.","Passwort wiederholen","Passwort setzen","Die Passwörter stimmen nicht überein.","Passwort: 6-20 Zeichen, keine Leerzeichen.","Das Passwort konnte nicht gesetzt werden.","Kein Passwort gesetzt. Laden Sie diese Seite neu, um eines zu setzen."],
+    en:["Switch Login","RTLPlayground management interface","Password","Sign in","Wrong password, try again.","Show password","Hide password",
+        "No password is set. Choose one for the admin account.","Repeat password","Set password","Passwords do not match.","Password: 6-20 characters, no spaces.","Could not set the password.","No password is set. Reload this page to set one."],
+    ja:["スイッチ ログイン","RTLPlayground 管理インターフェース","パスワード","ログイン","パスワードが違います。もう一度お試しください。","パスワードを表示","パスワードを隠す",
+        "パスワードが未設定です。管理者用のパスワードを設定してください。","パスワード（再入力）","パスワードを設定","パスワードが一致しません。","パスワード: 6〜20 文字、空白なし。","パスワードを設定できませんでした。","パスワードが未設定です。このページを再読み込みして設定してください。"],
+    zh:["交换机登录","RTLPlayground 管理界面","密码","登录","密码错误，请重试。","显示密码","隐藏密码",
+        "尚未设置密码。请为管理员设置一个密码。","重复密码","设置密码","两次输入的密码不一致。","密码: 6-20 个字符，不能含空格。","无法设置密码。","尚未设置密码。请刷新此页面进行设置。"],
+    es:["Inicio de sesión del switch","Interfaz de gestión de RTLPlayground","Contraseña","Iniciar sesión","Contraseña incorrecta, inténtalo de nuevo.","Mostrar contraseña","Ocultar contraseña",
+        "No hay contraseña configurada. Elige una para la cuenta de administrador.","Repetir contraseña","Establecer contraseña","Las contraseñas no coinciden.","Contraseña: 6-20 caracteres, sin espacios.","No se pudo establecer la contraseña.","No hay contraseña configurada. Recarga esta página para establecer una."],
+    fr:["Utilisateur du commutateur","Interface de management RTLPlayground","Mot de passe","Se connecter","Mot de passe erronné, essayez à nouveau.","Afficher le mot de passe","Masquer le mot de passe",
+        "Aucun mot de passe n'est défini. Choisissez-en un pour le compte administrateur.","Confirmer le mot de passe","Définir le mot de passe","Les mots de passe ne correspondent pas.","Mot de passe : 6 à 20 caractères, sans espaces.","Impossible de définir le mot de passe.","Aucun mot de passe n'est défini. Rechargez cette page pour en définir un."]
   };
   var l=null;
   try{l=localStorage.getItem("rtl_lang");}catch(e){}
   if(!L[l])l=(navigator.language||"en").slice(0,2);
   var s=L[l]||L.en;
+  window.__loginI18n=s;
   // Name the tab after the switch: the hostname seen at the last login here,
   // otherwise the address, so several open switches can be told apart
   var host=null;
@@ -141,19 +186,106 @@ function sha256Hex(bytes){
 function hexToBytes(h){var a=new Uint8Array(h.length/2);for(var i=0;i<a.length;i++)a[i]=parseInt(h.substr(i*2,2),16);return a;}
 function bytesToHex(b){var s="";for(var i=0;i<b.length;i++)s+=("0"+b[i].toString(16)).slice(-2);return s;}
 (function(){
+  var s=window.__loginI18n||["","","","","","Show password","Hide password"];
+  var btn=document.getElementById('pwtoggle');
+  var pwd=document.getElementById('pwd');
+  function label(shown){ return s[shown?6:5]; }
+  btn.addEventListener('click',function(){
+    var show=pwd.type==='password';
+    pwd.type=show?'text':'password';
+    btn.classList.toggle('on',show);
+    btn.setAttribute('aria-pressed',show?'true':'false');
+    btn.setAttribute('aria-label',label(show));
+    btn.title=label(show);
+    pwd.focus();
+  });
+})();
+(function(){
   var form=document.querySelector('form');
   var err=document.getElementById('err');
+  var pw=document.getElementById('pwd');
+  var pw2=document.getElementById('pwd2');
+  var pw2row=document.getElementById('pw2row');
+  var lp2=document.getElementById('lp2');
+  var lb=document.getElementById('lb');
+  var sub=document.getElementById('sub');
+  var s=window.__loginI18n||["","","","","","Show password","Hide password",
+    "No password is set. Choose one for the admin account.","Repeat password","Set password",
+    "Passwords do not match.","Password: 6-20 characters, no spaces.","Could not set the password.",
+    "No password is set. Reload this page to set one."];
+  /* digest: a password exists, POST SHA-256(salt || password)
+   * legacy: an old plaintext passwd line exists, POST the plaintext once
+   * setup:  no credential at all, choose the first admin password */
+  var mode="digest", ready=false;
+
+  function setMode(j){
+    if(j&&j.set)mode="digest";
+    else if(j&&j.legacy)mode="legacy";
+    else mode="setup";
+    if(mode==="setup"){
+      sub.textContent=s[7];
+      lp2.textContent=s[8];
+      lb.textContent=s[9];
+      pw2row.hidden=false;
+      pw.autocomplete="new-password";
+      err.textContent='';
+    }
+  }
+
+  /* Do not let a submit race the /auth.json answer: the mode decides whether
+   * the password is hashed, sent as the legacy plaintext or used for setup. */
+  lb.disabled=true;
+  fetch('/auth.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+    setMode(j);
+    ready=true;
+    lb.disabled=false;
+  }).catch(function(){
+    /* Keep the normal login form; submitting refetches auth.json and reports
+     * the failure instead of silently posting the wrong form. */
+    ready=true;
+    lb.disabled=false;
+  });
+  setTimeout(function(){ if(!ready){ready=true;lb.disabled=false;} },3000);
+
+  function setup(pwv){
+    if(pwv.length<6||pwv.length>20||/\s/.test(pwv)){err.textContent=s[11];return;}
+    if(pwv!==pw2.value){err.textContent=s[10];return;}
+    if(!window.crypto||!crypto.getRandomValues){err.textContent=s[12];return;}
+    var salt=new Uint8Array(16);
+    crypto.getRandomValues(salt);
+    var p=new TextEncoder().encode(pwv);
+    var buf=new Uint8Array(salt.length+p.length);
+    buf.set(salt,0);buf.set(p,salt.length);
+    err.textContent='';
+    lb.disabled=true;
+    fetch('/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded','X-RTLP':'1'},
+      body:'salt='+bytesToHex(salt)+'&hash='+sha256Hex(buf)
+    }).then(function(r){
+      if(!r.ok||/\/login\.html(\?|$)/.test(r.url))throw new Error('setup');
+      location.href='/';
+    }).catch(function(){err.textContent=s[12];lb.disabled=false;});
+  }
+
   form.addEventListener('submit',function(ev){
+    if(!ready){ev.preventDefault();return;}
+    if(mode==="legacy"){
+      /* The firmware still has the old plaintext credential: the native form
+       * POST is the compatibility path, and a password change in the System
+       * tab replaces it with a digest. */
+      return;
+    }
     ev.preventDefault();
-    var pw=document.getElementById('pwd');
     if(!pw.value)return;
     err.textContent='';
+    if(mode==="setup"){setup(pw.value);return;}
     fetch('/auth.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
-      if(!j.set){err.textContent='No password provisioned; use the serial console.';return;}
+      if(!j.set){err.textContent=s[13];return;}
       var salt=hexToBytes(j.salt);
-      var pwd=new TextEncoder().encode(pw.value);
-      var buf=new Uint8Array(salt.length+pwd.length);
-      buf.set(salt,0);buf.set(pwd,salt.length);
+      var p=new TextEncoder().encode(pw.value);
+      var buf=new Uint8Array(salt.length+p.length);
+      buf.set(salt,0);buf.set(p,salt.length);
       var h=document.createElement('input');
       h.type='hidden';h.name='pwd';h.value=sha256Hex(buf);
       pw.removeAttribute('name');

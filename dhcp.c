@@ -11,8 +11,10 @@
 #include "dhcp.h"
 #include "uip.h"
 #include "uip/uip.h"
+#include "timer.h"
 
 __xdata struct dhcp_state dhcp_state;
+static __xdata struct timer dhcp_second;
 __xdata uip_ipaddr_t server;
 
 #define DHCP_HW_TYPE_ETH	1
@@ -33,6 +35,16 @@ __xdata uip_ipaddr_t server;
 #define DHCP_MESSAGE_OFFER	2
 #define DHCP_MESSAGE_REQUEST	3
 #define DHCP_MESSAGE_ACK	5
+#define DHCP_MESSAGE_NAK	6
+
+/* A router that lost its lease database (reboot, firmware upgrade, factory
+ * reset) has no record of us.  Waiting for the server's T1 (6 h with the
+ * default 12 h lease) leaves the switch out of the router's client list for
+ * hours.  Renew early instead, and fall back to DISCOVER when renewing does
+ * not work. */
+#define DHCP_MAX_RENEWAL	1800
+#define DHCP_MAX_RETRIES	3
+#define DHCP_FALLBACK_LEASE	3600
 #define DHCP_LEASE 		51
 #define DHCP_LEASE_LEN		4
 #define DHCP_RENEWAL 		58
@@ -51,7 +63,7 @@ __xdata uip_ipaddr_t server;
 #define DHCP_END		255
 
 #pragma codeseg BANK3
-#pragma constseg BANK2
+#pragma constseg BANK3
 
 struct dhcp_pkt {
 	uint8_t type;
@@ -156,6 +168,8 @@ void dhcp_addopt_server_id(void)
 void dhcp_send_discover(void)
 {
 	dhcp_prepare_request();
+	dhcp_state.retries = 0;
+	dhcp_state.renew_now = 0;
 
 	dhcp_state.opt_ptr = 0;
 	DHCP_OPT[dhcp_state.opt_ptr++] = DHCP_MESSAGE_TYPE;
@@ -183,7 +197,7 @@ void dhcp_send_discover(void)
 
 	uip_udp_send(sizeof(struct dhcp_pkt) + dhcp_state.opt_ptr);
 	dhcp_state.state = DHCP_DISCOVER_SENT;
-	dhcp_state.ticks = SYS_TICK_HZ;
+	timer_set(&dhcp_second, SYS_TICK_HZ);
 	dhcp_state.dhcp_timer = 30; // Timeout for discover
 }
 
@@ -219,7 +233,7 @@ void dhcp_send_request(void)
 
 	uip_udp_send(sizeof(struct dhcp_pkt) + dhcp_state.opt_ptr);
 	dhcp_state.state = DHCP_REQUEST_SENT;
-	dhcp_state.ticks = SYS_TICK_HZ;
+	timer_set(&dhcp_second, SYS_TICK_HZ);
 	dhcp_state.dhcp_timer = 30; // Timeout for request
 }
 
@@ -308,8 +322,8 @@ void parse_dhcp(void)
 	dhcp_state.opt_ptr = 0;
 	if (DHCP_OPT[dhcp_state.opt_ptr++] != DHCP_MESSAGE_TYPE || DHCP_OPT[dhcp_state.opt_ptr++] != DHCP_MESSAGE_TYPE_LEN)
 		return;
-	if (DHCP_OPT[dhcp_state.opt_ptr] == DHCP_MESSAGE_OFFER) {
-		dhcp_state.opt_ptr++;
+	uint8_t msg = DHCP_OPT[dhcp_state.opt_ptr++];
+	if (msg == DHCP_MESSAGE_OFFER) {
 		dhcp_state.current_ip[0] = DHCP_P->your_ip[0];
 		dhcp_state.current_ip[1] = DHCP_P->your_ip[1];
 		dhcp_state.current_ip[2] = DHCP_P->your_ip[2];
@@ -318,7 +332,7 @@ void parse_dhcp(void)
 		print_string("DHCP offer received for IP "); dhcp_print_ip(dhcp_state.current_ip);
 		write_char('\n');
 		dhcp_send_request();
-	} else if (DHCP_OPT[dhcp_state.opt_ptr++] == DHCP_MESSAGE_ACK) {
+	} else if (msg == DHCP_MESSAGE_ACK) {
 		parse_opts();
 		print_string("DHCP ACK, our IP is "); dhcp_print_ip(dhcp_state.current_ip);
 		write_char('\n');
@@ -344,9 +358,32 @@ void parse_dhcp(void)
 			dhcp_state.renewal = dhcp_state.lease / 2;
 		if (!dhcp_state.renewal)
 			dhcp_state.renewal = 60;
+		/* A router that lost its lease database does not know us until
+		 * we renew.  Renew at least every DHCP_MAX_RENEWAL seconds so
+		 * the router's active-lease list recovers without a power
+		 * cycle, even when the uplink never bounced. */
+		if (dhcp_state.renewal > DHCP_MAX_RENEWAL)
+			dhcp_state.renewal = DHCP_MAX_RENEWAL;
+		if (dhcp_state.lease)
+			dhcp_state.lease_timer = dhcp_state.lease > 0xffff ? 0xffff : dhcp_state.lease;
+		else
+			dhcp_state.lease_timer = DHCP_FALLBACK_LEASE;
+		dhcp_state.retries = 0;
+		dhcp_state.renew_now = 0;
 		dhcp_state.state = DHCP_LEASING;
-		dhcp_state.ticks = SYS_TICK_HZ;
+		timer_set(&dhcp_second, SYS_TICK_HZ);
 		dhcp_state.dhcp_timer = dhcp_state.renewal > 0xffff ? 0xffff : dhcp_state.renewal;
+	} else if (msg == DHCP_MESSAGE_NAK) {
+		/* The server does not know this lease (or refuses it): start over
+		 * with DISCOVER on the next pass.  Keep the socket: removing it
+		 * from inside the UDP callback would leave uip_udp_conn dangling. */
+		print_string("DHCP NAK, restarting\n");
+		dhcp_state.state = DHCP_START;
+		dhcp_state.dhcp_timer = 0;
+		dhcp_state.lease_timer = 0;
+		dhcp_state.retries = 0;
+		dhcp_state.renew_now = 0;
+		dhcp_state.current_ip[0] = dhcp_state.current_ip[1] = dhcp_state.current_ip[2] = dhcp_state.current_ip[3] = 0;
 	}
 }
 
@@ -362,6 +399,9 @@ void dhcp_start(void) __banked
 	uip_ipaddr(server, 255,255,255,255);
 	dhcp_state.conn = uip_udp_new(&server, HTONS(DHCPC_SERVER_PORT));
 	dhcp_state.current_ip[0] = dhcp_state.current_ip[1] = dhcp_state.current_ip[2] = dhcp_state.current_ip[3] = 0;
+	dhcp_state.lease_timer = 0;
+	dhcp_state.retries = 0;
+	dhcp_state.renew_now = 0;
 	if(dhcp_state.conn) {
 		uip_udp_bind(dhcp_state.conn, HTONS(DHCPC_CLIENT_PORT));
 	} else {
@@ -386,6 +426,17 @@ void dhcp_stop(void) __banked
 }
 
 
+/* Called from the link poll when a port comes up.  A router reboot or
+ * firmware upgrade bounces the uplink; renew immediately instead of waiting
+ * for T1.  The actual packet is sent from dhcp_callback() so it goes out
+ * through the normal uIP transmit path. */
+void dhcp_link_up(void) __banked
+{
+	if (dhcp_state.state == DHCP_LEASING)
+		dhcp_state.renew_now = 1;
+}
+
+
 void dhcp_callback(uint16_t lport) __banked
 {
 	if (lport != HTONS(DHCPC_CLIENT_PORT)) // Is this call for us? If not, ignore it
@@ -398,12 +449,21 @@ void dhcp_callback(uint16_t lport) __banked
 	} else if (uip_newdata()) {
 		parse_dhcp();
 	} else {
+		if (dhcp_state.renew_now) {
+			dhcp_state.renew_now = 0;
+			if (dhcp_state.state == DHCP_LEASING) {
+				dhcp_state.retries = 0;
+				dhcp_send_request();
+			}
+		}
 		if (dhcp_state.state == DHCP_START) {
 			dhcp_send_discover();
-		} else if (!--dhcp_state.ticks) {
-//			print_string("Timer: "); print_short(dhcp_state.ticks); write_char(' '); print_short(dhcp_state.dhcp_timer);
-			dhcp_state.dhcp_timer--;
-			dhcp_state.ticks = SYS_TICK_HZ;
+		} else if (timer_expired(&dhcp_second)) {
+			timer_reset(&dhcp_second);
+			if (dhcp_state.dhcp_timer)
+				dhcp_state.dhcp_timer--;
+			if (dhcp_state.lease_timer)
+				dhcp_state.lease_timer--;
 		}
 		if (!dhcp_state.dhcp_timer) {
 			switch (dhcp_state.state) {
@@ -411,12 +471,31 @@ void dhcp_callback(uint16_t lport) __banked
 				dhcp_send_discover();
 				break;
 			case DHCP_LEASING:
-			case DHCP_REQUEST_SENT:
+				dhcp_state.retries = 0;
 				dhcp_send_request();
+				break;
+			case DHCP_REQUEST_SENT:
+				if (dhcp_state.retries >= DHCP_MAX_RETRIES) {
+					print_string("DHCP request failed, restarting\n");
+					dhcp_state.state = DHCP_START;
+					dhcp_state.lease_timer = 0;
+					dhcp_state.retries = 0;
+					dhcp_state.current_ip[0] = dhcp_state.current_ip[1] = dhcp_state.current_ip[2] = dhcp_state.current_ip[3] = 0;
+				} else {
+					dhcp_state.retries++;
+					dhcp_send_request();
+				}
 				break;
 			default:
 				print_string("UNKNOWN STATE\n");
 			}
+		}
+		if (!dhcp_state.lease_timer && dhcp_state.state == DHCP_LEASING) {
+			print_string("DHCP lease expired, restarting\n");
+			dhcp_state.state = DHCP_START;
+			dhcp_state.dhcp_timer = 0;
+			dhcp_state.retries = 0;
+			dhcp_state.current_ip[0] = dhcp_state.current_ip[1] = dhcp_state.current_ip[2] = dhcp_state.current_ip[3] = 0;
 		}
 	}
 

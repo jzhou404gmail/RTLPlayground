@@ -1,9 +1,135 @@
 # Change Log
 
+## [0.1.15] - 2026-11-17
+
+### Changed
+
+- **System-page identity row layout** is now per board (`id_layout` on `struct machine`, exposed as `id_layout` in `/information.json`):
+  - `1`: a single **型号 / Model** row, placed in the hardware slot after uptime — used by `MIMC_D4S2TX` (`MIMC D4S2TX`), the three SKS targets (`SKS3200M-8GPY1XF` / `4GPY2XF` / `5GPY1XF`) and `PCB_K0801W_V1` (`SFP-J08E-HG1`);
+  - `2`: a single **硬件 / Hardware** row, no model row — used by `STEAMEMO_IG204_V1`, which now reports `IG204`;
+  - `0` (default): the historical two-row layout used by the other boards.
+- All nine units on the lab network were upgraded to v0.1.15: four `MIMC_D4S2TX`, three SKS, one `IG204` and one `SFP-J08E-HG1`.
+
+### Added
+
+- New target **`MIMC_D4S2TX`** for the MIMC·微联聚 D4S2TX: RTL8372, 4 × 2.5G + 2 × SFP+, silkscreen `PCB-K0402W-V3.0` / `DIP-K0402WS-V3.0`, **two** 2 MiB Boya `BY25Q16ESSIG` chips (`U1` top, `U67` bottom). The board definition lives in `machine/pcb/PCB_K0402W_V3_0__MIMC.c` (machine target symlinked to it) and sets `flash_sio = 1`, so this Boya `E` revision is read in single-bit mode without passing `FLASH_NO_DIO=1`.
+- The front **S/V** slide switch is the **hardware selector for those two flash chips** (measured 2026-11-17: S = `U1`, V = `U67`, via the HOLD lines; flipping it reboots into the other chip), not a VLAN switch. The target therefore sets no `vlan_switch_pin` and the panel-VLAN card stays absent.
+- **LED configuration taken unchanged from the upstream `PCB_K0402W_V3_0` target** (`led_mux`, `led_sets`, `high_leds` and the `_init.c` hook that enables LED pad 6). Flashing that target on the unit showed every panel lamp correct, and the same configuration was verified on four MIMC units: L1-L4, R1-R4 and both SFP cages. The V1.0-derived LED map used during the first bring-up was wrong and is gone.
+- The System page shows hardware **`MIMC D4S2TX`**, PCB **`PCB_K0402WS-V3.0`** and **no model row** (`model_name` is left empty; the UI already skips empty fields).
+- `doc/devices/PCB-K0402W-V3.0.md`: board data, the two-flash layout, the flash-mode decision, the build/install steps and the verified state; the doc is linked from `doc/supported_devices.md`, and both READMEs gained a row and a device section.
+
+### Fixed
+
+- **Web firmware upload failed with HTTP 403 (Missing X-RTLP)**: the upload XHR in `html/app.js` never sent the `X-RTLP` header that the firmware requires on authenticated POSTs, so every browser upload was rejected while `curl` with the header worked. The upload now sets `X-RTLP: 1`; four units were upgraded with the fixed image.
+- `make machine_check` compiled the long-gone `machine.c` / `machine_init.c` from the pre-`machine/` layout, so it failed at the first target (and could never check a new board). It now compiles `machine/<NAME>.c` and its `_init.c` for every target in `machine/*.c`; all 71 definitions pass.
+
+## [0.1.14] - 2026-11-16
+
+### Changed
+
+- The SKS-only RESET hint now starts with **`RESET 键`** / **`RESET button`** (six languages) instead of repeating “SKS 三款带 RESET 键”. It remains visible only on the three SKS targets.
+
+## [0.1.13] - 2026-11-16
+
+### Changed
+
+- The Maintenance factory-default note is now split by model and only the matching one is shown:
+  - models without a reset button: DHCP, no-DHCP fallback `192.168.10.247/24`, web port 80, default password 1234;
+  - the three SKS targets: DHCP, no-DHCP fallback `192.168.10.12/24`, web port 80, default password 1234.
+- The RESET-button instructions remain visible only on the three SKS targets.
+
+### Added
+
+- `test_web_features.js` now checks both the non-SKS and SKS note elements/strings and the `.247`/`.12`/`1234` content.
+
+## [0.1.12] - 2026-11-16
+
+### Changed
+
+- The header **Log out** button now uses the same red danger style as **Reboot switch** in Maintenance.
+- The Maintenance card explains the factory defaults in all six languages: DHCP; without a DHCP server the three SKS targets fall back to `192.168.10.12/24` and every other model to `192.168.10.247/24`; web port 80; default password `1234` (change it immediately); the current port, NTP, hostname and password are cleared.
+- The SKS-only RESET instructions are shown conditionally: hold about 10 s or more (10-30 s at power-up) to restore the factory defaults, 3-10 s only reboots, a short press does nothing. IG204/K0801W, which have no button, do not show that hint.
+
+### Added
+
+- `test/test_web_features.js` guards the red logout style, the default-parameter notes and the SKS-only RESET hint; it runs as part of `make -C test` and `make web`.
+
+## [0.1.11] - 2026-11-16
+
+### Changed
+
+- Factory defaults restore the upstream default admin password **`1234`**. Both embedded configs now carry the fixed salted digest `passwd_hash 5f3c6ac1… 6fcabffe…` (SHA-256 of the salt and `1234`), never the plaintext. A freshly flashed or factory-reset board shows the normal login page and accepts `1234`; change it immediately after the first login. A board whose startup configuration has no credential at all (for example after a bare `passwd` on the console) still shows the first-run setup page.
+- Fallback addresses are confirmed per model: the three XikeStor targets with a reset button (`XIKESTOR_SKS3200M_8GPY1XF`, `SKS3200M_4GPY2XF`, `SKS3200M_5GPY1XF`) keep the nameplate `192.168.10.12/24`; every model without that override uses `192.168.10.247/24`. The local-feature guard now rejects any other `MACHINE_FALLBACK_IP` override and checks the `1234` digest in both config files.
+
+### Added
+
+- The local-feature inventory now checks the `1234` digest and the exact set of SKS fallback overrides; `make local-feature-check` is the fast gate, `make post-sync-check` also runs the host tests.
+
+## [0.1.10] - 2026-11-16
+
+### Fixed
+
+- Restored **Maintenance → Restore factory defaults** in the System tab, with the six interface languages and the confirmation text. The button posts `defaults` (with `X-RTLP`) exactly like the console command; it was removed when `9122eb8` adopted the upstream single-page UI while the backend `defaults`/`factory-reset` command and the reset-button handlers stayed in place.
+- `XIKESTOR_SKS3200M_8GPY1XF` now defines `MACHINE_FALLBACK_IP 12`. Without a DHCP server it falls back to `192.168.10.12/24` like the other two XikeStor targets, matching the nameplate, instead of the generic `192.168.10.247/24`.
+
+### Added
+
+- `tools/local-feature-checks.tsv` and `doc/local-features.md`: one machine-readable line per fork-specific requirement. `make local-feature-check` (fast) and `make post-sync-check` (also runs the host tests) read the inventory, so a future upstream sync fails when the logout button, factory-reset button, long-press RESET, password flow, SKS fallback address or default configuration disappears.
+- The inventory covers the three SKS reset pins/fallback addresses, the two button-less models (`GPIO_NA`), `flash_default_config`, the `defaults`/`factory-reset` command, `config.txt`/`config-xikestor.txt`, the web port/session defaults and the factory-gateway/netmask.
+
+## [0.1.9] - 2026-11-16
+
+### Fixed
+
+- Web UI password change: `pwHash()` wrapped the 64-character SHA-256 hex string in `bytesToHex()` a second time, producing a 128-character "digest". The resulting `passwd_hash <salt> <digest>` line exceeded the firmware's 128-byte command buffer, so changing the password failed with `ERROR: Command too long`. The digest is now the 64-character `sha256Hex()` result. `test/test_web_auth.js` checks the 32-hex salt, the 64-hex digest, the command length and that `app.js` and `login.html` compute the same value. This supersedes the v0.1.8 image; the rest of the v0.1.8 fixes are included unchanged.
+
+## [0.1.8] - 2026-11-16
+
+### Fixed
+
+- Web UI: the **Log out** button is back in the top-right of the header. It was dropped when the upstream single-page app replaced the fork's UI; the restored button sends `X-RTLP: 1` and posts to `/logout`, which the CSRF guard requires.
+- Password change generates a fresh random 16-byte salt for every change again. The upstream UI had reused the salt stored in the firmware, unlike the fork's previous UI.
+- The local configuration-command patterns (`passwd_hash`, `http port`/`http tls`, `vlan switch`) are back in `app.js`. Without them the config editor warned about them, the Save merge could duplicate `passwd_hash`, and the dashboard VLAN switch did not mark the config dirty.
+- A freshly flashed, fail-closed board can be provisioned from the web again: `/auth.json` reports `legacy`, and `login.html` switches between first-run setup (choose the password, the browser generates the salt and the SHA-256 digest, `POST /login` with `X-RTLP`), digest login, and the old plaintext fallback. The 6-20 character policy is enforced again.
+- Serial `passwd_hash ...` is written to the startup configuration. The pending auth write was only serviced by the HTTP command path, so a digest entered on the console lived in RAM until the next boot.
+- A malformed `passwd_hash` no longer half-overwrites the live salt/hash: `auth_parse_hex()` decodes into scratch first.
+- `auth_persist()` refuses to rewrite a configuration sector that has no NUL terminator (it would otherwise replace the whole configuration with just the auth line), and it strips bare `passwd`/`passwd_hash` lines as well.
+- `run_cmd_body()` answers 500 when the auth record could not be written, so the Web UI no longer reports a password change that will disappear at the next reboot.
+- A machine-free `make` goal (`clean`, `tools`, `pre-sync-check`, ...) no longer treats every `#define MACHINE_*` in `machine.h` as a machine name; a bare `make` prints the target help again instead of failing with bogus `PCB_INFO`/`MIN_PORT` rules.
+- README: the "no password, open the page" and "`passwd <text>` sets a password" text is corrected to the fail-closed first-run flow.
+
+### Added
+
+- `tools/passwd_hash.py`: prints `passwd_hash <salt> <digest>` for a password, for boards reachable only over the serial console.
+- `test/test_auth.c`: host-side coverage for the digest parse/compare, `/auth.json`, the configuration write-back, the no-terminator guard and the logout reply.
+- `tools/sync-guard.sh` with `make pre-sync-check` / `make post-sync-check`: refuses a dirty upstream sync, backs up local commits as a tag plus patches/diff, and after the sync checks that the logout button, salt rotation, first-run setup, legacy fallback, `passwd_hash` flow and host tests are still present. See `doc/upstream-sync-guard.md`.
+
 ## [0.x] - 2026-xx-XX
+
+## Added
+
+- The dashboard has the front-panel VLAN switch card back: it shows the physical switch position and lets the feature be switched on or off (`vlan switch on|off`). `/information.json` carries `model` and the switch fields again, and the System tab shows the retail model next to the PCB revision.
+- `/information.json` reports `uptime` (seconds since boot) and the dashboard shows it as days and hh:mm:ss in every language.
+- The web session idle timeout is 1 h instead of 200 s, so switching tabs no longer logs the operator out.
+- The image builder enforces region limits (`fileadder -l`), so an oversized HTML or configuration payload fails the build instead of overwriting the next region.
+
+- RSTP (802.1w) with the reworked Spanning Tree page, LACP (802.3ad) with `lag <n> lacp <ports>`, the `port <n> cabletest` command, and a per-port learned-MAC count in `/status.json` (`macs`).
+- LLDP transmits immediately when it is switched on or a permitted port comes up (four one-second frames, then the 30 s interval), and every frame carries the 802.3 MAC/PHY, 802.1 Port VLAN ID, 802.3 Link Aggregation and Maximum Frame Size TLVs for that port.
+- The upstream machine tree is taken as-is (vendor/model names, shared `machine/pcb/` definitions, symlinks, ~150 boards); the fork's six measured boards keep their own `machine/<NAME>.c/.h` files and are built the same way. `make MACHINE=<NAME>` works for both, and a symlinked board reports its PCB revision as `pcb_ver`.
+- The board definitions moved to one file pair per board under `machine/` (`machine/<NAME>.c` + `.h`, optional `_init.c`). `MACHINE_CHIPSET` in the header selects the port range. RSTP and the Spanning Tree page live in a fourth code bank (`BANK4`).
+- The web UI is the upstream single-page app, which matches the merged JSON schema, with two local rules kept: every POST carries `X-RTLP: 1`, and a password change sends `passwd_hash <salt> <digest>` computed in the browser.
+
+- Four web logins at once (`sessions.c`, in BANK3): each browser has its own cookie, idle timeout and 8 h absolute lifetime; the fifth login replaces the least recently used. A logout ends only the calling browser, a password change ends them all.
+- `test/test_sessions.c` covers the session table on the host: distinct 128-bit ids, idle and absolute expiry, LRU eviction, logout scope.
+- Build: `CONFIG=<file>` selects the embedded startup configuration, `OUTPUT_DIR`/`OUTPUT_PREFIX`/`OUTPUT_NAME`/`OUTPUT` place the image, `make bank_size` prints how full each code bank of the last build is. BANK1 is the tightest bank (about 88% used on the current tree), so check it before adding code.
 
 ## Changed
 
+- DHCP client: renew at most every 30 min, restart with DISCOVER after a DHCPNAK, a failed renewal or lease expiry, and renew immediately when a port comes up. A router that rebooted or upgraded without its lease database sees the switch again without a power cycle; the 30 min cap also covers switches behind another switch, where the uplink does not bounce.
+- The main loop is timer-driven: the one-second tick, the SFP poll, the STP steps, LLDP's transmit timer and the LACP periodic timer are timers instead of tick counters. SFP wake-up, DHCP, DNS/NTP waits, the boot-time RTL8224 wait and the reset-button timing follow the same model. The fork keeps its RAM second counter (`read_timer()`), the tick-based press timing that works on RTL8372, the per-model fallback address and the front-panel VLAN switch poll.
+- Web API reshape (upstream #768): `/status.json` is gone; `/ports.json` carries the per-port configuration and `/traffic.json` the counters. `/mtu.json` and `/lacp.json` are removed (LAG state is in `/lag.json`), `/vlanlist` is now `/vlanlist.json`, and the JSON uses physical port numbers (CPU = 0). The web UI is the upstream single-page app that speaks this schema; the fork's `X-RTLP` header and browser-side password digest are kept.
+- The timer library moved out of `uip/` to `timer.c/h`, in the home bank so every bank can call it; deadlines are 16 bit and `delay()`/`sleep()` each own their timer. The HTTP request deadline is a timer too, and `clock_time()` rereads the tick counter until its low byte stops moving.
+- HTTP request handling buffers a POST header across TCP segments, re-examines the byte that breaks a partial multipart boundary, writes the JSON array closers once per array, and answers `/reset` with an empty 200 and resets only after the answer is acknowledged (also when the client's FIN carries the ACK). The upload reset intent lives in the connection state, so a reused TCP slot cannot reset the switch.
 - The build date in the System tab is the wall clock at build time again, so an image shows when it
   was actually made. Pass `SOURCE_DATE_EPOCH=<unix time>` for a reproducible build.
 - Login throttling: five failed attempts delay the next try by 1 s, doubling up to 32 s. The Web UI
@@ -31,7 +157,7 @@
   `ip dhcp`, so a freshly flashed board obtains its management address over DHCP instead of coming up
   at `192.168.10.247` / `192.168.10.12`. If no DHCP server answers, the firmware stays on its built-in
   fallback, which now matches the model's nameplate: `192.168.10.12/24` for the three XikeStor targets
-  (`SKS3200M_8GPY1XF`, `SKS3200M_4GPY2XF`, `SKS3200M_5GPY1XF`) and `192.168.10.247/24` for every other
+  (`XIKESTOR_SKS3200M_8GPY1XF`, `SKS3200M_4GPY2XF`, `SKS3200M_5GPY1XF`) and `192.168.10.247/24` for every other
   target. The fallback gateway is `192.168.10.1`; a lease replaces the address as soon as one arrives.
 - The web interface is fail-closed: an empty admin password no longer authenticates every request.
   `POST /login` only issues a session for a non-empty, matching password, so a board without a password
@@ -39,6 +165,12 @@
   A bare `passwd` now disables web management instead of opening it. Sessions are 128 bit, carry
   `Path=/; HttpOnly; SameSite=Strict`, expire after 8 h regardless of activity, and changing or
   clearing the password invalidates the current session.
+- Docs: the 8-port XikeStor target was written as `SKS3200M_8GPY1XF` in README and here, but the
+  machine file (and therefore `make MACHINE=...`) is `XIKESTOR_SKS3200M_8GPY1XF`; the old name made
+  make stop with "no rule to make target". Fixed in README 1.1/2.5/4.1/5 and in this file, and the
+  V2.0 note now says `MOKERLINK_ZX_SWTGW218AS` instead of the no-longer-existing `SWTGW218AS`.
+  README 4.2 now states that the three one-shot OEM installers are per model (each embeds that
+  model's firmware) and how to build them locally.
 
 ## Added
 
@@ -114,7 +246,7 @@
     See doc/devices/STEAMEMO_IG204_V1.md.
   - `MACHINE_SKS3200M_5GPY1XF` — XikeStor SKS3200M-5GPY1XF (PCB-SWTG115AS-V2.1, 5 x 2.5GBASE-T + 1 x SFP+),
     the ZX-SWTGW215AS board under a different model name. See doc/devices/SKS3200M-5GPY1XF.md.
-  - `MACHINE_SKS3200M_8GPY1XF` — XikeStor SKS3200M-8GPY1XF (SWTG118AS-V2.1-17462, 8 x 2.5GBASE-T + 1 x SFP+),
+  - `MACHINE_XIKESTOR_SKS3200M_8GPY1XF` — XikeStor SKS3200M-8GPY1XF (SWTG118AS-V2.1-17462, 8 x 2.5GBASE-T + 1 x SFP+),
     the ZX-SWTGW218AS board under a different model name.
   - `MACHINE_SKS3200M_4GPY2XF` — XikeStor SKS3200M-4GPY2XF (SWTG024AS-v1.0, 4 x 2.5GBASE-T + 2 x SFP+),
     the SWTG024AS board under a different model name. Enables the reset button and the factory MAC for
@@ -142,6 +274,9 @@
 
 ## Fixed
 
+- SFP ports are reported as enabled with a separate `module` flag instead of using `enabled` for "module inserted", so an empty cage shows as *not connected* rather than *disabled*; the port details name the missing module.
+- `send_l2()` counted 76 bytes for a worst-case entry but the entry can reach 96, and the closing bracket was written without checking the buffer; the host test caught the overrun.
+- Firefox no longer fills a saved login into the new-password fields of the System tab.
 - NTP
   - An NTP server given by host name never synced on a board that has no DNS server: the client sent
     nothing, `ntp`/`time` only said *Time not synchronised* and the Time card showed `Server address -`,

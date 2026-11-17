@@ -15,7 +15,7 @@ shares this machine block and differs only in `.machine_name` - see
 
 ## RTLPlayground target
 
-Use machine target `MACHINE_LIANGUO_ZX_SWTGW215AS` for this device.
+Build for this device with `make MACHINE=LIANGUO_ZX_SWTGW215AS`, which selects the `machine/LIANGUO_ZX_SWTGW215AS.c` board definition.
 
 Physical hardware verification: 5x RJ45 ports + 1x SFP port. 
 Port 5 RJ45 is interfaced through a RTL8221B IC.

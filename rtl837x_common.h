@@ -1,27 +1,29 @@
 #ifndef _RTL837X_STDIO_H_
 #define _RTL837X_STDIO_H_
 
+#include "clock-arch.h"
 #include "uip/uip-conf.h"
 #include <stdint.h>
 #include <stdbool.h>
 
-#define SYS_TICK_HZ 200
+#define SYS_TICK_HZ CLOCK_CONF_SECOND
 
-/* Timers of the main loop count system ticks, not loop passes: a pass is as
- * long as the packets it handles, and since #483 the loop no longer sleeps
- * while packets wait, so passes can outrun the tick as well as lag it. `last`
- * is the low byte of ticks when the timer last ran; the byte arithmetic wraps
- * every 256 ticks, so a pass longer than 1.28 s loses time rather than
- * running the timer 64 times to catch up. */
+/* Until the main loop is timer-driven (B2), the loop still gates its
+ * periodic work on the tick counter. */
 #define TICKS_DUE(last, period)	((uint8_t)((uint8_t)ticks - (last)) >= (period))
 
-#define CPU_PORT        9
+#define CPU_LOGICAL_PORT        9
+#define CPU_PHYSICAL_PORT       0
+#define MAC_ADDR_LEN    6
+#define PORT_BIT(p)     ((uint16_t)1 << (p))
 #define NUL			'\0'
+#define STR_(x)		#x
+#define STR(x)		STR_(x)
 
 // Define Port-masks for 9-port devices and 6-port devices
 #define PMASK_9		0x1ff
 #define PMASK_6		0x1f8
-#define PMASK_CPU	0x200
+#define PMASK_CPU	((uint16_t)(1 << CPU_LOGICAL_PORT))
 
 // Defines a port mask for dropping all packets on Lookup-miss
 #define LOOKUP_MISS_DROP_6  0x00015540
@@ -140,7 +142,7 @@ extern __xdata bool stp_enabled;
  * advertises it as the System Name TLV) read it from here. */
 extern __xdata char hostname[24];
 
-extern __xdata uint8_t uip_buf[UIP_CONF_BUFFER_SIZE+2];
+extern __xdata uint8_t uip_buf[UIP_CONF_BUFFER_ALLOC_SIZE];
 extern __xdata struct uip_eth_addr uip_ethaddr;
 
 // Headers for calls in the common code area (HOME/BANK0)
@@ -152,6 +154,7 @@ void print_long(uint32_t a);
 void print_short(uint16_t a);
 void print_byte(uint8_t a);
 void itoa(uint8_t v);
+void itoa_no_syslog(uint8_t v);
 void itoa_short(uint16_t v);
 void print_sfr_data(void);
 void print_phy_data(void);
@@ -184,7 +187,6 @@ void reset_chip(void);
  * argument order matches libc, so on-host callers transparently use the
  * C library. See test/. */
 #ifndef RTLP_HOST_TEST
-void sleep(uint16_t t);
 void memcpy(__xdata void * __xdata dst, __xdata const void * __xdata src, uint16_t len);
 void memset(__xdata uint8_t *dst, __xdata uint8_t v, uint8_t len);
 int memcmp(__xdata const void *a, __xdata const void *b, uint16_t len);
@@ -200,6 +202,8 @@ bool strstart_x(__xdata const uint8_t *a, __xdata const uint8_t *b);
 void tcpip_output(void);
 uint8_t read_flash(uint8_t bank, __code const uint8_t *addr);
 void get_random_32(void);
+void read_reg_timer(__xdata uint32_t * tmr);
+/* Still used by the ntp client until the main loop is timer-driven (B2). */
 void read_timer(__xdata uint32_t * tmr);
 bool gpio_pin_test(uint8_t pin);
 void set_sys_led_state(uint8_t state);

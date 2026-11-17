@@ -28,7 +28,7 @@ extern __xdata uint8_t igmpEnabled;
 extern __xdata uint8_t cpuPort;
 extern __xdata uint8_t sfr_data[4];
 extern __xdata struct machine_runtime machine_detected;
-extern __xdata uint8_t uip_buf[UIP_CONF_BUFFER_SIZE + 2];
+extern __xdata uint8_t uip_buf[UIP_CONF_BUFFER_ALLOC_SIZE];
 
 __xdata uint16_t idx;
 #define IGMP_IP_HDR		offsetof(struct igmp_pkt, hlen)
@@ -107,8 +107,7 @@ void igmp_setup(void) __banked
 	REG_SET(RTL837X_IPV4_UNKN_MC_FLD_PMSK, mask);
 	REG_SET(RTL837X_IPV6_UNKN_MC_FLD_PMSK, mask);
 
-	// Enable lookup of IPv4 MC addresses in table
-	reg_bit_set(RTL837X_L2_CTRL, L2_CTRL_LUT_IPMC_HASH);
+	reg_bit_clear(RTL837X_L2_CTRL, L2_CTRL_LUT_IPMC_HASH);
 
 	/* Configure per-port IGMP operations when protocol messages are received
 	 * bits 0-9 enable MC protocol snooping
@@ -127,7 +126,7 @@ void igmp_setup(void) __banked
 	 * For now the IGMP protocols are flooded (01), MLD which MAC-based is handled by ASIC
 	 * All messages are allowed and maximum MC group is 0xff
 	 */
-	for (i = machine.min_port; i <= machine.max_port; i++)
+	for (i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++)
 		REG_SET(RTL837X_IGMP_PORT_CFG + (i << 2), IGMP_MAX_GROUP | IGMP_PROTOCOL_ENABLE | IGMP_FLOOD);
 
 /*	// Allow all physical ports to be dynamic router ports
@@ -145,6 +144,8 @@ void igmp_enable(void) __banked
 {
 	print_string("igmp_enable called\n");
 	igmpEnabled = 1;
+	// Enable lookup of IPv4 MC addresses in table
+	reg_bit_set(RTL837X_L2_CTRL, L2_CTRL_LUT_IPMC_HASH);
 	// Configure trapping of unhandled IGMP protocol packets to CPU
 	REG_SET(RTL837X_IGMP_TRAP_CFG, IGMP_CPU_PORT | IGMP_TRAP_PRIORITY);
 
@@ -154,7 +155,7 @@ void igmp_enable(void) __banked
 
 	// Configure per-port IGMP configuration, bits 0-10 enable MC protocol snooping,
 	// bits 16-24 configure max MC group used by that port. Trap to CPU (10)
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		REG_SET(RTL837X_IGMP_PORT_CFG + (i << 2), IGMP_MAX_GROUP | IGMP_PROTOCOL_ENABLE | IGMP_TRAP);
 	}
 }
@@ -179,7 +180,7 @@ void igmp_router_port_set(uint16_t pmask) __banked
 void igmp_show(void) __banked
 {
 	print_string("igmp_show called\n");
-	for (uint8_t i = machine.min_port; i <= machine.max_port; i++) {
+	for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++) {
 		write_char('0' + i); write_char(':');
 		reg_read_m(RTL837X_IGMP_PORT_CFG + (i << 2));
 		print_sfr_data();
@@ -250,6 +251,8 @@ uint8_t igmp_packet_handler(void) __banked
 #ifdef DEBUG
 	print_string("IGMP join "); print_byte(igmp_join); write_char('\n');
 #endif
+	if (uip_buf[igmp_grp] == IGMP_LOCAL_NET_0 && !uip_buf[igmp_grp + 1] && !uip_buf[igmp_grp + 2])
+		return 1;
 
 #ifdef IPMC_USES_L3MC
 	memset((__xdata uint8_t *)&entry, 0, sizeof(struct ipmc_table_entry));

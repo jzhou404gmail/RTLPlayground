@@ -30,7 +30,7 @@
 
 ## 1. 我该编译哪个 target？
 
-### 1.1 本分支新增的 6 个 target（外加按实物重写的 IG204）
+### 1.1 本分支新增的 target（外加按实物重写的 IG204）
 
 | 板卡丝印 | 零售型号 | 网管 | 端口 | 主控 | 闪存 | Machine target | 编译 |
 |---|---|---|---|---|---|---|---|
@@ -38,9 +38,10 @@
 | `PCB-K0801W-V1.0` / `DIP-K0801WS-V1.0` | 海思创 Hi-K0801WS（实物标签 `SFP-J08E-HG1`） | 非网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Boya/BoHong `BY25Q16BS` | `PCB_K0801W_V1` | **必须加 `FLASH_NO_DIO=1`** |
 | `PCB-SWTG115AS-V2.1-17443` | 兮克 XikeStor **SKS3200M-5GPY1XF** | 网管 | 5 × 2.5G + 1 × 万兆 SFP+ | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_5GPY1XF` | `make MACHINE=…` |
 | `SWTG024AS-v1.0` | 兮克 XikeStor **SKS3200M-4GPY2XF** | 网管 | 4 × 2.5G + 2 × SFP | RTL8372 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_4GPY2XF` | `make MACHINE=…` |
-| `SWTG118AS-V2.1-17462` | 兮克 XikeStor **SKS3200M-8GPY1XF** | 网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_8GPY1XF` | `make MACHINE=…` |
+| `SWTG118AS-V2.1-17462` | 兮克 XikeStor **SKS3200M-8GPY1XF** | 网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `XIKESTOR_SKS3200M_8GPY1XF` | `make MACHINE=…` |
 | `PB-2131` | IG204 4+2（标签 `IG204 V1`，Steamemo 等品牌共用） | 非网管 | 4 × 2.5G + 2 × SFP+ | RTL8372 | 原厂 4 MiB cFeon `EN25QE32A`；实测机换成 1 MiB `MX25L8005M` | `STEAMEMO_IG204_V1` | `make MACHINE=STEAMEMO_IG204_V1 FLASH_NO_DIO=1` |
 | `F7005-2.5GPOE-V1.0` | NPA **AP-7024-2.5G** | 非网管 | 4 × 2.5G + 2 × SFP+ | RTL8372 | 原厂 512 KiB BrightMoon `T25S40`；成品机换成 2 MiB `BY25Q16BS` | `F7005_2_5` | `make MACHINE=F7005_2_5 FLASH_NO_DIO=1` |
+| `PCB-K0402W-V3.0` / `DIP-K0402WS-V3.0` | MIMC·微联聚 **D4S2TX**（前面板 S/V 是两颗闪存的硬件切换；System 页显示 MIMC D4S2TX / PCB_K0402WS-V3.0） | 非网管 | 4 × 2.5G + 2 × SFP+ | RTL8372 | 2 MiB × 2 Boya `BY25Q16ESSIG`（U1 正面 / U67 背面） | `MIMC_D4S2TX` | `make MACHINE=MIMC_D4S2TX`（板级已设 `.flash_sio = 1`，不必再加 `FLASH_NO_DIO=1`） |
 
 三个兮克机型**不是新板子**：里面的 PCB 上游本来就支持（分别是 ZX-SWTGW215AS、SWTG024AS 系列、ZX-SWTGW218AS）。新增 target 的原因是**同一块板子被厂商以另一个型号销售**，固件里应该显示实际型号；另外 4GPY2XF 那台还需要为这个零售版本单独打开复位键和出厂 MAC。
 
@@ -64,7 +65,7 @@ IG204 4+2（`PB-2131`）和 NPA AP-7024-2.5G（`F7005-2.5GPOE-V1.0`）则是**�
 3. **以丝印为准，不要以零售名为准。** 丝印能对上下表就用对应 target；对不上就去 [doc/supported_devices.md](doc/supported_devices.md) 里查 —— 其它版本（KP-9000、SWTG024AS-V2.0、ZX-SWTGW215AS、ZX-SWTGW218AS、PCB-K0402WS V2.0/V3.0 等）上游已经覆盖。
 
 > [!IMPORTANT]
-> 上面这些 target 里有四个是用 `FLASH_NO_DIO=1` 编译并实测的（Hi-K0402WS、Hi-K0801WS、IG204、AP-7024-2.5G）。其中 **Hi-K0402WS / Hi-K0801WS 不加这个标志一定会出问题**：`Detecting CPU` 之后每 10 ms 重启一次，这不是板子坏了，也不是 target 选错了，而是那两颗 Boya `BY25Q16BS` 不接受 Dual-I/O 读模式，重新加 `FLASH_NO_DIO=1` 编译再刷即可。IG204 和 AP-7024 的闪存（`MX25L8005M`、`T25S40`、`BY25Q16BS`）同样只按单比特 fast read 验证过，一起加这个标志更稳。
+> 上面这些 target 里有四个是用 `FLASH_NO_DIO=1` 编译并实测的（Hi-K0402WS、Hi-K0801WS、IG204、AP-7024-2.5G）。其中 **Hi-K0402WS / Hi-K0801WS 不加这个标志一定会出问题**：`Detecting CPU` 之后每 10 ms 重启一次，这不是板子坏了，也不是 target 选错了，而是那两颗 Boya `BY25Q16BS` 不接受 Dual-I/O 读模式，重新加 `FLASH_NO_DIO=1` 编译再刷即可。IG204 和 AP-7024 的闪存（`MX25L8005M`、`T25S40`、`BY25Q16BS`）同样只按单比特 fast read 验证过，一起加这个标志更稳。MIMC D4S2TX 是第五块按单比特模式跑的板子，但它把这件事写进了板级定义（`.flash_sio = 1`），编译时不用再加标志。
 
 ## 2. 逐机型说明
 
@@ -132,14 +133,14 @@ RTL8372，4 × 2.5GBASE-T + 2 × SFP，2 MiB Winbond `W25Q16JV`。**状态：正
 >
 > 光口编号的交叉是**板子本身**的属性，所以同一个修复也让上游支持的 SWTG024AS-V2.0（联果/ Horaco / Sodola）受益：在这之前，插在左笼（J4）的模块会被报成右笼。
 
-### 2.5 兮克 XikeStor SKS3200M-8GPY1XF —— `SWTG118AS-V2.1-17462` → `MACHINE_SKS3200M_8GPY1XF`
+### 2.5 兮克 XikeStor SKS3200M-8GPY1XF —— `SWTG118AS-V2.1-17462` → `MACHINE_XIKESTOR_SKS3200M_8GPY1XF`
 
 RTL8373，8 × 2.5GBASE-T + 1 × SFP+，2 MiB Winbond `W25Q16JV`。**状态：正式支持。** 与 Mokerlink ZX-SWTGW218AS（V2.0）同板；这个 target 的存在是为了让界面报告板卡 `PCB-SWTG118AS-V2.1`、型号 `SKS3200M-8GPY1XF`。
 
 | | |
 |---|---|
-| 编译 | `make MACHINE=SKS3200M_8GPY1XF`（V2.0 板子用 `MACHINE=SWTGW218AS`） |
-| 原厂 → RTLPlayground | 原厂是 CGI 固件（固件版本 V1.9，`admin/admin`，`192.168.10.12`），其"固件升级"页（`fwug.cgi`）可直接接收一键安装镜像 |
+| 编译 | `make MACHINE=XIKESTOR_SKS3200M_8GPY1XF`（V2.0 板子用 `MACHINE=MOKERLINK_ZX_SWTGW218AS`） |
+| 原厂 → RTLPlayground | 原厂是 CGI 固件（固件版本 V1.9，`admin/admin`，`192.168.10.12`），其"固件升级"页（`fwug.cgi`）可直接接收一键安装镜像 `rtlplayground-<版本>-oem-upgrade-XIKESTOR_SKS3200M_8GPY1XF.bin`（release 附件，制作方法见 [4.2](#42-刷机)） |
 | 复位键 | `GPIO54` —— **实测**：约 5 s 重启，约 13 s 恢复出厂设置，< 3 s 无动作 |
 | 默认 IP | DHCP（自动获取） |
 | 机型文档 | [doc/devices/SWTGW218AS.md](doc/devices/SWTGW218AS.md) |
@@ -179,11 +180,30 @@ RTL8372，4 × 2.5GBASE-T + 2 × SFP+（1G/2.5G/10G），原厂 512 KiB BrightMo
 
 实测内容：`regget 0004` = `0x83727000`（RTL8372）；四个电口 2.5G；电口 LED **2.5G 绿 / 1G·100M 橙**，逐个焊盘量出来的映射（RJ45 1 绿 3 / 橙 4-5，RJ45 2 绿 6 / 橙 8，RJ45 3 绿 9-10 / 橙 12-14，RJ45 4 绿 18-20 / 橙 21-23）；`LED_GLB_IO_EN` 必须写 `0x7fffffff`，否则整块面板不亮；两个光笼的检测脚是 **GPIO38（左）/ GPIO37（右）**、EEPROM 在 **SDA1/SCL1 与 SDA0/SCL0**（都不是参考值），同一只 10G 模块左右互换都验过 `sfp` 和 10G 链路。
 
+### 2.8 MIMC D4S2TX —— `PCB-K0402W-V3.0` → `MACHINE_MIMC_D4S2TX`
+
+RTL8372，4 × 2.5GBASE-T + 2 × SFP+（1G/2.5G/10G），丝印 `PCB-K0402W-V3.0` / `DIP-K0402WS-V3.0`，标签型号 MIMC·微联聚 D4S2TX。板上有**两颗 2 MiB 闪存**：正面 `U1`、背面 `U67`；前面板最右侧的 **S/V** 拨刀**不是 VLAN 开关**，而是这两颗闪存的硬件切换（S = U1，V = U67，切换 HOLD 线，拨动后重启进另一颗）。因此本机型没有软 VLAN 开关。**状态：2026-11-17 四台全部实测通过：启动、Web、四个电口、两颗闪存、全部面板灯（L1-L4 / R1-R4 / 两个光笼）都正确。**
+
+| | |
+|---|---|
+| 编译 | `make MACHINE=MIMC_D4S2TX`（板级已设 `.flash_sio = 1`；加 `FLASH_NO_DIO=1` 效果相同） |
+| 首次刷机 | 原厂为非网管 Realtek 参考固件，只能用 SPI 夹子写：先备份 2 MiB，擦除，写构建出的 512 KiB 镜像。给编程器用时先 `truncate -s 2097152` 补齐；**补齐过的文件不要拿去网页升级** |
+| 闪存 | 两颗 2 MiB 的 `BY25Q16ESSIG`（U1/U67），板级按单比特 fast read（`.flash_sio = 1`）跑，等价于 `FLASH_NO_DIO=1` |
+| S/V 拨刀 | **硬件闪存选择**：S = U1，V = U67；两颗可各放一套固件，切换即重启。不要把它当 VLAN 开关 |
+| 复位键 | **没有**，`.reset_pin = GPIO_NA` → Web 界面按钮或 `defaults` |
+| 默认 IP | DHCP（自动获取） |
+| 串口 | `J2` 四针 `3V3 / RX / TX / GND`（端口朝下时从上往下）；原厂 9600 8N1，RTLPlayground 115200 8N1 |
+| 机型文档 | [doc/devices/PCB-K0402W-V3.0.md](doc/devices/PCB-K0402W-V3.0.md) |
+
+网页 System 页显示：**型号 `MIMC D4S2TX`**（在“运行时间”下面原来的硬件位置），PCB `PCB_K0402WS-V3.0`，不再显示硬件行（`id_layout = 1`）。
+
+LED 配置**原样借用上游 `PCB_K0402W_V3_0` target**（`led_mux` / `led_sets` / `high_leds` + `_init.c` 里 enable pad6），四台实测全部灯位正确；之前按 V1.0 推的映射是错的，已全部替换。端口映射和 SFP 检测脚沿用上游 V3.0（左 GPIO38 / 右 GPIO37）。
+
 ## 3. 这个分支还改了什么
 
 ### 3.1 没有复位键也能恢复出厂设置 —— 新功能
 
-System 标签页（*维护*）新增 **Restore factory defaults** 按钮，控制台新增等价的 `defaults` 命令。二者都会用镜像内嵌的配置覆盖启动配置并重启，之后机器会按镜像内嵌的 `config.txt` 启动 —— 现在默认是 **DHCP 自动获取**，默认密码为空（网页直接进入，不需要登录）。
+System 标签页（*维护*）新增 **Restore factory defaults** 按钮，控制台新增等价的 `defaults` 命令。二者都会用镜像内嵌的配置覆盖启动配置并重启，之后机器会按镜像内嵌的 `config.txt` 启动 —— 默认是 **DHCP 自动获取**，默认密码为 **`1234`**（内嵌加盐摘要，不是明文；第一次登录后请立即修改）。
 
 它**刻意不是**一条配置命令：永远不会被写进启动配置。界面文案已补齐 6 种语言（英、日、中、西、法、德）。
 
@@ -274,7 +294,7 @@ make MACHINE=PCB_K0801W_V1 FLASH_NO_DIO=1
 # 三个兮克机型
 make MACHINE=SKS3200M_4GPY2XF
 make MACHINE=SKS3200M_5GPY1XF
-make MACHINE=SKS3200M_8GPY1XF
+make MACHINE=XIKESTOR_SKS3200M_8GPY1XF
 
 # IG204 4+2（PB-2131）与 NPA AP-7024-2.5G（F7005-2.5GPOE-V1.0）：单比特 fast read 验证过
 make MACHINE=STEAMEMO_IG204_V1 FLASH_NO_DIO=1
@@ -288,14 +308,14 @@ make MACHINE=F7005_2_5 FLASH_NO_DIO=1
 | 机器当前运行 | 用什么方式 |
 |---|---|
 | RTLPlayground | Web 界面"固件升级"，上传 512 KiB 的 `output/<target>/rtlplayground-*.bin` |
-| 原厂**网管**固件（三个兮克机型） | 一键安装镜像 `installer/output/rtlplayground_oem_upgrade.bin`，从原厂"固件升级"页上传 —— loader 的差异见第 2 节各机型说明 |
+| 原厂**网管**固件（三个兮克机型） | 一键安装镜像（540710 字节，内嵌对应机型的固件）：release 附件 `rtlplayground-<版本>-oem-upgrade-<target>.bin`，从原厂"固件升级"页上传 —— 三份镜像按机型一一对应，**不要混用**；loader 的差异见第 2 节各机型说明。本地构建：先 `make MACHINE=<target>`，再 `make -C installer`，产物 `installer/output/rtlplayground_oem_upgrade.bin` 就是当前 target 的安装镜像 |
 | 原厂**非网管**固件（Hi-K0402WS、Hi-K0801WS） | SPI 夹子 + 编程器：先备份 2 MiB，擦除，写入填充到 2 MiB 的镜像，回读校验。填充只对编程器有意义，**不要**上传填充过的文件 |
 | 原厂**非网管**固件（IG204 4+2） | SPI 夹子 + 编程器：先备份原厂 4 MiB `EN25QE32A`，512 KiB 镜像写在偏移 0；原厂芯片没和 RTLPlayground 一起试过（实测机换成了 1 MiB `MX25L8005M`） |
 | 原厂**非网管**固件（NPA AP-7024-2.5G） | 512 KiB `T25S40`：SPI 编程器写 512 KiB 镜像（不用填充）。想用 Web 升级就先换成 2 MiB `BY25Q16BS`（同 SOP-8 封装），见 [机型文档](doc/devices/F7005-2.5GPOE-V1.0.md) |
 
 ### 4.3 刷完之后
 
-- 刚刷好的机器（所有机型）默认通过 **DHCP 自动获取** 管理地址；默认 **没有密码**，打开网页直接进入。用 `passwd <text>` 可以随时加密码，`passwd`（不带参数）可以重新清空。
+- 刚刷好的机器（所有机型）默认通过 **DHCP 自动获取** 管理地址；内嵌默认密码是 **`1234`**（加盐 SHA-256 摘要，不存明文）。第一次打开是普通登录页，用 `1234` 登录后请立即在 System 标签页改密（每次改密都会换新 salt）。只有启动配置里完全没有凭据时（例如串口执行裸 `passwd` 清空），才会显示“设置管理员密码”的首装页。固件不在 8051 上运行 SHA-256，因此 `passwd <text>` 不再接受明文；只有串口时用 `python3 tools/passwd_hash.py '<口令>'` 生成 `passwd_hash <salt> <digest>`，在串口执行后会立即写回启动配置。
 - 如果网段里没有 DHCP 服务器，机器会停在固件内置的保底地址：**SKS3200M-8GPY1XF / 4GPY2XF / 5GPY1XF 为 `192.168.10.12`/24**，**其它机型（Hi-K0402WS、Hi-K0801WS、IG204、AP-7024 等）为 `192.168.10.247`/24**。保底网关都是 `192.168.10.1`，网页端口是 `80`（除非启动配置里另有 `http port`）。一旦 DHCP 拿到租约，地址会立刻切换，所以它只是"没有服务器时的临时地址"。
 - 这个保底地址是按机型在 [rtlplayground.c](rtlplayground.c#L86) 里编译进去的；两台同型号的新机器同时接在同一个没有 DHCP 的网段上会撞地址，这种场景请用 DHCP 或逐台配置静态地址。
 - **升级会保留启动配置。** 镜像只写到配置区之前就停下，所以 VLAN、端口名、密码、IP 地址都能跨版本保留。镜像内嵌的配置只在"机器还没有配置"（全新刷机）或"恢复出厂设置"之后生效。
@@ -313,7 +333,7 @@ make MACHINE=F7005_2_5 FLASH_NO_DIO=1
 | 海思创 Hi-K0402WS 第 1 台 | `PCB_K0402W_V1` | 完整适配：端口、铜口 LED、左右两个光笼、恢复出厂设置、会话 |
 | 海思创 Hi-K0402WS 第 2 台 | `PCB_K0402W_V1` | 界面恢复出厂设置、会话 |
 | 海思创 Hi-K0801WS（`SFP-J08E-HG1`） | `PCB_K0801W_V1` | 能启动、9 个端口正确、闪存模式（`FLASH_NO_DIO=1`）；LED 与 SFP 引脚沿用 V2.0 值，未在该板上单独实测 |
-| 兮克 SKS3200M-8GPY1XF | `SKS3200M_8GPY1XF` | 复位键三态、会话、恢复出厂设置 |
+| 兮克 SKS3200M-8GPY1XF | `XIKESTOR_SKS3200M_8GPY1XF` | 复位键三态、会话、恢复出厂设置 |
 | 兮克 SKS3200M-4GPY2XF | `SKS3200M_4GPY2XF` | 复位键三态、出厂 MAC、恢复出厂设置；**两个光笼**（插孔 5/6 = 逻辑口 8/3）、**逐焊盘实测的 LED 映射**、端口编号交叉修正（2026-10-13） |
 | 兮克 SKS3200M-5GPY1XF | `SKS3200M_5GPY1XF` | 六个端口、光口 10G、LED、系统灯、出厂 MAC、复位键三态 |
 | IG204 4+2（PB-2131，标签 `IG204 V1`） | `STEAMEMO_IG204_V1` | 换 1 MiB MX25L8005M 后启动、Web 升级、四个铜口 2.5G、2.5G 橙 / 千兆绿、**两条灯都随流量闪烁**、**两个光笼 10G**（检测脚 + I²C + SerDes）、**面板 VLAN 拨刀（GPIO36）**、**SYS 慢闪**；界面显示 硬件 `PB-2131` / 型号 `IG204 V1`；**逐条对照随机说明书**；见 [doc/devices/STEAMEMO_IG204_V1.md](doc/devices/STEAMEMO_IG204_V1.md) |

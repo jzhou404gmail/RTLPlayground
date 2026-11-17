@@ -14,15 +14,18 @@
 #include "rtl837x_regs.h"
 #include "rtl837x_sfr.h"
 #include "rtl837x_stp.h"
+#include "rtl837x_lacp.h"
 #include "rtl837x_igmp.h"
 #include "rtl837x_bandwidth.h"
 #include "rtl837x_lldp.h"
 #include "rtl837x_storm.h"
 #include "rtl837x_trap.h"
+#include "rtl837x_cabletest.h"
 #include "sfp.h"
 #include "dhcp.h"
 #include "syslog.h"
 #include "auth.h"
+#include "sessions.h"
 #include "dns.h"
 #include "ntp.h"
 #include "uip/uip.h"
@@ -171,10 +174,15 @@ uint8_t atoi_hex(uint8_t idx)
 			break;
 		}
 
+		if (h_idx == 8) {
+			h_idx = 0;
+			break;
+		}
+
 		// swap hex nibbles
 		val = (val >> 4) | (val << 4);
 
-		if (c - '0' < 10) {
+		if ((uint8_t)(c - '0') < 10) {
 			val |= c - '0';
 		} else {
 			c |= 0x20;
@@ -265,7 +273,7 @@ uint8_t cmd_parse_port(uint8_t idx) {
 		return 0;
 
 	port = machine.phys_to_log_port[port];
-	if (port < machine.min_port || port > machine.max_port)
+	if (!MACHINE_PORT_VALID(port))
 		return 0;
 
 	atoi_results_u8 = port;
@@ -297,7 +305,7 @@ uint8_t cmd_parse_port_cpu_separator(uint8_t idx) {
 
 	if (ret == 0 && cmd_buffer[idx] == '0') {
 		ret = 1;
-		atoi_results_u8 = CPU_PORT;
+		atoi_results_u8 = CPU_LOGICAL_PORT;
 	}
 
 	if (ret != 0) {
@@ -459,8 +467,8 @@ static uint8_t name_char(uint8_t c)
 
 
 // Sets the management MAC from a "mac <aa:bb:cc:dd:ee:ff>" command (or prints
-// the current one with a bare "mac"). Refuses blank/multicast/locally
-// administered/all-zero-OUI addresses so the running MAC stays reachable, and
+// the current one with a bare "mac"). Refuses blank/multicast/all-zero-OUI
+// addresses so the running MAC stays reachable, and
 // re-registers the static L2 management entry so the change applies without a
 // reboot. As a regular command a "mac ..." line in the startup config applies
 // on every boot (execute_config runs before the final static L2 entry).
@@ -476,7 +484,7 @@ void parse_mac_cmd(void)
 		cmd_error("mac [<aa:bb:cc:dd:ee:ff>]\n");
 		return;
 	}
-	if ((mac_parse_result[0] & 0x03) || ((mac_parse_result[0] | mac_parse_result[1] | mac_parse_result[2]) == 0)) {
+	if ((mac_parse_result[0] & 0x01) || ((mac_parse_result[0] | mac_parse_result[1] | mac_parse_result[2]) == 0)) {
 		cmd_error("the MAC must be unicast and globally administered\n");
 		return;
 	}
@@ -540,11 +548,21 @@ void parse_lag(void)
 		goto err;
 
 	if (cmd_compare(2, "d")) {
+		lacp_lag_set(group, 0);
 		port_lag_members_set(group, 0);
 		return;
 	}
 
 	uint8_t w = 2;
+	__xdata uint8_t lacp_mode = 0;
+	if (cmd_words_len > 2 && cmd_compare(2, "lacp")) {
+		lacp_mode = 1;
+		w = 3;
+		if (cmd_words_len > 3 && cmd_compare(3, "off")) {
+			lacp_lag_set(group, 0);
+			return;
+		}
+	}
 	while (w < cmd_words_len) {
 		// Parse port.
 		if (cmd_parse_port_separator(cmd_words_b[w++]) == 0)
@@ -552,10 +570,15 @@ void parse_lag(void)
 
 		members |= ((uint16_t)1) << atoi_results_u8;
 	}
-	port_lag_members_set(group, members);
+	if (lacp_mode) {
+		lacp_lag_set(group, members);
+	} else {
+		lacp_lag_set(group, 0);
+		port_lag_members_set(group, members);
+	}
 	return;
 err:
-	cmd_error("lag (show | <1-4> (d | <port>...))\n");
+	cmd_error("lag (show | <1-4> (d | [lacp] <port>...))\n");
 }
 
 
@@ -638,9 +661,16 @@ void parse_vlan(void)
 		vlan_settings.vlan = atoi_results_short;
 
 		if (cmd_compare(2, "mgmt")) {
+			if (management_vlan == vlan_settings.vlan) {
+				print_string("Management VLAN unchanged\n");
+				return;
+			}
 			port_l2_static_mgmt(uip_ethaddr.addr, management_vlan, true);
 			management_vlan = vlan_settings.vlan;
 			port_l2_static_mgmt(uip_ethaddr.addr, management_vlan, false);
+			/* A switch on DHCP would keep its old lease in the new VLAN. */
+			if (dhcp_state.state != DHCP_OFF)
+				dhcp_start();
 			if (!vlan_settings.vlan)
 				print_string("Management VLAN disabled\n");
 			else
@@ -748,9 +778,9 @@ void parse_isolate(void)
     }
 
 	if (cmd_compare(2, "off")) {
-		for (uint8_t i = machine.min_port; i <= machine.max_port; i++)
+		for (uint8_t i = MACHINE_MIN_PORT; i <= MACHINE_MAX_PORT; i++)
 			members |= ((uint16_t)1) << i;
-		members |= 0x200; // CPU-port
+		members |= PMASK_CPU; // CPU-port
 		port_isolate(port_configured, members);
 		return;
 	}
@@ -802,7 +832,7 @@ void parse_ingress(void)
 		if (!cmd_is_space_or_nul(idx))
 			goto err;
 		// Setting mode for all ports at once
-		for (log_port = machine.min_port; log_port <= machine.max_port; log_port++) {
+		for (log_port = MACHINE_MIN_PORT; log_port <= MACHINE_MAX_PORT; log_port++) {
 			if (!port_ingress_filter(log_port, mode)) {
 				cmd_error("cannot set the ingress filter for port "); print_phys_port(log_port); write_char('\n');
 				return;
@@ -854,7 +884,7 @@ void parse_mirror(void)
 			print_string("NOT Enabled: ");
 		}
 		print_string("Mirroring port: ");
-		print_phys_port(mirroring_port);
+		print_phys_port(mPort >> 1);
 		reg_read_m(RTL837x_MIRROR_CONF);
 		uint16_t m = sfr_data[0];
 		m = (m << 8) | sfr_data[1];
@@ -914,6 +944,7 @@ void parse_port(void)
 					 "\nport <port> [show|on|off]" \
 					 "\nport <port> [10m|100m|1g|2g5|duplex] [half|full]" \
 					 "\nport <port> lldp [block|permit]" \
+					 "\nport <port> cabletest [show]" \
 					 "\nport <port> name [custom port name]\n");
 		return;
 	}
@@ -948,6 +979,8 @@ void parse_port(void)
 		print_string("\"\n");
 	} else if (cmd_compare(2, "lldp")) {
 		if (cmd_compare(3, "block")){
+			if (lldp_enabled)
+				lldp_shutdown((uint16_t)1 << phy_settings.port);
 			lldp_logical_port_status &= ~((uint16_t)1 << phy_settings.port);
 		} else if (cmd_compare(3, "permit")) {
 			lldp_logical_port_status |= (uint16_t)1 << phy_settings.port;
@@ -956,6 +989,11 @@ void parse_port(void)
 		}
 	} else if (machine.is_sfp[phy_settings.port]) {
 		print_string(" is SFP no PHY information available.\n");
+	} else if (cmd_compare(2, "cabletest")) {
+		if (cmd_words_len > 3 && cmd_compare(3, "show"))
+			cabletest_show();
+		else
+			cabletest_run();
 	} else if (cmd_compare(2, "10m")) {
 		print_string(" 10M\n");
 		phy_settings.speed = PHY_SPEED_10M;
@@ -1018,7 +1056,7 @@ void parse_mtu(void)
 	uint8_t p;
 
 	if (cmd_compare(1, "show")) {
-		for (p = machine.min_port; p <= machine.max_port; p++) {
+		for (p = MACHINE_MIN_PORT; p <= MACHINE_MAX_PORT; p++) {
 			reg_read_m(RTL8373_REG_MAC_L2_PORT_MAX_LEN + ((uint16_t) p << 8));
 			uint16_t mtu = SFR_DATA_U16 & 0x3fff;
 			print_string("Port "); print_phys_port(p);
@@ -1472,9 +1510,13 @@ void parse_passwd(void)
 
 	if (cmd_words_len == 1) {
 		auth_clear();
-		auth_save_pending = 1;
+		/* During the boot replay this is just the stored state; only an
+		 * operator's "passwd" on the console has to be written back. */
+		if (save_cmd)
+			auth_save_pending = 1;
 		httpd_forget_sessions();
-		print_string("Web management disabled; use the serial console to set a password\n");
+		print_string("Web management disabled; open the Web UI to set a new password,\n");
+		print_string("or use passwd_hash <salt> <digest> on the console\n");
 		return;
 	}
 
@@ -1487,12 +1529,16 @@ void parse_passwd(void)
 			j++;
 		}
 		passwd[j] = NUL;
+		/* Logins made with the old password end here. With one session the next
+		 * login pushed a leftover one out; with several it would stay valid. */
+		session_init();
 		return;
 	}
 
 	/* Hashing happens in the browser: the plaintext never has to be hashed on
 	 * the 8051, which has no RAM for a SHA-256 implementation. */
-	print_string("Set the password in the Web UI (it sends only the digest)\n");
+	print_string("On-device hashing is unavailable; set the password in the Web UI,\n");
+	print_string("or use passwd_hash <salt> <digest> (tools/passwd_hash.py)\n");
 }
 
 
@@ -1912,6 +1958,8 @@ void print_gpio_status(void) {
 void print_sw_version(void) __banked {
 	print_string("Software version: " VERSION_SW);
 	print_string("\nBuild date: " BUILD_DATE);
+	print_string("\nCompiler: SDCC " STR(__SDCC_VERSION_MAJOR) "." STR(__SDCC_VERSION_MINOR) "." STR(__SDCC_VERSION_PATCH) " #" STR(__SDCC_REVISION));
+	print_string("\nToolchain: " SDCC_TOOLCHAIN);
 	print_string("\nHardware: ");
 	print_string(machine.machine_name);
 	if (machine.model_name[0]) {
@@ -1944,7 +1992,7 @@ void cmd_parser(void) __banked
 		if (cmd_compare(0, "reset")) {
 			print_string("\nRESET\n\n");
 			reset_chip();
-		} else if (cmd_compare(0, "defaults")) {
+		} else if (cmd_compare(0, "defaults") || cmd_compare(0, "factory-reset")) {
 			/*
 			 * Restore the configuration the image was built with and reboot -
 			 * exactly what the reset button does when it is held for more than
@@ -2093,12 +2141,19 @@ void cmd_parser(void) __banked
 		} else if (cmd_compare(0, "health")) {
 			health_show();
 #endif
+		} else if (cmd_compare(0, "lacp")) {
+			if (cmd_compare(1, "show"))
+				lacp_show();
+			else if (cmd_compare(1, "off"))
+				lacp_off();
+			else
+				cmd_error("lacp (show | off); a group starts LACP with: lag <1-4> lacp <port>...\n");
 		} else if (cmd_compare(0, "pvid")) {
 			if (cmd_words_len == 3 && cmd_parse_port_separator(cmd_words_b[1]) != 0
-			    && atoi_short(cmd_words_b[2]) && atoi_results_short && atoi_results_short <= 4094)
+			    && atoi_short(cmd_words_b[2]) && atoi_results_short <= 4094)
 				port_pvid_set(atoi_results_u8, atoi_results_short);
 			else {
-				cmd_error("pvid <port> <1-4094>\n");
+				cmd_error("pvid <port> <0-4094>\n");
 			}
 		} else if (cmd_compare(0, "vlan")) {
 			parse_vlan();
@@ -2170,6 +2225,8 @@ void cmd_parser(void) __banked
 				lldp_enabled = 1;
 				trap_rma_set(RTL837X_RMA0E_CONF, RTL837X_RMA_ACT_TRAP);
 			} else {
+				if (lldp_enabled)
+					lldp_shutdown(lldp_logical_port_status);
 				print_string("LLDP disabled\n");
 				lldp_enabled = 0;
 				trap_rma_set(RTL837X_RMA0E_CONF, RTL837X_RMA_ACT_FORWARD);
@@ -2246,7 +2303,7 @@ void execute_config(void) __banked
 				skipping = 1;
 			}
 			c = flash_buf[cfg_idx++];
-			if (c == 0 || c == '\n') {
+			if (c == 0 || c == '\n' || c == '\r') {
 				if (skipping) {
 					skipping = 0;
 				} else {
@@ -2420,6 +2477,7 @@ void health_show(void) __banked
 	ph_line("tx  ", HEALTH_PH_TX);
 	ph_line("stp ", HEALTH_PH_STP);
 	ph_line("cmd ", HEALTH_PH_CMD);
+	ph_line("lldp", HEALTH_PH_LLDP);
 
 	/* Stack: current depth plus how much of the painted area is untouched */
 	print_string("sp ");

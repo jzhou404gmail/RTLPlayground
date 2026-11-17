@@ -15,6 +15,7 @@
 
 void dhcp_start(void) __banked;
 void dhcp_stop(void) __banked;
+void dhcp_link_up(void) __banked;
 // void dhcp_periodic(void) __banked;
 void dhcp_callback(uint16_t lport) __banked;
 
@@ -23,7 +24,10 @@ struct dhcp_state {
 	uint8_t state;
 	uint32_t transaction_id;
 	uint16_t dhcp_timer;
+	uint16_t lease_timer;
 	uint8_t ticks;
+	uint8_t retries;
+	uint8_t renew_now;
 	uint16_t opt_ptr;
 	uint8_t current_ip[4];
 	uint8_t server[4];

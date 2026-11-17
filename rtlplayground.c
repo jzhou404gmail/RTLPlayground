@@ -2,7 +2,6 @@
 #include <stdint.h>
 
 // #define REGDBG 1
-// #define RXTXDBG 1
 
 #include "rtl837x_sfr.h"
 #include "rtl837x_regs.h"
@@ -12,15 +11,19 @@
 #include "rtl837x_phy.h"
 #include "rtl837x_port.h"
 #include "rtl837x_trap.h"
+#include "rtl837x_nic.h"
 #include "rtl837x_stp.h"
+#include "rtl837x_lacp.h"
 #include "rtl837x_igmp.h"
 #include "rtl837x_leds.h"
 #include "rtl837x_bandwidth.h"
 #include "rtl837x_init.h"
 #include "rtl837x_lldp.h"
+#include "rtl837x_cabletest.h"
 #include "dhcp.h"
 #include "cmd_parser.h"
 #include "cmd_editor.h"
+#include "auth.h"
 #include "uip/uipopt.h"
 #include "uip/uip.h"
 #include "uip/uip_arp.h"
@@ -29,6 +32,7 @@
 #include "syslog.h"
 #include "dns.h"
 #include "ntp.h"
+#include "timer.h"
 #include "httpd/page_impl.h"
 #include "boot.h"
 #include "sfp.h"
@@ -73,8 +77,6 @@ void crc16_bank1(__xdata uint8_t *v) __naked;
    - T_TIMER_DIV12_OVERFLOW = F_SYS / DIV12 / 1..65536 = 125MHz / 12 / 1..65536 = 10.42 MHz .. 158.9 Hz
    Selecting dividor 12 settings to get lowest timer tick posiable which is already high.
 */
-#define SYS_TICK_HZ 200
-
 #define TIMER2_DIV (CLOCK_HZ / 12 / SYS_TICK_HZ)
 #if TIMER2_DIV > 0xFFFF
 #error "SYS_TICK_HZ to low, must be >= 159"
@@ -85,16 +87,14 @@ __xdata uint8_t idle_ready;
 
 /*
  * Address the board keeps while no DHCP lease has arrived (and if no DHCP
- * server answers at all). The three XikeStor models print 192.168.10.12 on
- * their nameplate; every other target keeps RTLPlayground's traditional
- * 192.168.10.247. "ip dhcp" replaces this as soon as a lease arrives, so it
- * is only the pre-lease / no-server fallback - not a static configuration.
+ * server answers at all). The XikeStor models print 192.168.10.12 on their
+ * nameplate; every other target keeps 192.168.10.247. A board header overrides
+ * MACHINE_FALLBACK_IP. "ip dhcp" replaces this as soon as a lease arrives.
  */
-#if defined(MACHINE_SKS3200M_8GPY1XF) || defined(MACHINE_SKS3200M_4GPY2XF) || defined(MACHINE_SKS3200M_5GPY1XF)
-__code const uint8_t ownIP[] = { 192, 168, 10, 12 };
-#else
-__code const uint8_t ownIP[] = { 192, 168, 10, 247 };
+#ifndef MACHINE_FALLBACK_IP
+#define MACHINE_FALLBACK_IP 247
 #endif
+__code const uint8_t ownIP[] = { 192, 168, 10, MACHINE_FALLBACK_IP };
 __code const uint8_t gatewayIP[] = { 192, 168, 10, 1 };
 __code const uint8_t netmask[] = { 255, 255, 255, 0};
 
@@ -102,18 +102,20 @@ __xdata struct uip_eth_addr uip_ethaddr;
 
 volatile __xdata uint32_t ticks;
 volatile __xdata uint8_t sec_counter;
-// Seconds since boot, kept in RAM: the hardware seconds register it is mirrored
-// to does not hold a written value on an RTL8372, see read_timer()
+/* Seconds since boot, kept in RAM: the hardware seconds register only holds a
+ * written value on an RTL8373, so deadlines measured from it are useless on an
+ * RTL8372. read_timer() serves the web session timeout and the console. */
 volatile __xdata uint32_t uptime_secs;
-volatile __xdata uint16_t sleep_ticks;
-__xdata uint8_t stp_tick_last;
+__xdata uint32_t button_press_ticks;
+__xdata uint8_t vlan_switch_enabled;
 __xdata uint8_t arp_age_secs;
 extern __xdata struct dhcp_state dhcp_state;
 
-#define STP_TICK_STEP (SYS_TICK_HZ / STP_HZ)
 #define STP_CATCH_UP 8
 #define SFP_TICK_STEP 10
-__xdata uint8_t sfp_tick_last;
+static __xdata struct timer second;
+static __xdata struct timer sfp_poll;
+static __xdata struct timer delay_timer;
 
 /* Buffer for serial input, SBUF_SIZE must be power of 2 < 256
  * Writing to this buffer is under the sole control of the serial ISR
@@ -135,8 +137,8 @@ __code const uint8_t * __code const hex = "0123456789abcdef";
 __xdata uint8_t flash_buf[FLASH_BUF_SIZE];
 
 // NIC buffers for packet RX/TX
-__xdata uint8_t rx_headers[16]; // Packet header(s) on RX
-__xdata uint8_t uip_buf[UIP_CONF_BUFFER_SIZE+2];
+__xdata uint8_t rx_headers[16]; // RX descriptor
+__xdata uint8_t uip_buf[UIP_CONF_BUFFER_ALLOC_SIZE];
 
 __xdata uint16_t rx_packet_vlan;
 __xdata uint16_t management_vlan;
@@ -144,10 +146,10 @@ __xdata bool frame_tagged;
 __xdata uint8_t tx_seq;
 
 __xdata bool stp_enabled;
-__xdata uint8_t vlan_switch_enabled;
 __xdata uint8_t igmpEnabled;
 __xdata bool lldp_enabled;
 __xdata char hostname[24];	/* device hostname, default set at boot, see rtl837x_common.h */
+__xdata uint8_t lacpEnabled;
 
 __code const uint16_t bit_mask[16] = {
 	0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080,
@@ -156,6 +158,7 @@ __code const uint16_t bit_mask[16] = {
 
 
 __xdata uint8_t linkbits_last[4];
+__xdata uint16_t link_changed;
 __xdata uint8_t linkbits_last_p89;
 __data __at(0x20) volatile uint8_t evflags;
 volatile __bit __at(0x00) link_irq;
@@ -164,7 +167,7 @@ volatile __bit __at(0x02) tick_pending;
 __bit __at(0x03) cmd_available;
 // Last known state of the SFP detection/Loss of Signal pins
 __xdata bool button_last;
-__xdata uint32_t button_press_ticks;
+__xdata uint8_t button_sec_counter_last;
 volatile __bit tx_buf_empty;
 
 
@@ -224,8 +227,6 @@ void isr_timer2(void) __interrupt(5)
 {
 	ticks++;
 	tick_pending = 1;
-	if (sleep_ticks > 0)
-		sleep_ticks--;
 	sec_counter++;
 
 	// Clear TF2 & EXF2 by software
@@ -316,6 +317,19 @@ void itoa(uint8_t v)
 	write_char('0' + (v % 10));
 }
 
+
+void itoa_no_syslog(uint8_t v)
+{
+	uint8_t t = (v / 100);
+	uint8_t print_zeros = t;
+	if (print_zeros)
+		write_char_no_syslog('0' + t);
+	t = (v / 10) % 10;
+	print_zeros |= t;
+	if (print_zeros)
+		write_char_no_syslog('0' + t);
+	write_char_no_syslog('0' + (v % 10));
+}
 
 /* Same as itoa(), one decade wider: enough for a port number. Kept separate
  * rather than widening itoa() itself, because every existing caller passes a
@@ -726,108 +740,6 @@ void get_random_32(void)
 }
 
 
-/*
- * Transfer Network Interface RX data from the ASIC to the 8051 XMEM
- * data will be stored in the rx_header structure
- * len is the length of data to be transferred
- */
-bool nic_rx_header(uint16_t ring_ptr)
-{
-	uint16_t buffer = (uint16_t) &rx_headers[0];
-	uint16_t guard = 0;
-
-	SFR_NIC_DATA_U16LE = buffer;
-	SFR_NIC_RING_U16LE = ring_ptr;
-	SFR_NIC_CTRL = 1;
-	while (SFR_NIC_CTRL != 0) {
-		if (++guard == 0) {
-			print_string("NIC: RX header transfer did not complete\n");
-			return false;
-		}
-	}
-	return true;
-}
-
-
-/*
- * Transfer Network Interface RX data from the ASIC to the 8051 XMEM
- * the description of the packet must be in the rx_headers data structure
- * data will be returned in the xmem buffer points to
- * ring_ptr is the current position of the RX Ring on the ASIC side
- */
-bool nic_rx_packet(uint16_t buffer, uint16_t ring_ptr)
-{
-	uint16_t guard = 0;
-
-	SFR_NIC_DATA_U16LE = buffer;
-	SFR_NIC_RING_U16LE = ring_ptr;
-
-	uint16_t len = (((uint16_t)rx_headers[5]) << 8) | rx_headers[4];
-	len += 7;
-	len >>= 3;
-#ifdef RXTXDBG
-	print_string(" len: ");
-	print_short(len);
-#endif
-	SFR_NIC_CTRL = len;
-	while (SFR_NIC_CTRL != 0) {
-		if (++guard == 0) {
-			print_string("NIC: RX transfer did not complete\n");
-			return false;
-		}
-	}
-	return true;
-}
-
-
-/*
- * Transfers data in XMEM to the ASIC for transmission by the nic
- */
-void nic_tx_packet(uint16_t ring_ptr)
-{
-	uint16_t len;
-	uint16_t guard = 0;
-
-	/* A frame that got a dot1Q tag was shifted forward over its padding, so it
-	 * starts at uip_buf and carries the q_frame layout. One that did not keeps
-	 * the padding in front and the nonq_frame layout, so the padding is skipped.
-	 */
-	if (frame_tagged) {
-		SFR_NIC_DATA_U16LE = (uint16_t) uip_buf;
-		len = FRAME_Q->len;
-		/*
-		(__xdata struct rtl_dot1q_frame *)uip_buf
-#define FRAME (((__xdata struct rtl_dot1q_frame *)&uip_buf[0]).nonq_frame)*/
-	} else {
-		SFR_NIC_DATA_U16LE = (uint16_t) uip_buf + VLAN_TAG_SIZE;
-		len = FRAME->len;
-	}
-
-#ifdef RXTXDBG
-	print_string("TX: \n");
-	for (uint8_t i = 0; i < 100; i++) {
-		print_byte(uip_buf[i]);
-		write_char(' ');
-	}
-	write_char('\n');
-#endif
-
-	ring_ptr <<= 3;
-	ring_ptr |= 0x8000;
-	SFR_NIC_RING_U16LE = ring_ptr;
-
-	len += 0xf;
-	len >>= 3;
-	SFR_NIC_CTRL = len;
-	while (SFR_NIC_CTRL != 0) {
-		if (++guard == 0) {
-			print_string("NIC: TX transfer did not complete\n");
-			return;
-		}
-	}
-}
-
-
 /* Read flash using the MMIO capabilities of the DW8051 core
  * Bank is < 0x3f and is the MSB
  * addr gives the address in the bank
@@ -916,9 +828,9 @@ void print_reg(uint16_t reg)
 // Print the physical port of a logical port number.
 void print_phys_port(uint8_t port)
 {
-	if (port < CPU_PORT)
+	if (port < CPU_LOGICAL_PORT)
 		write_char(machine.log_to_phys_port[port] + '0');
-	else if (port == CPU_PORT)
+	else if (port == CPU_LOGICAL_PORT)
 		print_string("CPU");
 	else {
 		print_string("UNKNOWN ");
@@ -956,33 +868,31 @@ void cpy_4(__xdata uint8_t dest[], __xdata uint8_t source[])
 }
 
 
-/*
- * Seconds since boot, from the counter handle_tick() keeps in RAM.
- *
- * It used to read RTL837X_REG_SEC_COUNTER instead, which only holds a written
- * value on an RTL8373: on an RTL8372 the register always reads back 0, so every
- * deadline measured from it - the HTTP session timeout in particular - was
- * already expired or never expired, depending on which side compared. Since the
- * firmware is what increments the register in the first place (handle_tick()
- * reads its top byte, adds one and writes it back), keeping the same count in
- * RAM costs nothing and works on both chip classes. The register is still
- * updated for the console's `time` command and for regget.
- *
- * Deriving the value from `ticks` with a division was tried first and broke
- * session handling in practice (a cookie stopped being accepted seconds after
- * login), so the count is maintained directly instead.
- */
 void read_timer(__xdata uint32_t * tmr)
 {
 	*tmr = uptime_secs;
 }
 
 
+void read_reg_timer(__xdata uint32_t * tmr)
+{
+	uint8_t * val = (uint8_t *)tmr;
+	SFR_REG_ADDR_U16 = RTL837X_REG_SEC_COUNTER;
+	SFR_EXEC_GO = SFR_EXEC_READ_REG;
+	do {
+	} while (SFR_EXEC_STATUS != 0);
+	*val++ = SFR_DATA_0;
+	*val++ = SFR_DATA_8;
+	*val++ = SFR_DATA_16;
+	*val = SFR_DATA_24;
+}
+
+
 // Delay for given number of ticks without doing housekeeping
 void delay(uint16_t t)
 {
-	sleep_ticks = t;
-	while (sleep_ticks > 0)
+	timer_set(&delay_timer, t);
+	while (!timer_expired(&delay_timer))
 		PCON |= 1;
 }
 
@@ -1019,8 +929,12 @@ void tcpip_output(void)
 	uint16_t ring_ptr = ((uint16_t)sfr_data[2]) << 8;
 	ring_ptr |= sfr_data[3];
 
-	// Move data over from xmem buffer to ASIC side using DMA
-	nic_tx_packet(ring_ptr);
+	// Move data over from xmem buffer to ASIC side using DMA. A VLAN-tagged
+	// frame starts at uip_buf; an untagged frame retains four bytes of padding.
+	if (frame_tagged)
+		nic_tx_packet(uip_buf, FRAME_Q->len, ring_ptr);
+	else
+		nic_tx_packet(uip_buf + VLAN_TAG_SIZE, FRAME->len, ring_ptr);
 
 	// New position of the ring-pointer on the NIC-side indicates number of bytes transmitted
 	reg_read_m(RTL837X_REG_NIC_TX_CURR_PKT);
@@ -1057,7 +971,7 @@ void handle_rx(void)
 			write_char(' ');
 		}
 #endif
-		if (!nic_rx_packet((uint16_t) &uip_buf[0], ring_ptr + 8)) {
+		if (!nic_rx_packet(uip_buf, ring_ptr + 8)) {
 			REG_SET(RTL837X_REG_NIC_RXCMD, 1);
 			return;
 		}
@@ -1082,12 +996,16 @@ void handle_rx(void)
 		print_byte(uip_buf[3]); print_byte(uip_buf[4]); print_byte(uip_buf[5]); write_char('\n');
 		print_string(" MGMT-VLAN: "); print_short(management_vlan); write_char('\n');
 #endif
-		if (stp_enabled && uip_buf[0] == 0x01 && uip_buf[1] == 0x80 && uip_buf[2] == 0xc2 // STP packet?
-			&& uip_buf[3] == 0x00 && uip_buf[4] == 0x00 && uip_buf[5] == 0x00) {
-			stp_in();
-			if (uip_len) {
-				print_string("STP TX\n");
-				tcpip_output();
+		if ((stp_enabled || lacpEnabled) && uip_buf[0] == 0x01 && uip_buf[1] == 0x80
+			&& uip_buf[2] == 0xc2 && uip_buf[3] == 0x00 && uip_buf[4] == 0x00) {
+			if (stp_enabled && uip_buf[5] == 0x00) {
+				stp_in();
+				if (uip_len) {
+					print_string("STP TX\n");
+					tcpip_output();
+				}
+			} else if (lacpEnabled && uip_buf[5] == 0x02) {
+				lacp_in();
 			}
 		} else if (igmpEnabled && uip_buf[0] == 0x01 && uip_buf[1] == 0x00 && uip_buf[2] == 0x5e // IPv4-MC packet?
 			&& igmp_packet_handler()) {
@@ -1180,14 +1098,8 @@ void handle_button(void)
 	bool button_pressed = !gpio_pin_test(machine.reset_pin);
 	if (button_last != button_pressed)
 	{
-		/*
-		 * Time the press with the software tick counter, not with the hardware
-		 * seconds register: that register is only writable on the RTL8373. On
-		 * an RTL8372 it always reads back 0, so a duration measured from it is
-		 * 0 no matter how long the button is held and every press ends up in
-		 * the "short press, no action" case. boot.c times its boot-time press
-		 * from the ticks already.
-		 */
+		/* Time the press with the software tick counter: the hardware
+		 * seconds register reads back 0 on an RTL8372. */
 		__xdata uint32_t held_ticks = ticks - button_press_ticks;
 		print_string(button_pressed ? "Button pressed\n" : "Button released\n");
 		button_last = button_pressed;
@@ -1195,7 +1107,6 @@ void handle_button(void)
 		if (button_pressed)
 		{
 			button_press_ticks = ticks;
-			// Give the user feedback for button press
 			set_sys_led_state(SYS_LED_SLOW);
 			return;
 		}
@@ -1215,10 +1126,11 @@ void handle_button(void)
 		else
 		{
 			print_string("Short button press detected; no action.\n");
-			set_sys_led_state(SYS_LED_ON);
+			set_sys_led_state(machine.sys_led_blink_idle ? SYS_LED_SLOW : SYS_LED_ON);
 		}
 	}
 }
+
 
 void check_links(void)
 {
@@ -1227,6 +1139,11 @@ void check_links(void)
 
 	reg_read_m(RTL837X_REG_LINKS);
 	if (cmp_4(sfr_data, linkbits_last) || (linkbits_p89 != linkbits_last_p89)) {
+		__xdata uint8_t new_links = (sfr_data[0] & ~linkbits_last[0]) |
+					    (sfr_data[1] & ~linkbits_last[1]) |
+					    (sfr_data[2] & ~linkbits_last[2]) |
+					    (sfr_data[3] & ~linkbits_last[3]) |
+					    (linkbits_p89 & ~linkbits_last_p89);
 		print_string("\n<new link: ");
 		print_byte(linkbits_p89); print_byte(sfr_data[0]); print_byte(sfr_data[1]);
 		print_byte(sfr_data[2]); print_byte(sfr_data[3]);
@@ -1253,6 +1170,8 @@ void check_links(void)
 		} else {
 			cpy_4(linkbits_last, sfr_data);
 		}
+		if (new_links)
+			dhcp_link_up();
 	}
 }
 
@@ -1262,14 +1181,14 @@ void check_links(void)
 //
 static void handle_tick(void)
 {
-	if (sec_counter >= SYS_TICK_HZ) {
-		sec_counter -= SYS_TICK_HZ;
+	if (timer_expired(&second)) {
+		timer_reset(&second);
+		uptime_secs++;
 		reg_read_m(RTL837X_REG_SEC_COUNTER);
 		uint8_t v = sfr_data[3];
 #ifdef DEBUG
 		print_string("  Tick counter: "); print_long(ticks); write_char('\n');
 #endif
-		uptime_secs++;
 		v++;
 		sfr_data[3] = v;
 		if (!v) {
@@ -1306,8 +1225,8 @@ static void handle_tick(void)
 	}
 
 	health_phase(HEALTH_PH_LINK);
-	if (TICKS_DUE(sfp_tick_last, SFP_TICK_STEP)) {
-		sfp_tick_last += SFP_TICK_STEP;
+	if (timer_expired(&sfp_poll)) {
+		timer_reset(&sfp_poll);
 		handle_sfp();
 		vlan_switch_poll();
 	}
@@ -1316,14 +1235,17 @@ static void handle_tick(void)
 	health_phase(HEALTH_PH_TX);
 	if (stp_enabled) {
 		uint8_t n = STP_CATCH_UP;
-		while (n-- && TICKS_DUE(stp_tick_last, STP_TICK_STEP)) {
-			stp_tick_last += STP_TICK_STEP;
+		while (n-- && timer_expired(&stp_step)) {
+			timer_reset(&stp_step);
 			stp_timers();
 		}
 	}
+	if (lacpEnabled)
+		lacp_timers();
 	health_phase(HEALTH_PH_STP);
 	lldp_tick();
-	health_phase(HEALTH_LLDP);
+	health_phase(HEALTH_PH_LLDP);
+	cabletest_tick();
 }
 
 
@@ -1338,9 +1260,13 @@ void idle(void)
 	}
 	if (link_irq) {
 		link_irq = 0;
+		reg_read_m(RTL837X_ISR_INT_PORT_LINK_CHG);
+		link_changed = ((uint16_t)sfr_data[2] << 8) | sfr_data[3];
 		REG_SET(RTL837X_ISR_INT_PORT_LINK_CHG, 0x3ff);
 		EX0 = 1;
 		check_links();
+		if (lacpEnabled)
+			lacp_link_change(link_changed);
 	}
 	health_phase(HEALTH_PH_LINK);
 	if (rx_irq) {
@@ -1359,22 +1285,17 @@ void idle(void)
 		cmd_tokenize();
 		if (err_status == ERR_OK)
 			cmd_parser();
+		/* passwd/passwd_hash mark the auth record dirty. The HTTP path
+		 * services this itself; on the serial console nothing else would,
+		 * so "passwd_hash ..." would only change RAM until the next boot. */
+		if (auth_save_pending) {
+			auth_save_pending = 0;
+			print_string(auth_persist() ? "Password saved to flash\n"
+						    : "Password not saved\n");
+		}
 		print_cmd_prompt();
 	}
 	health_phase(HEALTH_PH_CMD);
-}
-
-
-// Sleep the given number of ticks and perform idle tasks if initialized
-void sleep(uint16_t t)
-{
-	sleep_ticks = t;
-	while (sleep_ticks > 0) {
-		if (idle_ready)
-			idle();
-		else
-			PCON |= 1;
-	}
 }
 
 
@@ -1673,17 +1594,23 @@ void check_and_flash_update_image(void)
 }
 
 
+/* Called by the SDCC startup code before it copies XINIT to XISEG and clears XSEG.
+ * Hardware reset starts us with MAP_FLASH_PAGE_TO_XDATA = 1, which maps xdata
+ * 0x4000-0xbfff to the flash image (reads return flash, writes are lost), so it
+ * must be 0 by then. */
+unsigned char __sdcc_external_startup(void)
+{
+	MAP_FLASH_PAGE_TO_XDATA = 0;
+	return 0;
+}
 
 void main(void)
 {
 	ticks = 0;
-	stp_tick_last = (uint8_t)ticks;
-	sfp_tick_last = (uint8_t)ticks;
 	dhcp_state.state = DHCP_OFF;
 	sbuf_ptr = 0;
 
 	CKCON = 0;	// Initial Clock configuration
-	SFR_97 = 0;	// HADDR?
 
 	// Set in managed mode:
 	SFR_b9 = 0x00;
@@ -1706,16 +1633,9 @@ void main(void)
 	// See this issue: https://github.com/logicog/RTLPlayground/issues/70
 	print_string("\nInitializing Flash controller\n");
 #ifdef FLASH_NO_DIO
-	/*
-	 * Single-bit fast read for the flash-controller MMIO window. Some SPI NOR
-	 * chips (e.g. Boya/BoHong BY25Q16BS, RDID 0x68 0x40 0x15) return garbage
-	 * for Dual-I/O (0xBB) MMIO reads, which makes every fetch from a code bank
-	 * fail: the firmware then resets about every 10 ms right after
-	 * "Detecting CPU". Build with FLASH_NO_DIO=1 for such boards.
-	 */
 	flash_init(0);
 #else
-	flash_init(1);
+	flash_init(machine.flash_sio ? 0 : 1);
 #endif
 
 	// Set default for SFP pins so we can start up a module already inserted
@@ -1837,8 +1757,9 @@ void main(void)
 	 * "vlan switch off" line in the startup configuration says otherwise. */
 	vlan_switch_enabled = 1;
 	stp_defaults();		/* 802.1D/w default config before any "stp ..." replay */
+	lacpEnabled = 0;
+	lacp_init();
 	nic_setup();
-	REG_SET(RTL837X_NIC_INT_MSK, NIC_INT_RXIE);
 	trap_init();
 	vlan_setup();
 	port_l2_setup();
@@ -1872,11 +1793,11 @@ void main(void)
 	/* After the config: a name from it wins, otherwise derive one. */
 	set_hostname_default();
 	print_cmd_prompt();
+	timer_set(&second, SYS_TICK_HZ);
+	timer_set(&sfp_poll, SFP_TICK_STEP);
 	idle_ready = 1;
 
-	/* Some panels show "working" as a slow blink of the SYS LED (see the
-	 * board manual), most are fine with a steady lamp. */
-	set_sys_led_state(machine.sys_led_blink_idle ? SYS_LED_SLOW : SYS_LED_ON);
+	set_sys_led_state(SYS_LED_ON);
 
 	cmd_editor_init();
 

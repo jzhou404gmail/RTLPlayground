@@ -73,9 +73,12 @@ device over the web interface — this board has no serial console:
 
 Both XikeStor targets embed `config-xikestor.txt` instead of `config.txt`
 (selected by machine target in the Makefile). Both files now hold `ip dhcp`, so
-a freshly flashed board comes up on **DHCP** and with **no login password**.
-Adding an `ip <address>` or a `passwd <text>` line to the file overrides that
-default.
+a freshly flashed board comes up on **DHCP** with the built-in default password **`1234`**
+(a fixed salted digest; change it after the first login).
+Adding an `ip <address>` line to the file overrides that default; the password
+is set on the first visit to the web interface (or with
+`passwd_hash <salt> <digest>` from `tools/passwd_hash.py` on the console), not
+with a plaintext `passwd <text>` line.
 
 ## Installing
 
@@ -86,7 +89,10 @@ RTLPlayground image runs on the board:
 - board already running RTLPlayground → upload
   `output/rtlplayground-<version>-SKS3200M_5GPY1XF.bin` (512 KiB) in the web UI
 - board still running the stock firmware → upload the one-shot installer
-  `installer/output/rtlplayground_oem_upgrade.bin`
+  `rtlplayground-<version>-oem-upgrade-SKS3200M_5GPY1XF.bin` from the release
+  (each installer embeds one model's firmware); built locally it is
+  `installer/output/rtlplayground_oem_upgrade.bin` after
+  `make MACHINE=SKS3200M_5GPY1XF && make -C installer`
 
 Build:
 

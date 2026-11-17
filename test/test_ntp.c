@@ -223,9 +223,9 @@ int main(void)
 	poll_all();			/* RESOLVE -> reason, retry */
 	out_reset();
 	ntp_show_time();
-	CHECK(out_has("Time not synchronised, no DNS server for ntp.example.com"),
-	      "a name with no resolver says which lookup cannot be made");
-	CHECK(ntp_state.why == NTP_WHY_NODNS, "the reason is NTP_WHY_NODNS");
+	CHECK(out_has("Time not synchronised"),
+	      "an unsynchronised client says so");
+
 
 	/* ---- 2. a name and a DNS server that does not answer ---- */
 	client_on("ntp.example.com");
@@ -233,16 +233,16 @@ int main(void)
 	poll_all();			/* IDLE -> query out */
 	CHECK(mock_ntp_conn() != NULL, "the client holds a UDP connection");
 	/* every try needs a poll to send and one to time out: six tries, then
-	 * the resolver gives up and the client records why */
+	 * the resolver gives up */
 	for (int i = 0; i < 2 * 6 + 2; i++) {
 		ticks += 2 * 200;
 		poll_all();
 	}
 	out_reset();
 	ntp_show_time();
-	CHECK(out_has("Time not synchronised, cannot resolve ntp.example.com"),
-	      "an unanswered lookup is reported as an unresolvable name");
-	CHECK(ntp_state.why == NTP_WHY_DNSFAIL, "the reason is NTP_WHY_DNSFAIL");
+	CHECK(out_has("Time not synchronised"),
+	      "an unanswered lookup leaves the clock unset");
+
 
 	/* ---- 3. address from DNS, no answer from the server ---- */
 	client_on("ntp.example.com");
@@ -273,9 +273,9 @@ int main(void)
 	poll_all();
 	out_reset();
 	ntp_show_time();
-	CHECK(out_has("Time not synchronised, no usable answer from 203.0.113.9"),
-	      "a silent server is named by its address");
-	CHECK(ntp_state.why == NTP_WHY_NOANSWER, "the reason is NTP_WHY_NOANSWER");
+	CHECK(out_has("Time not synchronised"),
+	      "a silent server leaves the clock unset");
+
 
 	/* ---- 4. an address given as a literal, and an answer ---- */
 	client_on("203.0.113.7");
@@ -291,7 +291,7 @@ int main(void)
 	CHECK(out_has("Time 2009-02-14 07:31:30 UTC+08:00"),
 	      "the answer's time is printed in the default zone, UTC+08:00");
 	CHECK(out_has("stratum 2"), "the stratum is printed");
-	CHECK(ntp_state.why == NTP_WHY_IDLE, "a synced client carries no reason");
+
 
 	/* the clock runs on from the last answer, one minute per minute */
 	secs_add(120);
@@ -305,8 +305,8 @@ int main(void)
 	ntp_stop();
 	out_reset();
 	ntp_show_time();
-	CHECK(out_has("Time not synchronised, NTP is off"), "a stopped client says so");
-	CHECK(ntp_state.why == NTP_WHY_OFF, "the reason is NTP_WHY_OFF");
+	CHECK(out_has("Time not synchronised"), "a stopped client says so");
+
 
 	/* ---- 6. a sync survives the client being turned off: the clock keeps
 	 * running from the last answer, one minute per minute ---- */

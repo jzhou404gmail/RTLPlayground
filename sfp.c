@@ -15,12 +15,12 @@
 #include "phy.h"
 #include "boot.h"
 #include "sfp.h"
+#include "timer.h"
 
 extern __code const struct machine machine;
 
 // SFP1 b0 = 1 => module missing, b1 = 1 => LOS;
 // SFP2 b4 = 1 => module missing, b5 = 1 => LOS;
-extern volatile __xdata uint32_t ticks;
 
 __xdata uint8_t sfp_pins_last;
 __xdata char sfp_module_vendor[2][17];
@@ -30,7 +30,7 @@ __xdata uint8_t sfp_options[2];
 __xdata uint8_t sfp_buf[16];	/* scratch for one I2C transaction, the controller reads at most 16 bytes */
 __xdata uint8_t sfp_speed[2];
 __xdata uint8_t sfp_quirks[2];
-__xdata uint8_t sfp_wake_at[2];
+__xdata struct timer sfp_wake[2];
 __xdata uint8_t sfp_wake_pending[2];
 
 
@@ -59,8 +59,9 @@ static inline uint8_t sfp_rate_to_sds_config(uint8_t rate)
 		return SDS_1000BX_FIBER;
 	if (rate >= 0x19 && rate <= 0x20)  // Ethernet 2.5 GBit
 		return SDS_HSG;
-	if (rate >= 0x62 && rate < 0x70)
+	if (rate >= 0x62 /* && rate < 0x70 */) // Force higher rates to 10G (e.g., 25G, 50G)
 		return SDS_10GR;
+
 	return 0xff;
 }
 
@@ -202,10 +203,9 @@ void handle_sfp(void) __banked
 			if (sfp_pins_last & (0x1 << (sfp << 2))) {
 				sfp_pins_last &= ~(0x01 << (sfp << 2));
 				print_string("\n<MODULE INSERTED>  Slot: "); write_char('1' + sfp);
-				sfp_wake_at[sfp] = ticks;
+				timer_set(&sfp_wake[sfp], SFP_WAKE_TICKS);
 				sfp_wake_pending[sfp] = 1;
-			} else if (sfp_wake_pending[sfp]
-				   && (uint8_t)((uint8_t)ticks - sfp_wake_at[sfp]) >= SFP_WAKE_TICKS) {
+			} else if (sfp_wake_pending[sfp] && timer_expired(&sfp_wake[sfp])) {
 				sfp_wake_pending[sfp] = 0;
 				if (!sfp_module_read(sfp)) {
 					print_string("SFP: an I2C read failed, retrying on the next poll\n");

@@ -32,7 +32,7 @@ The label on the owner's unit reads `Hisource众通源 / 交换机 / 型号 Hi-K
 Verified on two units of this board:
 
 - Firmware boots, detects the SoC (RTL8372), initialises the switch and comes up on
-  DHCP (no password; fallback address `192.168.10.247` if no DHCP server answers)
+  DHCP (built-in default password `1234`; fallback address `192.168.10.247` if no DHCP server answers)
 - All four front-panel LAN ports (physical ports 1-4) at 10/100/1000/2500 Mbps
 - Both SFP+ cages: module detect and RX_LOS on the pins below, module EEPROM readable
   over I2C, port links (10G module) and the SFP LED lights

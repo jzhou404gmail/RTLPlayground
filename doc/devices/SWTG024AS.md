@@ -58,7 +58,9 @@ variant of this family uses the same mapping.
 The stock firmware is a CGI-based Realtek SDK image (固件版本 `V10.9.4`, Aug 07
 2024, `用户名/密码 admin/admin`, IP `192.168.10.12`). Its **固件升级** page
 (`fwug.cgi`) switches the board into the vendor loader, and the loader then takes
-the one-shot installer from `installer/output/`; see
+the one-shot installer (`rtlplayground-<version>-oem-upgrade-SKS3200M_4GPY2XF.bin`
+in the release, or `installer/output/rtlplayground_oem_upgrade.bin` when built
+locally with `make MACHINE=SKS3200M_4GPY2XF && make -C installer`); see
 [installation method 2](../../README.en.md):
 
 1. POST `cmd=enter_loader` to `fwug.cgi` (in the browser: click 升级 and confirm).
@@ -70,8 +72,8 @@ the one-shot installer from `installer/output/`; see
    with the file in the `submitFile` field. The page answers 升级成功！, the board
    reboots into the installer, the installer writes RTLPlayground to `0x0` and
    reboots again.
-4. RTLPlayground then comes up on **DHCP** with **no login password**; the
-   vendor `admin/admin` no longer applies.
+4. RTLPlayground then comes up on **DHCP** with the built-in default password
+   **`1234`** (change it after the first login); the vendor `admin/admin` no longer applies.
 
 Verified on the owner's unit (2026-10-12): upgraded from `V10.9.4` to
 `MACHINE_SKS3200M_4GPY2XF`; the UI then reports 硬件 `PCB-SWTG024AS-V1.0` /
