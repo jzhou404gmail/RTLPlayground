@@ -3046,6 +3046,7 @@ function updateVlanWarning() {
     });
 }
 function renderInfo() {
+    var layout = S.info.id_layout | 0;
     var m = [
         ["i_host", "hostname"],
         ["i_ip", "ip_address"],
@@ -3053,15 +3054,25 @@ function renderInfo() {
         ["i_gw", "ip_gateway"],
         ["i_mac", "mac_address"],
         ["i_fw", "sw_ver"],
-        ["i_built", "build_date"],
-        ["i_model", "model"],
-        ["i_uptime", "uptime"],
-        ["i_hw", "hw_ver"],
+        ["i_built", "build_date"]
+    ];
+    var post = [
         ["i_pcb", "pcb_ver"],
         ["i_temp", "chip_temp"],
         ["i_flash", "flash_size"],
         ["i_syslog", "syslog_server"]
     ];
+    var slot = [];
+    if (layout === 1) {
+        slot.push(["i_model", "model"]);
+    } else if (layout === 2) {
+        slot.push(["i_hw", "hw_ver"]);
+    } else {
+        m.push(["i_model", "model"]);
+        slot.push(["i_hw", "hw_ver"]);
+    }
+    m.push(["i_uptime", "uptime"]);
+    m = m.concat(slot, post);
     var tb = $("sysinfo");
     tb.innerHTML = "";
     m.forEach(function(r) {
@@ -5583,6 +5594,9 @@ $("fwup").addEventListener("click", function() {
             })
         };
         xhr.open("POST", "/upload");
+        /* The firmware requires this on every authenticated POST; without it
+         * the browser's upload was rejected with HTTP 403 (Missing X-RTLP). */
+        xhr.setRequestHeader("X-RTLP", "1");
         xhr.send(form);
     });
 });

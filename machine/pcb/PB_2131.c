@@ -2,7 +2,7 @@
 
 __code const struct machine machine = {
 	/* RTL8372: MACHINE_MIN_PORT 3 / MAX 8 come from machine.h */
-	.machine_name = "PB-2131",
+	.machine_name = "IG204",
 	.model_name = "IG204 V1",
 	.isRTL8373 = 0,
 	.n_sfp = 2,
@@ -67,4 +67,5 @@ __code const struct machine machine = {
 	.vlan_switch_pin = GPIO36_PWM_OUT,
 	/* The manual: "SYS 慢闪 = the device works normally". */
 	.sys_led_blink_idle = 1,
+    .id_layout = 2,
 };

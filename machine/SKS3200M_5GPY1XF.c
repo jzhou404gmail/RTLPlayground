@@ -29,4 +29,5 @@ __code const struct machine machine = {
 				  }, // unused		    	},
 				},
 	.led_mux_custom = 0,
+    .id_layout = 1,
 };

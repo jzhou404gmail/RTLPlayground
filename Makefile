@@ -1,4 +1,4 @@
-VERSION=0.1.14
+VERSION=0.1.15
 IMAGESIZE = 524288
 DEFAULT_CONFIG_LOCATION = 454656
 CONFIG_LOCATION = 458752
@@ -323,11 +323,11 @@ $(OUTPUT): $(BUILDDIR)/rtlplayground.img $(CONFIG) | tools
 machine_check:
 	@mkdir -p $(BUILDDIR)/tmp
 	@set -eo pipefail; \
-	for MACHINE in `grep -E '^[[:space:]]*(//[[:space:]]*)?#define MACHINE_' machine.h | sed -E 's%^[[:space:]]*(//[[:space:]]*)?#define MACHINE_%%' | awk '{print $$1}' | sort -u`; \
-	do \
-	echo "Checking $${MACHINE}"; \
-	$(CC) $(CC_FLAGS) -DMACHINE_$${MACHINE} -MMD -o $(BUILDDIR)/tmp/machine_check -c machine.c; \
-	$(CC) $(CC_FLAGS) -DMACHINE_$${MACHINE} -MMD -o $(BUILDDIR)/tmp/machine_check -c machine_init.c; \
+	for M in $(MACHINE_TARGETS); do \
+	INIT=machine/$${M}_init.c; [ -f "$${INIT}" ] || INIT=machine/default_machine_init.c; \
+	echo "Checking $${M}"; \
+	$(CC) $(CC_FLAGS) -DMACHINE_NAME=$${M} -MMD -o $(BUILDDIR)/tmp/machine_check -c machine/$${M}.c; \
+	$(CC) $(CC_FLAGS) -DMACHINE_NAME=$${M} -MMD -o $(BUILDDIR)/tmp/machine_check -c "$${INIT}"; \
 	done
 	@rm -rf $(BUILDDIR)/tmp
 

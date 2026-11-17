@@ -133,6 +133,12 @@ struct machine {
 	/* Idle state of the SYS LED: 0 keeps it steady on, 1 makes it blink
 	 * slowly. The PB-2131 manual asks for a slow blink. */
 	uint8_t sys_led_blink_idle;
+	/* System-page identity row:
+	 *   0 = the model row before uptime and the hardware row after it
+	 *       (the historical layout),
+	 *   1 = only a "Model" row, in the hardware slot after uptime,
+	 *   2 = only a "Hardware" row, in that slot. */
+	uint8_t id_layout;
 };
 
 struct machine_runtime

@@ -30,7 +30,7 @@
 
 ## 1. 我该编译哪个 target？
 
-### 1.1 本分支新增的 6 个 target（外加按实物重写的 IG204）
+### 1.1 本分支新增的 target（外加按实物重写的 IG204）
 
 | 板卡丝印 | 零售型号 | 网管 | 端口 | 主控 | 闪存 | Machine target | 编译 |
 |---|---|---|---|---|---|---|---|
@@ -41,6 +41,7 @@
 | `SWTG118AS-V2.1-17462` | 兮克 XikeStor **SKS3200M-8GPY1XF** | 网管 | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `XIKESTOR_SKS3200M_8GPY1XF` | `make MACHINE=…` |
 | `PB-2131` | IG204 4+2（标签 `IG204 V1`，Steamemo 等品牌共用） | 非网管 | 4 × 2.5G + 2 × SFP+ | RTL8372 | 原厂 4 MiB cFeon `EN25QE32A`；实测机换成 1 MiB `MX25L8005M` | `STEAMEMO_IG204_V1` | `make MACHINE=STEAMEMO_IG204_V1 FLASH_NO_DIO=1` |
 | `F7005-2.5GPOE-V1.0` | NPA **AP-7024-2.5G** | 非网管 | 4 × 2.5G + 2 × SFP+ | RTL8372 | 原厂 512 KiB BrightMoon `T25S40`；成品机换成 2 MiB `BY25Q16BS` | `F7005_2_5` | `make MACHINE=F7005_2_5 FLASH_NO_DIO=1` |
+| `PCB-K0402W-V3.0` / `DIP-K0402WS-V3.0` | MIMC·微联聚 **D4S2TX**（前面板 S/V 是两颗闪存的硬件切换；System 页显示 MIMC D4S2TX / PCB_K0402WS-V3.0） | 非网管 | 4 × 2.5G + 2 × SFP+ | RTL8372 | 2 MiB × 2 Boya `BY25Q16ESSIG`（U1 正面 / U67 背面） | `MIMC_D4S2TX` | `make MACHINE=MIMC_D4S2TX`（板级已设 `.flash_sio = 1`，不必再加 `FLASH_NO_DIO=1`） |
 
 三个兮克机型**不是新板子**：里面的 PCB 上游本来就支持（分别是 ZX-SWTGW215AS、SWTG024AS 系列、ZX-SWTGW218AS）。新增 target 的原因是**同一块板子被厂商以另一个型号销售**，固件里应该显示实际型号；另外 4GPY2XF 那台还需要为这个零售版本单独打开复位键和出厂 MAC。
 
@@ -64,7 +65,7 @@ IG204 4+2（`PB-2131`）和 NPA AP-7024-2.5G（`F7005-2.5GPOE-V1.0`）则是**�
 3. **以丝印为准，不要以零售名为准。** 丝印能对上下表就用对应 target；对不上就去 [doc/supported_devices.md](doc/supported_devices.md) 里查 —— 其它版本（KP-9000、SWTG024AS-V2.0、ZX-SWTGW215AS、ZX-SWTGW218AS、PCB-K0402WS V2.0/V3.0 等）上游已经覆盖。
 
 > [!IMPORTANT]
-> 上面这些 target 里有四个是用 `FLASH_NO_DIO=1` 编译并实测的（Hi-K0402WS、Hi-K0801WS、IG204、AP-7024-2.5G）。其中 **Hi-K0402WS / Hi-K0801WS 不加这个标志一定会出问题**：`Detecting CPU` 之后每 10 ms 重启一次，这不是板子坏了，也不是 target 选错了，而是那两颗 Boya `BY25Q16BS` 不接受 Dual-I/O 读模式，重新加 `FLASH_NO_DIO=1` 编译再刷即可。IG204 和 AP-7024 的闪存（`MX25L8005M`、`T25S40`、`BY25Q16BS`）同样只按单比特 fast read 验证过，一起加这个标志更稳。
+> 上面这些 target 里有四个是用 `FLASH_NO_DIO=1` 编译并实测的（Hi-K0402WS、Hi-K0801WS、IG204、AP-7024-2.5G）。其中 **Hi-K0402WS / Hi-K0801WS 不加这个标志一定会出问题**：`Detecting CPU` 之后每 10 ms 重启一次，这不是板子坏了，也不是 target 选错了，而是那两颗 Boya `BY25Q16BS` 不接受 Dual-I/O 读模式，重新加 `FLASH_NO_DIO=1` 编译再刷即可。IG204 和 AP-7024 的闪存（`MX25L8005M`、`T25S40`、`BY25Q16BS`）同样只按单比特 fast read 验证过，一起加这个标志更稳。MIMC D4S2TX 是第五块按单比特模式跑的板子，但它把这件事写进了板级定义（`.flash_sio = 1`），编译时不用再加标志。
 
 ## 2. 逐机型说明
 
@@ -178,6 +179,25 @@ RTL8372，4 × 2.5GBASE-T + 2 × SFP+（1G/2.5G/10G），原厂 512 KiB BrightMo
 | 机型文档 | [doc/devices/F7005-2.5GPOE-V1.0.md](doc/devices/F7005-2.5GPOE-V1.0.md) |
 
 实测内容：`regget 0004` = `0x83727000`（RTL8372）；四个电口 2.5G；电口 LED **2.5G 绿 / 1G·100M 橙**，逐个焊盘量出来的映射（RJ45 1 绿 3 / 橙 4-5，RJ45 2 绿 6 / 橙 8，RJ45 3 绿 9-10 / 橙 12-14，RJ45 4 绿 18-20 / 橙 21-23）；`LED_GLB_IO_EN` 必须写 `0x7fffffff`，否则整块面板不亮；两个光笼的检测脚是 **GPIO38（左）/ GPIO37（右）**、EEPROM 在 **SDA1/SCL1 与 SDA0/SCL0**（都不是参考值），同一只 10G 模块左右互换都验过 `sfp` 和 10G 链路。
+
+### 2.8 MIMC D4S2TX —— `PCB-K0402W-V3.0` → `MACHINE_MIMC_D4S2TX`
+
+RTL8372，4 × 2.5GBASE-T + 2 × SFP+（1G/2.5G/10G），丝印 `PCB-K0402W-V3.0` / `DIP-K0402WS-V3.0`，标签型号 MIMC·微联聚 D4S2TX。板上有**两颗 2 MiB 闪存**：正面 `U1`、背面 `U67`；前面板最右侧的 **S/V** 拨刀**不是 VLAN 开关**，而是这两颗闪存的硬件切换（S = U1，V = U67，切换 HOLD 线，拨动后重启进另一颗）。因此本机型没有软 VLAN 开关。**状态：2026-11-17 四台全部实测通过：启动、Web、四个电口、两颗闪存、全部面板灯（L1-L4 / R1-R4 / 两个光笼）都正确。**
+
+| | |
+|---|---|
+| 编译 | `make MACHINE=MIMC_D4S2TX`（板级已设 `.flash_sio = 1`；加 `FLASH_NO_DIO=1` 效果相同） |
+| 首次刷机 | 原厂为非网管 Realtek 参考固件，只能用 SPI 夹子写：先备份 2 MiB，擦除，写构建出的 512 KiB 镜像。给编程器用时先 `truncate -s 2097152` 补齐；**补齐过的文件不要拿去网页升级** |
+| 闪存 | 两颗 2 MiB 的 `BY25Q16ESSIG`（U1/U67），板级按单比特 fast read（`.flash_sio = 1`）跑，等价于 `FLASH_NO_DIO=1` |
+| S/V 拨刀 | **硬件闪存选择**：S = U1，V = U67；两颗可各放一套固件，切换即重启。不要把它当 VLAN 开关 |
+| 复位键 | **没有**，`.reset_pin = GPIO_NA` → Web 界面按钮或 `defaults` |
+| 默认 IP | DHCP（自动获取） |
+| 串口 | `J2` 四针 `3V3 / RX / TX / GND`（端口朝下时从上往下）；原厂 9600 8N1，RTLPlayground 115200 8N1 |
+| 机型文档 | [doc/devices/PCB-K0402W-V3.0.md](doc/devices/PCB-K0402W-V3.0.md) |
+
+网页 System 页显示：**型号 `MIMC D4S2TX`**（在“运行时间”下面原来的硬件位置），PCB `PCB_K0402WS-V3.0`，不再显示硬件行（`id_layout = 1`）。
+
+LED 配置**原样借用上游 `PCB_K0402W_V3_0` target**（`led_mux` / `led_sets` / `high_leds` + `_init.c` 里 enable pad6），四台实测全部灯位正确；之前按 V1.0 推的映射是错的，已全部替换。端口映射和 SFP 检测脚沿用上游 V3.0（左 GPIO38 / 右 GPIO37）。
 
 ## 3. 这个分支还改了什么
 

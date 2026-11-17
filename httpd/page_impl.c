@@ -266,6 +266,8 @@ void send_basic_info(void)
 		str_code_to_html("\"," JSONQUOTE("model") ":\"");
 		str_code_to_html(machine.model_name);
 	}
+	str_code_to_html("\"," JSONQUOTE("id_layout") ":\"");
+	itoa_html(machine.id_layout);
 	str_code_to_html("\"," JSONQUOTE("chip_temp") ":\"");
 	temp_to_html();
 	str_code_to_html("\"," JSONQUOTE("flash_size") ":\"");

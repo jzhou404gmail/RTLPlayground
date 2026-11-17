@@ -1,5 +1,28 @@
 # Change Log
 
+## [0.1.15] - 2026-11-17
+
+### Changed
+
+- **System-page identity row layout** is now per board (`id_layout` on `struct machine`, exposed as `id_layout` in `/information.json`):
+  - `1`: a single **型号 / Model** row, placed in the hardware slot after uptime — used by `MIMC_D4S2TX` (`MIMC D4S2TX`), the three SKS targets (`SKS3200M-8GPY1XF` / `4GPY2XF` / `5GPY1XF`) and `PCB_K0801W_V1` (`SFP-J08E-HG1`);
+  - `2`: a single **硬件 / Hardware** row, no model row — used by `STEAMEMO_IG204_V1`, which now reports `IG204`;
+  - `0` (default): the historical two-row layout used by the other boards.
+- All nine units on the lab network were upgraded to v0.1.15: four `MIMC_D4S2TX`, three SKS, one `IG204` and one `SFP-J08E-HG1`.
+
+### Added
+
+- New target **`MIMC_D4S2TX`** for the MIMC·微联聚 D4S2TX: RTL8372, 4 × 2.5G + 2 × SFP+, silkscreen `PCB-K0402W-V3.0` / `DIP-K0402WS-V3.0`, **two** 2 MiB Boya `BY25Q16ESSIG` chips (`U1` top, `U67` bottom). The board definition lives in `machine/pcb/PCB_K0402W_V3_0__MIMC.c` (machine target symlinked to it) and sets `flash_sio = 1`, so this Boya `E` revision is read in single-bit mode without passing `FLASH_NO_DIO=1`.
+- The front **S/V** slide switch is the **hardware selector for those two flash chips** (measured 2026-11-17: S = `U1`, V = `U67`, via the HOLD lines; flipping it reboots into the other chip), not a VLAN switch. The target therefore sets no `vlan_switch_pin` and the panel-VLAN card stays absent.
+- **LED configuration taken unchanged from the upstream `PCB_K0402W_V3_0` target** (`led_mux`, `led_sets`, `high_leds` and the `_init.c` hook that enables LED pad 6). Flashing that target on the unit showed every panel lamp correct, and the same configuration was verified on four MIMC units: L1-L4, R1-R4 and both SFP cages. The V1.0-derived LED map used during the first bring-up was wrong and is gone.
+- The System page shows hardware **`MIMC D4S2TX`**, PCB **`PCB_K0402WS-V3.0`** and **no model row** (`model_name` is left empty; the UI already skips empty fields).
+- `doc/devices/PCB-K0402W-V3.0.md`: board data, the two-flash layout, the flash-mode decision, the build/install steps and the verified state; the doc is linked from `doc/supported_devices.md`, and both READMEs gained a row and a device section.
+
+### Fixed
+
+- **Web firmware upload failed with HTTP 403 (Missing X-RTLP)**: the upload XHR in `html/app.js` never sent the `X-RTLP` header that the firmware requires on authenticated POSTs, so every browser upload was rejected while `curl` with the header worked. The upload now sets `X-RTLP: 1`; four units were upgraded with the fixed image.
+- `make machine_check` compiled the long-gone `machine.c` / `machine_init.c` from the pre-`machine/` layout, so it failed at the first target (and could never check a new board). It now compiles `machine/<NAME>.c` and its `_init.c` for every target in `machine/*.c`; all 71 definitions pass.
+
 ## [0.1.14] - 2026-11-16
 
 ### Changed

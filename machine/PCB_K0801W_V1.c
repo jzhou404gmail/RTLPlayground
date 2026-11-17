@@ -47,4 +47,5 @@ __code const struct machine machine = {
             0
         },
     },
+    .id_layout = 1,
 };

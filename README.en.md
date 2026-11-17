@@ -37,7 +37,7 @@ the observation that settles it.
 
 ## 1. Which target do I build?
 
-### 1.1 The six targets this fork adds, plus the IG204 rewritten from the unit
+### 1.1 The fork's own targets, plus the IG204 rewritten from the unit
 
 | Board silkscreen | Sold as | Managed | Ports | SoC | Flash | Machine target | Build |
 |---|---|---|---|---|---|---|---|
@@ -48,6 +48,7 @@ the observation that settles it.
 | `SWTG118AS-V2.1-17462` | XikeStor **SKS3200M-8GPY1XF** | yes | 8 × 2.5G + 1 × SFP+ | RTL8373 | 2 MiB Winbond `W25Q16JV` | `SKS3200M_8GPY1XF` | `make MACHINE=…` |
 | `PB-2131` | IG204 4+2 (label `IG204 V1`, sold by Steamemo and others) | no | 4 × 2.5G + 2 × SFP+ | RTL8372 | stock 4 MiB cFeon `EN25QE32A`; the measured unit carries a 1 MiB `MX25L8005M` | `STEAMEMO_IG204_V1` | `make MACHINE=STEAMEMO_IG204_V1 FLASH_NO_DIO=1` |
 | `F7005-2.5GPOE-V1.0` | NPA **AP-7024-2.5G** | no | 4 × 2.5G + 2 × SFP+ | RTL8372 | stock 512 KiB BrightMoon `T25S40`; the final unit carries a 2 MiB `BY25Q16BS` | `F7005_2_5` | `make MACHINE=F7005_2_5 FLASH_NO_DIO=1` |
+| `PCB-K0402W-V3.0` / `DIP-K0402WS-V3.0` | MIMC **D4S2TX** (front S/V switch selects the two flashes; System page shows MIMC D4S2TX / PCB_K0402WS-V3.0) | no | 4 × 2.5G + 2 × SFP+ | RTL8372 | 2 MiB × 2 Boya `BY25Q16ESSIG` (`U1` top / `U67` bottom) | `MIMC_D4S2TX` | `make MACHINE=MIMC_D4S2TX` (the board sets `.flash_sio = 1`, so `FLASH_NO_DIO=1` is not needed) |
 
 The three XikeStor units are not new boards: the PCB inside them is a board upstream already supports
 (the ZX-SWTGW215AS, the SWTG024AS family and the ZX-SWTGW218AS). The new targets exist because those
@@ -89,7 +90,9 @@ the flash size and PCB label of the 8GPY1XF row.
 > **reset in a loop right after `Detecting CPU`**. That is not a bricked board and not a wrong target —
 > it is the Boya `BY25Q16BS` chip refusing the Dual-I/O read mode. Rebuild with `FLASH_NO_DIO=1` and flash
 > again. The IG204 and AP-7024 flash parts (`MX25L8005M`, `T25S40`, `BY25Q16BS`) were only ever run with
-> single-bit fast read as well, so keep the flag for them.
+> single-bit fast read as well, so keep the flag for them. The MIMC D4S2TX target is the fifth board in
+> single-bit mode, but it carries that as `.flash_sio = 1` in its board definition, so its build needs
+> no flag.
 
 ## 2. Device notes
 
@@ -238,6 +241,34 @@ Measured: `regget 0004` = `0x83727000` (RTL8372); the four copper ports at 2.5G;
 written `0x7fffffff` or the whole panel stays dark; the cages detect on **GPIO38 (left) / GPIO37 (right)**
 and their EEPROMs answer on **SDA1/SCL1 and SDA0/SCL0** (none of them the reference pins) - one 10G module
 was moved from cage to cage and read with `sfp` and linked at 10G in both.
+
+### 2.8 MIMC D4S2TX — `PCB-K0402W-V3.0` → `MACHINE_MIMC_D4S2TX`
+
+RTL8372, 4 × 2.5GBASE-T + 2 × SFP+ (1G/2.5G/10G), silkscreen `PCB-K0402W-V3.0` / `DIP-K0402WS-V3.0`, sold as
+MIMC **D4S2TX**. The board carries **two 2 MiB flashes**: `U1` on the top side and `U67` on the bottom. The
+front **S/V** slide switch is **not a VLAN switch**: it selects between those two chips (S = U1, V = U67 by
+driving their HOLD lines, so flipping it reboots into the other chip), and this target has no panel VLAN
+switch. **Status: verified on four units (2026-11-17) — boot, web UI, all four RJ45 ports, both flashes and
+every panel lamp (L1-L4, R1-R4, both SFP cages) work.**
+
+| | |
+|---|---|
+| Build | `make MACHINE=MIMC_D4S2TX` (the board sets `.flash_sio = 1`; `FLASH_NO_DIO=1` does the same) |
+| First install | stock firmware is an unmanaged Realtek reference image, so SPI-clamp only: back up the 2 MiB, erase, write the 512 KiB build. Pad it with `truncate -s 2097152` for the programmer; **never** upload the padded file through the web UI |
+| Flash | two 2 MiB `BY25Q16ESSIG` parts (U1/U67); the target reads single-bit (`.flash_sio = 1`), the equivalent of `FLASH_NO_DIO=1` |
+| S/V switch | **hardware flash selector**: S = U1, V = U67. Each chip can hold its own image; flipping the switch reboots into the other one. Not a VLAN switch |
+| Reset button | none, `.reset_pin = GPIO_NA` → web UI button or `defaults` |
+| Default IP | DHCP (automatic) |
+| Console | `J2` 4-pin `3V3 / RX / TX / GND` (top to bottom with the ports facing down); 9600 8N1 on the stock firmware, 115200 8N1 on RTLPlayground |
+| Document | [doc/devices/PCB-K0402W-V3.0.md](doc/devices/PCB-K0402W-V3.0.md) |
+
+The System page shows a single **Model** row **`MIMC D4S2TX`** in the hardware slot (after uptime)
+and PCB **`PCB_K0402WS-V3.0`**, with no hardware row (`id_layout = 1`).
+
+The LED configuration is taken unchanged from the upstream `PCB_K0402W_V3_0` target (`led_mux`,
+`led_sets`, `high_leds` and the `_init.c` pad-6 enable) and was verified on four units; the earlier
+V1.0-derived map in this file was wrong. The port map and SFP detect pins follow the upstream V3.0 target
+(GPIO38 left / GPIO37 right).
 
 ## 3. What else this fork changes
 
